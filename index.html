@@ -5904,7 +5904,10 @@ function bDamage(a,d,dmg){
   if(d.side===1&&(!a||a.side===0))dmg*=OUR_K;else if(d.side===0&&a&&a.side===1)dmg/=OUR_K;   // 우리 병사는 망자보다 FOE_K배 강하다
   d.pool-=dmg;d.hitT=0.15;
   /* 왕을 직접 조종하는 동안엔 친위대가 다 쓰러져도 왕은 체력(왼쪽 위 막대)이 0이 될 때만 쓰러진다 — 체력이 그대로인데 갑자기 죽던 것 */
-  if(d.isKing&&E.camMode==="tp"&&!KC.ko&&!BT.kingDown&&d.pool<sqHp(d))d.pool=sqHp(d)*0.999;
+  if(d.isKing&&E.camMode==="tp"&&!KC.ko&&!BT.kingDown){
+    /* 친위대가 맞는 만큼 왕도 다친다 — 난전 속에서 체력 막대가 그대로이던 것. 친위대 전체 체력만큼 맞으면 왕 체력의 1.2배 */
+    KC.sqAcc=(KC.sqAcc||0)+dmg/Math.max(1,d.men0*sqHp(d))*KC.max*0.9;if(a&&BT.kingPos)KC.dmgFrom={x:a.x-BT.kingPos.x,z:a.z-BT.kingPos.z};
+    if(d.pool<sqHp(d))d.pool=sqHp(d)*0.999;}
   const na=Math.max(0,Math.ceil(d.pool/sqHp(d)-1e-6)),deaths=d.alive-na;
   if(deaths>0){
     const before=aliveFigs(d);d.alive=na;const after=aliveFigs(d);
@@ -6723,7 +6726,7 @@ function battleKingControl(dt){
   // 적의 칼: 가까운 적 무리가 왕을 벤다
   let dmg=0,fromV=null,bd=1e9;for(const s of bFoes()){const d=Math.hypot(s.x-k.x,s.z-k.z);if(d<sqR(s)+(KC.mounted?2.2:1.6)){dmg+=U[s.t].atk*1.6*dt*Math.min(1,aliveFigs(s)/6);if(d<bd){bd=d;fromV={x:s.x-k.x,z:s.z-k.z};}}}
   // 붙어 있는 동안 피해가 계속 쌓인다 (예전엔 맞는 순간의 한 프레임만 셌다)
-  KC.dmgAcc=(KC.dmgAcc||0)+dmg*1.5*(KC.mounted?0.75:1);if(fromV)KC.dmgFrom=fromV;if(!dmg)KC.dmgAcc*=Math.max(0,1-dt*2);
+  const sqA=KC.sqAcc||0;KC.sqAcc=0;KC.dmgAcc=(KC.dmgAcc||0)+dmg*1.5*(KC.mounted?0.75:1)+sqA;if(fromV)KC.dmgFrom=fromV;if(!dmg&&!sqA)KC.dmgAcc*=Math.max(0,1-dt*2);
   if(KC.dmgAcc>0.5&&KC.hitCd<=0&&(KC.inv<=0||KC.rollT>0||KC.block)){const v=KC.dmgAcc;KC.dmgAcc=0;if(kingHurt(v,KC.dmgFrom)){kingFall();}KC.hitCd=0.4;}
   // 무쌍난무 (4): 기세가 차면 몇 초 동안 무적으로 회전하며 주위를 쓸어 버린다
   if(KC.wantMusou){KC.wantMusou=false;if((KC.musou||0)>=100&&!(KC.musouT>0)){KC.musou=0;KC.musouT=2.8;KC.musouP=0;const nm=BT.heroGen?(genById(BT.heroGen)||{}).name:S.ruler;bSlow(0.5,`${nm}: "무쌍난무!"`);sfx("horn",0.9);E.shake=Math.max(E.shake||0,0.25);for(const q of bOurs())if(act(q)&&Math.hypot(q.x-k.x,q.z-k.z)<45)q.morale=Math.min(100,q.morale+15);}else if(!(KC.musouT>0))bSay(`기세가 모자라다 (${Math.floor(KC.musou||0)}%) — 적을 베고, 완벽히 막고 피하면 찬다`);}
@@ -7926,7 +7929,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
- ["0.9.124","전투: 왕을 직접 조종하는 동안 친위대가 다 쓰러지면 왕의 체력이 그대로인데도 한 번에 쓰러지던 것 고침 — 이제 왕은 왼쪽 위 체력 막대가 0이 될 때만 쓰러진다 · (준비) 구글 로그인·클라우드 저장"],
+ ["0.9.124","전투: 난전 속에서 왕의 체력 막대가 줄지 않다가 한 번에 쓰러지던 것 고침 — 원인은 적이 왕을 둘러싼 친위대만 베고 왕 체력은 깎지 않다가, 친위대가 전멸하는 순간 왕이 쓰러지던 것. 이제 친위대가 맞는 만큼 왕 체력도 줄고(막기·구르기로 피할 수 있다), 왕은 체력 막대가 0이 될 때만 쓰러진다 · (준비) 구글 로그인·클라우드 저장"],
  ["0.9.123","휴대폰 화면 대정리(모바일 액션 RPG 방식: 엄지 자리는 조이스틱·행동 버튼, 모서리는 상태, 나머지는 메뉴 안으로) — 왕도·대전: 아래 하단 버튼 줄 대신 '☰ 메뉴' 하나(누르면 큰 메뉴판), 길잡이 패널 대신 '지금 할 일' 한 줄, 목표 문장·화면 이름·소식 줄 숨김, 왕 정보는 막대만, 아직 못 쓰는 기술 버튼(자물쇠)은 숨김, '장군' 버튼은 전장에서만 · 잠입: 오른쪽 큰 창 대신 왼쪽 위 발각 막대와 철수 버튼 · 지도 아래 버튼 조금 크게 · 휴대폰 안내 문구의 'E'·'WASD'를 '버튼'으로 · 요새·왕좌에서 망자가 바닥 구조물 속에 박혀 보이던 것 고침 · 잠입은 망자 무리 바로 바깥에서 시작(빈 들판을 한참 걷지 않게) · 장군 상태 '대기'를 '출정 가능'으로 · 왼쪽 위 장 목표 줄에서 대습격 중복 표시 제거(위 막대가 보여 줌) · '새로 알게 된 것' 카드를 작게 · 창이 열릴 때 잠깐 흐리게 보이던 것 없앰"],
  ["0.9.122","앱: 싱글플레이를 눌러 Claude 연결(API 키) 창을 거치면, 연결되자마자 누른 그대로 게임에 들어간다(다시 누를 필요 없다) · 휴대폰 전장: 아래 지휘판·중대 카드를 조이스틱과 오른쪽 키 사이 가운데로 모아 키와 겹치지 않게, 전장 미니맵은 위 가운데로 · 휴대폰: 목표 막대는 위에 작게, '지금 할 일'은 아래 가운데에 작게 · 휴대폰 전장 정리: 지휘판·중대 카드는 아래 가운데 '지휘판 ▲'로 펼칠 때만 · 왕 정보는 체력·기력 막대만 · 아군/망자 막대는 위에 작게 · 미니맵·설명 줄 숨김 · 장군 기술 버튼과 웅크리기가 겹치지 않게 · 전투·잠입 화면에 목표 막대·지금 할 일이 남던 것 고침"],
  ["0.9.121","처음 하는 사람이 '무슨 게임인지' 바로 알게: START는 프롤로그 '선왕의 마지막 밤' 왕궁 방어전부터(건너뛰기 가능, '프롤로그 없이 시작'도 있다) → 즉위 · 화면 위 가운데 목표 막대: 대습격까지 D-n · 오는 망자 수 · 우리 병력과 비율·한마디 · 길잡이 없이 하면 기능이 날마다 열린다(1일째: 내정 건설·징병·원정·군대·지도 / 2일째 연대기·주둔군·첩자 / 3일째 장군·금고·마을 관리 / 4일째 옷장·외교 / 5일째 전황 / 6일째 개량) · 설명을 짧게: 새로 알게 된 것은 두 문장, 처음 보는 창·길잡이 미션은 한 문장, 길잡이 패널은 '어떻게'만"],
