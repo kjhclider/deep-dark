@@ -510,6 +510,7 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 .lgpanel{display:flex;flex-direction:column;gap:10px;align-items:stretch;width:min(360px,92vw);margin-top:auto;padding:16px 18px;background:rgba(10,8,6,.82);border:1px solid rgba(226,192,122,.5);border-radius:4px;animation:tin 1.6s .4s ease-out both}.lgpanel h3{margin:0;font-size:18px;color:#ffe2a0;letter-spacing:.1em}.lgpanel p{margin:0;font-size:13.5px;color:#efe4cc;line-height:1.5}.lgpanel .lgbig{font-size:16px;padding:12px}.lgpanel .g{display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;background:#fff;color:#4285f4;font-weight:900;margin-right:8px}.lgpanel small{opacity:.7}
 .lgchip{position:absolute;top:14px;right:16px;display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(10,8,6,.75);border:1px solid rgba(226,192,122,.4);border-radius:3px;font-size:12.5px;color:#efe4cc;z-index:3}
 .lgpanel input{width:100%;box-sizing:border-box;padding:10px 12px;font-size:15px;background:#0d0a07;color:#f3e7cc;border:1px solid rgba(226,192,122,.45);border-radius:3px;-webkit-user-select:text;user-select:text}.lgpanel input:focus{outline:none;border-color:#f2c46a}.lgrow{display:flex;gap:8px}.lgrow .b{flex:1}.lgmsg{min-height:18px;font-size:12.5px!important;margin:0!important}
+.lgor{display:flex;align-items:center;gap:8px;font-size:11.5px;color:rgba(239,228,204,.6)}.lgor::before,.lgor::after{content:"";flex:1;height:1px;background:rgba(226,192,122,.3)}.lgg{font-size:14px;padding:9px}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -8189,6 +8190,8 @@ function loginTitleHtml(){if(!loginOn())return "";const u=LOGIN.user;
     <input id="lgPw" type="password" placeholder="비밀번호 (6자 이상)" maxlength="64" autocomplete="current-password">
     <p class="lgmsg" id="lgMsg"></p>
     <div class="lgrow"><button class="b gold lgbig" data-a="loginPw">로그인</button><button class="b lgbig" data-a="signupPw">회원가입</button></div>
+    <div class="lgor"><span>또는</span></div>
+    <button class="b lgg" data-a="login"><b class="g">G</b> Google로 로그인</button>
     <button class="b ghost" data-a="guest">게스트로 시작 <small>— 이 기기에만 저장</small></button></div>`;}
 function lgMsg(t,bad){const m=$("#lgMsg");if(m){m.textContent=t;m.style.color=bad?"#ff8a7a":"#9fd08a";}else toast(t);}
 const LG_ERR={"auth/invalid-credential":"아이디나 비밀번호가 틀렸다","auth/wrong-password":"비밀번호가 틀렸다","auth/user-not-found":"없는 아이디다 — 회원가입을 눌러라","auth/invalid-login-credentials":"아이디나 비밀번호가 틀렸다",
