@@ -465,6 +465,8 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 #gcmd button .cdn{display:inline-block;margin-left:4px;padding:0 6px;border-radius:8px;background:#5a1a14;color:#ffd7c8;font-weight:800}
 
 .kres{display:flex;gap:18px;align-items:center;padding:7px 16px;border-bottom:1px solid rgba(226,192,122,.18);background:rgba(0,0,0,.25);font-size:14px;color:#efe4cc}.kres span{display:flex;align-items:center;gap:5px}.kres svg{width:16px;height:16px}.kres b{font-variant-numeric:tabular-nums}.kres small{opacity:.75;font-size:11.5px}.kres small.up{color:#9fd08a;opacity:1}.kres small.dn{color:#e8a79a;opacity:1}
+#tutNow{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);z-index:8;max-width:min(640px,calc(100vw - 32px));display:flex;gap:10px;align-items:center;padding:8px 14px;background:rgba(14,10,6,.88);border:1px solid rgba(242,196,106,.75);border-radius:3px;box-shadow:0 0 18px rgba(242,196,106,.25);font-size:15px;color:#f3e7cc;pointer-events:none;animation:notein .3s ease-out}#tutNow .tn-h{flex:none;font-size:11px;letter-spacing:.12em;color:#1a120a;background:#f2c46a;padding:2px 6px;border-radius:2px}#tutNow b{color:#ffe08a}
+@media (pointer:coarse){#tutNow{bottom:auto;top:96px;font-size:13px;zoom:.9}}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -2863,8 +2865,19 @@ function rebuildCapital(force){
   for(const s of CAP.spots){const r=new THREE.Mesh(new THREE.RingGeometry(1.1,1.4,32),CAP.ringMat);r.rotation.x=-Math.PI/2;r.position.set(s.x,capH(s.x,s.z)+0.12,s.z);sc.add(r);s.ring=r;
     const el=document.createElement("div");el.className="lbl spot";el.innerHTML=`<b>${esc(s.name)}</b>`;s.el=el;s.L=addLabel(el,()=>({x:s.x,y:capH(s.x,s.z)+3.2,z:s.z}),{maxD:60});}
   // 왕
-  if(CAP.king)sc.remove(CAP.king);CAP.king=makeKing(S.skin||"ashen");if(CAP.king.userData.hero)heroSheathe(CAP.king,true);sc.add(CAP.king);
+  if(CAP.king)sc.remove(CAP.king);CAP.king=avatarModel();if(CAP.king.userData.hero)heroSheathe(CAP.king,true);sc.add(CAP.king);
 }
+/* ── 섭정: 왕이 출정하면 왕궁은 섭정이 맡는다. 왕도·왕궁에서 움직이는 인물이 섭정이 되고, 왕만 하는 일(결투·왕의 발걸음)은 왕이 돌아와야 한다 ── */
+const REGENT_NAMES=["재상 오스윈","대법관 벨리아","시종장 마렌","재상 토르발","왕실 집사 에드릭"];
+const REGENT_LOOK={custom:{unit:"cav"}};
+function regentName(){if(!S.regent)S.regent=pick(REGENT_NAMES);return S.regent;}
+const regentOn=()=>!!S&&!S.practice&&!kingHome();
+function avatarModel(){const r=regentOn();const m=makeKing(r?REGENT_LOOK:(S.skin||"ashen"));if(m)m.userData.regent=r;return m;}
+function capReskin(){const o=CAP.king;if(!o||!CAP.scene)return;const n=avatarModel();if(!n)return;n.position.copy(o.position);n.rotation.copy(o.rotation);if(n.userData.hero)heroSheathe(n,true);CAP.scene.remove(o);CAP.scene.add(n);CAP.king=n;if(typeof KC!=="undefined"&&KC.model===o)KC.model=n;}
+function regentCheck(){if(!S||S.practice||(typeof DUEL!=="undefined"&&DUEL.on))return;const r=regentOn();
+  const cur=UI.mode==="capital"?CAP.king:UI.mode==="palace"?PAL.king:null;if(!cur||!!cur.userData.regent===r)return;
+  if(UI.mode==="capital")capReskin();else palReskin();
+  UI.bannerSay(r?`왕이 출정했다 — ${regentName()}이(가) 섭정으로 왕궁을 맡는다`:`왕이 돌아왔다 — ${regentName()}이(가) 국새를 돌려드린다`);}
 function capSpots(){
   const BL=capLayout(),at=(id,dx,dz)=>{const b=BL.find(b=>b.id===id);return {x:b.x+dx,z:b.z+dz};};
   const lv=k=>S.bld[k]?`${S.bld[k]}단계`:"폐쇄 — 내정→건설로 연다";
@@ -2914,7 +2927,7 @@ function capCollide(x,z){
 }
 let capActive=false;
 function enterCapital(){
-  buildCapital();rebuildCapital();
+  buildCapital();rebuildCapital();if(regentOn())setTimeout(()=>UI.bannerSay(`섭정 ${regentName()} — 왕은 출정 중이다. 왕궁 일은 그대로 볼 수 있다`),700);
   E.scene=CAP.scene;capActive=true;
   setCamMode("tp");E.tp.clampFn=null;E.tp.ceil=null;E.tp.target=()=>({x:CAP.pos.x,y:capHm(CAP.pos.x,CAP.pos.z),z:CAP.pos.z});E.tp.heightFn=capHm;
   if(!CAP.camInit){E.tp.yaw=0;E.tp.pitch=0.28;E.tp.dd=7;CAP.camInit=true;}
@@ -2962,7 +2975,7 @@ function tourNext(){const T=DUEL.tour;if(!T)return;T.i++;if(T.i<T.list.length){K
 function tourEnd(){const T=DUEL.tour;if(!T)return;DUEL.tour=null;const prize=150*T.wins;S.res.gold+=prize;if(T.wins===T.list.length){S.tourWins=(S.tourWins||0)+1;kingGainSkill(4,"토너먼트");S.morale=clamp(S.morale+4,0,100);UI.bannerSay(`토너먼트 완주! 금화 ${prize}, 백성이 왕의 이름을 외친다.`);sfx("cheer");}else UI.bannerSay(`토너먼트 종료 — ${T.wins}승. 금화 ${prize}.`);logMsg(`콜로세움 토너먼트: ${T.wins}승 ${T.list.length-T.wins}패. 금화 +${prize}.`,"gold");}
 // 장군마다 검술: 에오린은 짧고 빠른 베기, 하드릭은 크고 무거운 내려찍기, 셀레나는 돌며 베기
 const DUEL_MOVES={eorin:["sw_slash1","sw_slash2","sw_slash4"],hadrik:["sw_slash3","sw_slash5","sw_attack1"],selena:["sw_attack2","sw_slash4","sw_attack3"]},DUEL_SPD={eorin:1.25,hadrik:0.85,selena:1.05};
-function startDuel(id){const g=S.gens.find(x=>x.id===id);if(!g)return;UI.closeModal();const G=genById(id);
+function startDuel(id){const g=S.gens.find(x=>x.id===id);if(!g)return;if(regentOn()){UI.closeModal();UI.bannerSay("결투는 왕이 직접 한다 — 왕이 출정에서 돌아오면 열린다");return;}UI.closeModal();const G=genById(id);
   const m=makeKing(GEN_LOOK[id]||{custom:G});if(!m)return;if(m.userData.hero)heroSheathe(m,false);CAP.scene.add(m);
   DUEL.on=true;DUEL.gen=id;DUEL.name=G.name;const tr=DUEL.tour?DUEL.tour.i:0;const tk=1+tr*0.3;   // 토너먼트는 판이 거듭될수록 상대가 세진다 (왕의 체력은 조금만 회복)
   const dk=duelK();DUEL.dk=dk;   /* 왕의 무예에 맞춰 상대가 힘을 조절한다: 무예가 낮으면 봐주고, 높으면 전력으로 */
@@ -3345,11 +3358,11 @@ function palSpots(){
   for(const g of PAL.gens){const dx=Math.sin(g.m.rotation.y)*1.3,dz=Math.cos(g.m.rotation.y)*1.3;L.push({id:"gen_"+g.id,name:g.name,sub:g.wounded?"부상 회복 중":g.title,x:g.x+dx,z:g.z+dz,act:()=>UI.openModal(genModal(g.id))});}
   return L;
 }
-function enterPalace(){
+function enterPalace(){if(regentOn())setTimeout(()=>UI.bannerSay(`섭정 ${regentName()}이(가) 왕좌 옆에서 정사를 본다`),700);
   buildPalace();placeGenerals();if(S){S.tut=S.tut||{};S.tut.palace=true;}
   E.scene=PAL.scene;clearLabels();
   PAL.pos={x:0,z:20};PAL.face=Math.PI;PAL.sit=false;PAL.inT=0;
-  if(PAL.king)PAL.scene.remove(PAL.king);PAL.king=makeKing(S.skin||"ashen");if(PAL.king.userData.hero)heroSheathe(PAL.king,true);PAL.scene.add(PAL.king);
+  if(PAL.king)PAL.scene.remove(PAL.king);PAL.king=avatarModel();if(PAL.king.userData.hero)heroSheathe(PAL.king,true);PAL.scene.add(PAL.king);
   PAL.spots=palSpots();
   for(const s of PAL.spots){const el=document.createElement("div");el.className="lbl spot";const isCourt=PAL.court.some(c=>c.id===s.id);el.innerHTML=`<b>${esc(s.name)}</b>${isCourt?`<span>${esc(s.sub)}</span>`:""}`;s.el=el;s.L=addLabel(el,()=>({x:s.x,y:palH(s.x,s.z)+2.6,z:s.z}),{maxD:16});}
   E.wantLock=!COARSE;setCamMode("tp");E.tp.target=()=>({x:PAL.pos.x,y:palH(PAL.pos.x,PAL.pos.z),z:PAL.pos.z});E.tp.heightFn=palH;E.tp.yaw=0;E.tp.pitch=0.22;E.tp.dd=5.5;E.tp.snap=true;
@@ -3443,13 +3456,13 @@ function courtGreet(id){const e=econ();
   return "";}
 
 /* 대전에서 옷을 갈아입으면 그 자리에서 바로 바뀐다 */
-function palReskin(){const o=PAL.king;if(!o||!PAL.scene)return;const n=makeKing(S.skin||"ashen");if(!n)return;n.position.copy(o.position);n.rotation.copy(o.rotation);if(n.userData.hero)heroSheathe(n,true);PAL.scene.remove(o);PAL.scene.add(n);PAL.king=n;if(typeof KC!=="undefined"&&KC.model===o)KC.model=n;}
+function palReskin(){const o=PAL.king;if(!o||!PAL.scene)return;const n=avatarModel();if(!n)return;n.position.copy(o.position);n.rotation.copy(o.rotation);if(n.userData.hero)heroSheathe(n,true);PAL.scene.remove(o);PAL.scene.add(n);PAL.king=n;if(typeof KC!=="undefined"&&KC.model===o)KC.model=n;}
 
 /* ════════ 현장 보기: 지도에서 고른 곳을 가까이서 ════════ */
 const SV={scene:null,site:null,crowds:[],light:null,sky:null,t:0,fx:[]};
 function svH(x,z){const r=Math.hypot(x,z);return Noise.fbm(x*0.015+SV.seed,z*0.015,4)*3*smooth(18,60,r)+smooth(80,140,r)*Noise.fbm(x*0.008,z*0.008,3)*25;}
 function enterSiteView(id,o={}){
-  const site=siteById(id),st=S.sites[id];if(site.kind==="capital"&&kingHome()){enterCapital();return;}
+  const site=siteById(id),st=S.sites[id];if(site.kind==="capital"){enterCapital();return;}
   SV.site=site;SV.seed=id.length*3.1;SV.t=0;SV.crowds=[];SV.fx=[];
   const sc=new THREE.Scene();SV.scene=sc;sc.fog=new THREE.Fog(LIN("#9c8c80"),90,380);
   SV.sky=makeSky(900);sc.add(SV.sky);SV.light=lightRig(sc,{shadowSize:70,sunI:2.2});
@@ -5116,6 +5129,28 @@ function tutMapTick(dt){const T=tutTarget();const s=T&&T.map;
     const beam=new THREE.Mesh(new THREE.CylinderGeometry(3,7,70,16,1,true),new THREE.MeshBasicMaterial({color:LIN("#ffd76a"),transparent:true,opacity:0.2,depthWrite:false,side:THREE.DoubleSide,toneMapped:false,blending:THREE.AdditiveBlending}));beam.position.y=35;g.add(beam);g.userData.beam=beam;WR.scene.add(g);TG.map=g;}
   const g=TG.map;g.visible=true;TG.t+=dt;const y=worldH(s.x,s.z);g.position.set(s.x,y+0.5,s.z);const rs=1+0.12*Math.sin(TG.t*3);g.userData.ring.scale.set(rs,rs,1);g.userData.beam.material.opacity=0.14+0.08*Math.sin(TG.t*3);}
 function tutDockClass(){const T=tutTarget();const b=document.querySelector('#dock button[data-a="kingdom"]');if(b)b.classList.toggle("tut-glow",!!(T&&T.ui==="kingdom"&&!UI.modalOpen));}
+
+/* 미션이 뜨면 '지금 어디로 가서 무엇을 누르나'를 화면 아래 가운데에 한 줄로 — 왕의 위치에 따라 바뀐다 */
+function tutNowText(){const T=tutTarget();if(!T&&!(S&&S.tut&&S.tut.curI!==undefined))return "";
+  const items=guideItems(),cur=items[S.tut.curI];if(!cur||cur[3])return "";const key=COARSE?"아래 버튼":"E";
+  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?`<b>${esc(sp.name)}</b> 앞이다 — ${extra||key+"를 눌러라"}`:`<b>${esc(sp.name)}</b>(으)로 걸어가라 — 바닥의 노란 길 · ${Math.round(d)}m`;};
+  const m=UI.mode;
+  if(T&&T.ui==="kingdom")return m==="map"?"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼)":"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼) — 창이 열리면 빛나는 탭";
+  if(m==="capital"&&T){const want=T.cap||(T.pal?"keep":T.map?"table":null);const sp=want&&CAP.spots&&CAP.spots.find(x=>x.id===want);
+    if(T.map&&sp){const t=go(CAP.pos,sp,`${key}를 눌러 지도를 편다`);return t+(Math.hypot(sp.x-CAP.pos.x,sp.z-CAP.pos.z)<4.5?"":` · 또는 <b>${COARSE?"지도":"M"}</b>`);}
+    if(T.pal&&sp)return go(CAP.pos,sp,`${key}를 눌러 대전으로 들어간다`);
+    if(sp)return go(CAP.pos,sp);}
+  if(m==="palace"&&T){if(T.pal){const sp=PAL.spots&&PAL.spots.find(x=>x.id===T.pal);if(sp)return go(PAL.pos,sp);}
+    const dr=PAL.spots&&PAL.spots.find(x=>x.id==="door");if(dr){const d=Math.hypot(dr.x-PAL.pos.x,dr.z-PAL.pos.z);return `<b>대전 문</b>으로 걸어 나가라 — 문이 열리면 그대로 마당으로 · ${Math.round(d)}m`;}}
+  if(m==="map"&&T){if(T.cap||T.pal)return "왼쪽 위 <b>왕궁으로</b> 버튼을 눌러 왕도로 돌아가라";
+    if(T.map){const s=T.map;if(UI.sel&&UI.sel.kind==="site"&&UI.sel.id===s.id)return `오른쪽 창에서 — ${cur[2]}`;
+      const p=worldToScreen(s.x,worldH(s.x,s.z)+5,s.z),off=!p.vis||p.x<20||p.x>E.W-20||p.y<20||p.y>E.H-20;
+      return `빛기둥이 선 <b>${esc(s.name)}</b>을(를) 눌러라${off?" — 화면 가장자리의 ➤ 쪽으로 지도를 끌어라":""}`;}}
+  return cur[2]?`${cur[2]}`:"";}
+function tutNowTick(){let el=$("#tutNow");if(!el){el=document.createElement("div");el.id="tutNow";document.body.appendChild(el);}
+  const ok=S&&!S.title&&!S.practice&&!UI.modalOpen&&!BT&&!(typeof DUEL!=="undefined"&&DUEL.on)&&(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")&&S.tut&&S.tut.pend===undefined;
+  let t="";if(ok){try{t=tutNowText();}catch(e){t="";}}
+  if(!t){el.hidden=true;return;}if(el._t!==t){el._t=t;el.innerHTML=`<span class="tn-h">지금 할 일</span><span class="tn-t">${t}</span>`;}el.hidden=false;}
 
 /* ════════ 처음 마주칠 때 한 번 뜨는 안내 카드 (게임을 멈추지 않는다) ════════ */
 const HINTS={
@@ -7087,7 +7122,7 @@ function renderTop(){
   $("#timeCtl").innerHTML+=`<button data-a="help" aria-label="도움말" title="도움말 (F1)" style="font-family:var(--f-display);font-size:18px;font-weight:700">?</button><button data-a="music" aria-label="음악" title="배경음악 켜기/끄기">${MUS.on?ICON.note:ICON.mute}</button><button data-a="fullscreen" aria-label="전체 화면" title="전체 화면 (F11 대신)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button><button data-a="settings" aria-label="설정">${ICON.gear}</button>`;
   const q=S.queue.length,bq=q?`<span class="badge">${q}</span>`:"";
   const inCap=UI.mode==="capital"||UI.mode==="palace";
-  const first=inCap?`<button data-a="map">${ICON.map}지도</button>`:`<button data-a="home" ${kingHome()?"":"disabled title=\"왕은 원정 중\""}>${ICON.castle}왕궁으로</button>`;
+  const first=inCap?`<button data-a="map">${ICON.map}지도</button>`:`<button data-a="home" ${kingHome()?"":"title=\"왕은 원정 중 — 섭정이 왕궁을 맡고 있다\""}>${ICON.castle}왕궁으로</button>`;
   $("#dock").innerHTML=first+`<button data-a="kingdom">${ICON.hammer}내정${bq}</button><button data-a="compose">${ICON.flag}원정</button><button data-a="warboard">${ICON.eye}전황</button><button data-a="armies">${ICON.sword}군대${S.armies.filter(a=>a.side===0).length?`<span class="badge">${S.armies.filter(a=>a.side===0).length}</span>`:""}</button><button data-a="gens">${ICON.shield}장군</button>${inCap?`<button data-a="wardrobe">${ICON.crown}옷장</button>`:""}<button data-a="chron">${ICON.scroll}연대기</button>`;
   $("#dock").hidden=UI.mode==="spy";
   // 미룬 요청: 사라지지 않고 오른쪽 아래에 남는다
@@ -7124,7 +7159,7 @@ function renderSide(){
       if(st.state==="neutral")acts=`<button class="b gold" data-a="compose" data-t="site:${s.id}">사절단 겸 원정</button>`;}
     else{ if(st.state==="razed")info=`<p class="note">무너진 요새. 역병의 기운이 옅어지고 있다.</p>`;
       else{const wk=activeWeak(s.id);info=foeViewHtml(s)+(wk.length?`<p class="note" style="color:var(--gold)">약점 ${wk.length}곳 파악: ${wk.map(k=>WEAK[k].n).join(", ")}</p>`:"");acts=`<button class="b red" data-a="compose" data-t="site:${s.id}">공략 원정</button>`+spyButtons(s);}}
-    if(s.kind==="capital"&&kingHome())acts=`<button class="b" data-a="home">왕궁으로 간다</button>`+acts;
+    if(s.kind==="capital")acts=`<button class="b" data-a="home">왕궁으로 간다</button>`+acts;
     if(!siteSeen(s)){info=`<p class="note">안개에 가려 있다. 군대나 첩자를 보내야 무엇이 있는지 알 수 있다.</p>`;acts=`<button class="b gold" data-a="scout" data-id="${s.id}" ${(opAt(s.id)||spyFree()<=0)?"disabled":""}>${opAt(s.id)?"첩자가 가는 중":`첩자를 보내 알아본다 · 금화 ${Math.round(spyCost()*0.6)}`}</button><button class="b" data-a="compose" data-t="ground:${s.x}:${s.z}">군대를 보내 정찰</button>`;html=`${winHead("미지의 땅")}<div class="body"><h2>?</h2>${info}<div class="acts">${acts}</div></div>`;el.innerHTML=html;el.hidden=false;el.className="side panel";return;}
     html=`${winHead(SITE_KIND_NAME[s.kind])}<div class="body"><h2>${esc(s.name)}</h2><p class="desc">${esc(s.desc)}</p>${info}${acts?`<div class="acts">${acts}</div>`:""}</div>`;
   } else if(o.kind==="army"){const a=armyById(o.id);if(!a){UI.sel=null;el.hidden=true;return;}
@@ -7466,7 +7501,7 @@ document.addEventListener("click",e=>{
     case"btype":bSelectType(b.dataset.t,e.shiftKey);renderBattleHUD();break;
     case"bsqab":bUnitAbility();renderBattleHUD();break;
     case"map":openMap();break;
-    case"home":if(kingHome())enterCapital();break;
+    case"home":enterCapital();break;
     case"spy":if(sendSpy(b.dataset.id)){renderTop();if($("#win").textContent.includes("첩보대장"))UI.openModal(spyNetModal());else renderSide();}break;
     case"report":spyReport(b.dataset.id,false);break;
     case"village":UI.openModal(villageModal(b.dataset.id));break;
@@ -7588,7 +7623,7 @@ addEventListener("keydown",e=>{
   if(S&&!BT&&!UI.modalOpen&&UI.mode==="capital"&&(e.code==="Digit1"||e.code==="Digit2"||e.code==="Digit3")){KC.wantSkill={Digit1:"spin",Digit2:"cry",Digit3:"dash"}[e.code];}
   if(e.key==="F1"){e.preventDefault();if(S&&!S.title&&!BT&&!UI.ev&&!UI.modalBlocking&&!$("#win [data-a=closeResume]"))UI.openModal(helpModal());}
   if(S&&!BT&&!UI.modalOpen&&UI.mode==="capital"){if(e.code==="Space"){e.preventDefault();KC.wantJump=true;}else if(e.code==="KeyC")KC.crouch=!KC.crouch;else if(e.code==="KeyR")KC.wantKick=true;else if(e.code==="ControlLeft"||e.code==="ControlRight"){e.preventDefault();KC.wantRoll=true;}}
-  if(S&&!BT&&!UI.modalOpen&&UI.mode!=="spy"&&(e.key==="m"||e.key==="M")){if(UI.mode==="map"){if(kingHome())enterCapital();else toast("왕은 원정 중이다 — 군대 창에서 왕의 군대를 왕궁으로 돌려보내라.");}else openMap();}
+  if(S&&!BT&&!UI.modalOpen&&UI.mode!=="spy"&&(e.key==="m"||e.key==="M")){if(UI.mode==="map"){enterCapital();}else openMap();}
   if(e.key==="Escape"){if(UI.targeting){UI.targeting=null;$("#targeting").hidden=true;}else if(UI.modalOpen&&!UI.modalBlocking){if(UI.ev){}else{const hr=$("#win [data-a=closeResume]");if(hr)hr.click();else UI.closeModal();}}else if(UI.sel)selectObj(null);}
 });
 document.addEventListener("visibilitychange",()=>{if(document.hidden){if(S&&!BT)S.paused=true;if(BT&&BT.phase==="battle")BT.paused=true;if(S)saveGame();}});
@@ -7608,7 +7643,7 @@ const BLD_TEXT={barracks:"훈련장에서 창과 방패가 부딪히는 소리�
 const VISIT={barracks:["병사들을 직접 단련한다","왕이 몸소 칼을 맞대 준다 — 보병·창병 중대 하나가 그 자리에서 ★ 하나를 얻는다(비용 없음, ★★까지). 단련 중인 중대가 있으면 그 단련이 바로 끝난다."],range:["궁수들을 직접 단련한다","왕이 과녁 옆에 서서 활을 고쳐 잡아 준다 — 궁병 중대 하나가 그 자리에서 ★ 하나를 얻는다(★★까지)."],stable:["기수들을 직접 단련한다","왕이 함께 말을 달린다 — 기마병 중대 하나가 그 자리에서 ★ 하나를 얻는다(★★까지)."],chapel:["사제들과 기도한다","성직자 중대 하나가 그 자리에서 ★ 하나를 얻고, 민심 +1."],
   market:["상인들과 직접 흥정한다","왕이 몸소 오면 값을 깎지 못한다 — 식량 500을 금화 200에 판다(내정 창에선 150). 곡물 거래는 하루 한 번."],farm:["들판에 나가 일손을 돕는다","왕이 낫을 들면 백성이 따라 나선다 — 오늘 식량을 더 거둔다."],homes:["골목을 걸으며 백성을 만난다","왕의 얼굴을 본 백성은 쉽게 흔들리지 않는다 — 민심 +3."]};
 function visitPick(k){const ts=BLD_UNITS[k]||[];const cs=S.garrison.filter(c=>ts.includes(c.t)&&(c.vet||0)<2&&!c.elite&&!(c.eliteT>0));return cs.sort((a,b)=>(b.drill>0)-(a.drill>0)||(b.vet||0)-(a.vet||0)||b.men-a.men)[0]||null;}   /* 단련 중인 중대 → ★이 높은 중대 → 병력 많은 중대 순 */
-function visitWhy(k){const day=S.day|0;let why=(S.visit||{})[k]===day?"오늘은 이미 했다":"";
+function visitWhy(k){const day=S.day|0;let why=(S.visit||{})[k]===day?"오늘은 이미 했다":"";if(!why&&typeof regentOn==="function"&&regentOn())why="왕이 출정 중 — 섭정에게는 특혜가 없다";
   if(!why&&(BLD_UNITS[k]||[]).length&&!visitPick(k))why="★★ 미만 중대가 주둔군에 없다";
   if(!why&&k==="market"&&(S.grainSold===day||S.res.food<800))why=S.grainSold===day?"오늘 곡물 거래는 이미 했다":"식량이 800 이상 있어야 한다";
   return why;}
@@ -7721,7 +7756,7 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
   ["이웃 왕국에 사절을 보낸다","관계 40이면 교역·조약, 70이면 원군을 빌릴 수 있다. 사절은 금화가 들지 않는다.","지도에서 이웃 수도 클릭 → 사절 파견. 5일마다 한 번",Object.values(S.realms||{}).some(r=>r.envD||r.pact||r.rel>=40)],
   ["콜로세움에서 장군과 대련한다","대련은 무예와 장군 경험을 함께 올리고 금화도 준다.","서쪽 콜로세움 문에서 E → 장군을 고른다. 한 판을 끝내면(이기든 지든) 통과. 상대는 왕의 무예에 맞춰 힘을 조절한다",(S.duelDone||0)>0],
 ].map((it,i)=>{if((T.skip||[]).includes(i))it[3]=true;return it;});}
-function renderGuide(){const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
+function renderGuide(){try{tutNowTick();}catch(e){}const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
   if(off||!(UI.mode==="capital"||UI.mode==="map"||UI.mode==="palace")){el.hidden=true;document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));return;}
   S.tut=S.tut||{};if(S.tut.ph!==ph){S.tut.ph=ph;S.tut.curI=undefined;S.tut.pend=undefined;}
   const items=guideItems();if(items.every(i=>i[3])){if(ph===1)S.guideOff=true;else S.guide2Off=true;el.hidden=true;toast(ph===1?"첫 주 길잡이를 모두 마쳤다. 이제 망자의 요새를 노려라.":"둘째 주 길잡이를 마쳤다. 이제 왕국은 네 손에 있다.");return;}
@@ -7745,6 +7780,7 @@ function renderGuide(){const el=$("#guide");if(!el||!S)return;const ph=guidePhas
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.119","길잡이 미션이 뜨면 화면 아래 가운데에 '지금 할 일' 한 줄: 어느 건물로 몇 m 걸어가라 / 앞에 서면 E(버튼)를 눌러라 / 지도에서 어느 거점을 눌러라 / 어느 버튼을 눌러라 — 왕이 움직이는 대로 바뀐다 · 섭정: 왕이 출정해도 왕도·왕궁에 들어갈 수 있다 — 그동안 움직이는 인물은 섭정(재상 등)이고, 내정·징병·사건·옷장 등은 그대로 본다. 결투장 결투와 '왕의 발걸음' 특혜는 왕이 돌아와야 한다. 왕이 떠나고 돌아올 때 그 자리에서 인물이 바뀌고 알려 준다"],
  ["0.9.118","'새로 알게 된 것'은 누를 필요 없이 잠깐 떴다 저절로 사라진다(글 길이만큼, 여럿이면 차례로, 눌러서 넘기기) · 길잡이가 빛내던 버튼은 한 번 누르면 그 단계에서 더 빛나지 않는다(창을 닫으면 다시 알려 줌) · 내정 창 위에 금화·식량(하루 증감)·백성·빚 표시 · '처음 보는 창' 설명도 '알겠다' 없이: 처음 연 뒤 1분만 보이고 사라진다(✕로 바로 치우기) · 화면 회전에 관성이 없다: 끄는 만큼만 돌고 바로 멈춘다(왕 시점·지도 모두)"],
  ["0.9.117","바닥의 길 안내가 끊기지 않게: 대전 안 일이면 왕궁에서 대전 입구로, 지도 일이면 전쟁 탁자로, 대전에서 바깥 일이면 문으로 이어 준다 · 대전의 열린 문으로 걸어 나가면 E 없이 마당으로 나간다(콜로세움처럼) · 설정에 Claude 연결 칸: 앱에서 API 키를 언제든 넣고·바꾸고·지우고, 연결을 다시 확인할 수 있다 · 길잡이 없이 시작해도 첫 주가 비지 않게: 2일째쯤 작은 망자 척후대가 꼭 한 번 오고(잡으면 금화), 이후 척후대·늑대 떼가 섞여 나온다"],
  ["0.9.116","지도 펼치기가 빨라졌다(거점 모형을 바뀐 것만 다시 만들고, 지도는 왕궁에 들어온 뒤 미리 지어 둔다) · 길잡이: 시작하고 15초쯤 뒤에 '길잡이와 함께 할지' 묻는다(혼자 해 보기 가능) · 한 단계를 마치면 다음 안내까지 12초 여유 · 건물 앞 상호작용 버튼과 'Esc' 안내가 겹치지 않게(버튼이 뜨면 안내를 숨김)"],
@@ -7989,16 +8025,16 @@ function uiTick(dt){
   if(UI.dirty||uiAcc>0.5){uiAcc=0;if(UI.dirty){UI.dirty=false;updateSiteLabels();}renderTop();syncArmies();renderGuide();}
   if(UI.logDirty){UI.logDirty=false;renderFeed();}
   if(uiSlow>1){uiSlow=0;if(UI.sel&&!UI.modalOpen)renderSide();}
-  // 왕이 원정을 떠나 있으면 왕궁에 머물 수 없다
-  if((UI.mode==="capital"||UI.mode==="palace")&&!kingHome())openMap();
+  // 왕이 원정을 떠나면 섭정이 왕궁을 맡는다 — 왕도·왕궁에서 움직이는 인물이 섭정으로 바뀐다(돌아오면 다시 왕)
+  if(UI.mode==="capital"||UI.mode==="palace")regentCheck();
 }
 function showWorldHUD(){hideKingHud();$("#cmini").hidden=true;$("#whud").hidden=false;$("#bhud").hidden=true;$("#title").hidden=true;$("#prompt").hidden=true;renderTop();renderFeed();renderSide();
   if(!UI.mapHint){UI.mapHint=true;UI.bannerSay(COARSE?"군대를 누른 뒤 길게 눌러 보낸다":"군대 선택 후 우클릭: 그곳으로 이동 · 거점 우클릭: 임무 · 적 우클릭: 요격");}}
 // 전투가 끝나면 원래 있던 곳으로
 function backToWorld(){
   const m=UI.prevMode||"map";
-  if(m==="capital"&&kingHome())enterCapital();
-  else if(m==="palace"&&kingHome())enterPalace();
+  if(m==="capital")enterCapital();
+  else if(m==="palace")enterPalace();
   else{enterWorld();if(UI.camSaved){const k=UI.camSaved;E.ctrl.set(k.x,k.z,k.d,k.y,k.p,true);}showWorldHUD();}
 }
 const _enterWorld=enterWorld;
@@ -8061,7 +8097,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.118 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.119 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(){
