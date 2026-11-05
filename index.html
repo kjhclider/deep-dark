@@ -2164,7 +2164,7 @@ const followShadow=(L,t)=>followSun(L,t);
 
 // 마우스 잠금 안내: 잠겨 있으면 'Esc로 커서 꺼내기', 풀려 있으면 '화면 클릭으로 둘러보기' (왕궁·대전에서만)
 function lockTip(){let el=document.getElementById("lockTip");if(!el){el=document.createElement("div");el.id="lockTip";el.style.cssText="position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:30;pointer-events:none;font:600 12.5px/1 var(--f-body,sans-serif);color:#e8dcc0;background:rgba(12,9,7,.72);border:1px solid rgba(226,192,122,.35);padding:7px 12px;border-radius:3px;letter-spacing:.02em;transition:opacity .4s";document.body.appendChild(el);}
-  const mode=typeof UI!=="undefined"?UI.mode:"";const show=!COARSE&&!E.soft&&(mode==="capital"||mode==="palace")&&!(typeof UI!=="undefined"&&UI.modalOpen);
+  const mode=typeof UI!=="undefined"?UI.mode:"";const near=(mode==="capital"&&typeof CAP!=="undefined"&&CAP.near)||(mode==="palace"&&typeof PAL!=="undefined"&&PAL.near);const show=!COARSE&&!E.soft&&(mode==="capital"||mode==="palace")&&!(typeof UI!=="undefined"&&UI.modalOpen)&&!near;   /* 건물 앞 상호작용 버튼이 뜨면 Esc 안내는 비켜 준다 */
   if(!show){el.style.opacity=0;return;}const locked=!!document.pointerLockElement;const fs=!!(document.fullscreenElement||document.webkitFullscreenElement)&&!!(navigator.keyboard&&navigator.keyboard.lock);const t=(locked?"Esc — 커서 보이기":"화면 클릭 — 마우스로 시점 돌리기 · Esc — 커서 보이기");if(el.textContent!==t)el.textContent=t;el.style.opacity=locked?0.78:0.92;}   /* 왕궁·대전에 있는 동안 늘 띄워 둔다 */
 setInterval(()=>{try{lockTip();}catch(e){}},500);
 
@@ -2514,16 +2514,19 @@ function siteVisual(site){
   return g;
 }
 const MODELS_PARTS={};
-function refreshSites(){
+const siteSig=site=>{const st=S&&S.sites[site.id]||{};return [st.state,st.walls||0,st.mine?1:0,st.toll?1:0,(st.vgar||[]).length?1:0,typeof siteSeen==="function"&&siteSeen(site)?1:0,st.lord?1:0].join("|");};
+function refreshSites(reuse){
   if(!WR.scene||!WR.built)return;
-  for(const id in WR.siteObjs){WR.scene.remove(WR.siteObjs[id].g);removeLabel(WR.siteObjs[id].L);}
+  const old=WR.siteObjs||{};
+  for(const id in old){removeLabel(old[id].L);if(!reuse||!S||old[id].sig!==siteSig(siteById(id)))WR.scene.remove(old[id].g);}
   WR.siteObjs={};WR.fx=[];
   WR.rumorObj=null;refreshRumor();refreshHerds();
   for(const site of SITES){
-    const g=siteVisual(site);WR.scene.add(g);
+    const keep=reuse&&old[site.id]&&S&&old[site.id].sig===siteSig(site);
+    const g=keep?old[site.id].g:siteVisual(site);if(!keep)WR.scene.add(g);
     const el=document.createElement("div");el.className="lbl site";
     const L=addLabel(el,()=>({x:site.x,y:g.position.y+1.6*(site.kind==="capital"?20:site.kind==="throne"?44:site.kind==="fortress"?26:site.kind==="rcapital"?18:12),z:site.z}),{maxD:1400});
-    WR.siteObjs[site.id]={g,L,el};
+    WR.siteObjs[site.id]={g,L,el,sig:S?siteSig(site):""};
   }
   updateSiteLabels();
 }
@@ -2675,8 +2678,7 @@ function enterWorld(){E.wantLock=false;if(document.pointerLockElement)document.e
   E.ctrl.bounds={x0:-200*WS,x1:200*WS,z0:-200*WS,z1:205*WS};E.ctrl.min=40;E.ctrl.max=900;E.ctrl.heightFn=worldH;
   // 지난번 지도 방문 때 만든 모형을 치운다 (돌아온 군대가 그 자리에 남아 보이던 버그)
   for(const id in WR.armyObjs)WR.scene.remove(WR.armyObjs[id].g);
-  for(const id in WR.siteObjs)WR.scene.remove(WR.siteObjs[id].g);
-  clearLabels();WR.siteObjs={};WR.armyObjs={};routeSig="";refreshSites();syncArmies();
+  clearLabels();WR.armyObjs={};routeSig="";refreshSites(true);syncArmies();   /* 거점 모형은 바뀐 것만 다시 만든다 (지도를 열 때마다 전부 새로 만들어 느렸다) */
   E.onTap=worldTap;E.onDragStart=null;E.onHover=null;
   let t=0;WR.fogDirty=true;E.onFrame=dt=>{t+=dt;tickWorld(dt);animateWorld(dt,t);updateFog(t);if(UI.mode==="map"&&E.camMode==="rts")UI.mapView={x:E.ctrl.tt.x,z:E.ctrl.tt.z,d:E.ctrl.dd,y:E.ctrl.yy,p:E.ctrl.pp};};
 }
@@ -2917,6 +2919,7 @@ function enterCapital(){
   if(CAP.horse&&!wasM){const h=CAP.horse;h.rotation.set(0,h.rotation.y,0);CAP.horsePos={x:h.position.x,z:h.position.z,face:h.rotation.y};}if(wasM)E.tp.dd=9.5;updateHorseSpot();
   E.onFrame=dt=>{tickWorld(dt);if(capSig()!==CAP.sig)rebuildCapital();capTick(dt);uiTick(dt);};
   UI.mode="capital";showCapitalHUD();$("#cmini").hidden=false;drawCapMini();
+  if(!WR.built&&!enterCapital._pre){enterCapital._pre=true;setTimeout(()=>{try{if(!WR.built)buildWorld();}catch(e){}},2500);}   /* 지도를 미리 지어 둔다 — 처음 펼칠 때 2초 넘게 걸리던 것 */
 }
 function capMount(){if(!CAP.horse)return;if(!KC.mounted&&S.kingWound>0){UI.bannerSay(`상처 때문에 말에 오를 수 없다 — ${S.kingWound}일 남음`);return;}if(KC.mounted){KC.mounted=false;CAP.horsePos={x:CAP.pos.x,z:CAP.pos.z,face:KC.face};CAP.horse.visible=true;CAP.horse.position.set(CAP.pos.x,capHm(CAP.pos.x,CAP.pos.z),CAP.pos.z);CAP.horse.rotation.y=KC.face;CAP.pos.x+=Math.cos(KC.face)*1.4;CAP.pos.z-=Math.sin(KC.face)*1.4;E.tp.dd=7;UI.bannerSay("말에서 내렸다.");}
   else{KC.mounted=true;KC.horse=CAP.horse;CAP.pos.x=CAP.horsePos.x;CAP.pos.z=CAP.horsePos.z;KC.face=CAP.horsePos.face||KC.face;E.tp.dd=9.5;UI.bannerSay("말에 올랐다. Shift로 질주.");}
@@ -7366,6 +7369,8 @@ document.addEventListener("click",e=>{
   if(pauseBlocked(a)){toast("시간이 멈춰 있다 — ▶를 눌러야 명령하고 상호작용할 수 있다 (멈춘 동안엔 지도 보기·왕 움직이기만)");return;}
   switch(a){
     case"close":UI.closeModal();if(UI.modalBlocking&&!BT)UI.modalBlocking=false;break;
+    case"tutYes":S.guideAsk=false;S.guideOff=false;S.guide2Off=false;S.tut=S.tut||{};S.tut.curI=undefined;UI.closeModal();UI.modalBlocking=false;S.paused=false;renderGuide();break;
+    case"tutNo":S.guideAsk=false;S.guideOff=true;S.guide2Off=true;UI.closeModal();UI.modalBlocking=false;S.paused=false;toast("길잡이 없이 시작한다 — 설정에서 언제든 길잡이를 다시 켤 수 있다");renderGuide();break;
     case"closeResume":UI.closeModal();UI.modalBlocking=false;S.paused=false;S.userPause=false;flushHerald();renderTop();break;
     case"pause":S.paused=!S.paused;S.userPause=S.paused;renderTop();if(S.paused)toast("시간이 멈췄다 — 지도를 보고 왕을 움직일 수는 있지만, 명령·상호작용은 ▶를 눌러야 한다");break;
     case"kingdom":UI.kTab=UI.kTab||"build";UI.openModal(kingdomModal());break;
@@ -7706,14 +7711,15 @@ function renderGuide(){const el=$("#guide");if(!el||!S)return;const ph=guidePhas
   const done=items.filter(i=>i[3]).length,cur=items.find(i=>!i[3]),ci=items.indexOf(cur);
   try{guideGlow(ph,ci,cur);}catch(e){}
   if(S.day===7&&!S.tut.warned){S.tut.warned=true;toast("오늘이 준비의 마지막 날 — 내일부터 망자가 움직인다. 길잡이는 밤에 사라진다.");}
-  if(S.tut.curI!==ci){if(S.tut.curI!==undefined&&ci>S.tut.curI)sfx("cheer",0.15);S.tut.curI=ci;S.tut.open=true;S.tut.calm=0;if(true)S.tut.pend=ci;else{S.tut.pend=undefined;const g=$("#guide");if(g){g.classList.remove("flash");void g.offsetWidth;g.classList.add("flash");}}const pp=UI.mode==="capital"?CAP.pos:UI.mode==="palace"?PAL.pos:null;S.tut.pendPos=pp?{mode:UI.mode,x:pp.x,z:pp.z}:null;}
+  if(S.tut.curI!==ci){if(S.tut.curI!==undefined&&ci>S.tut.curI)sfx("cheer",0.15);S.tut.curI=ci;S.tut.open=true;S.tut.calm=0;S.tut.pendT=Date.now();if(true)S.tut.pend=ci;else{S.tut.pend=undefined;const g=$("#guide");if(g){g.classList.remove("flash");void g.offsetWidth;g.classList.add("flash");}}const pp=UI.mode==="capital"?CAP.pos:UI.mode==="palace"?PAL.pos:null;S.tut.pendPos=pp?{mode:UI.mode,x:pp.x,z:pp.z}:null;}
   // 안내창은 '하던 일을 마치고 자리를 떴을 때' 뜬다: 상호작용 원 밖으로 나가고, 완료한 자리에서 7m 이상 멀어졌을 때
   // 사건 단계: 안내창을 본 뒤 조용할 때 어부 사건을 하나 띄운다
   if(cur&&cur[0]==="사건에 답한다"&&!S.tut.evFired&&S.tut.pend===undefined&&!UI.modalOpen&&!DUEL.on&&!BT&&UI.mode!=="palace"){S.tut.evFired=true;setTimeout(()=>{if(!UI.modalOpen&&!BT&&!DUEL.on)fireEvent("fish");else S.tut.evFired=false;},2500);}
   // 다음 할 일 안내: 앞 단계를 마치고 창이 닫히면 바로(약 1초 뒤) 띄운다
   if(S.tut.pend!==undefined&&!UI.modalOpen&&!DUEL.on&&!BT&&(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")){
     S.tut.calm=(S.tut.calm||0)+1;
-    if(S.tut.calm>=2){S.tut.calm=0;const i=S.tut.pend;S.tut.pend=undefined;tutHerald(i,items[i],items.length,i>0&&items[i-1][3]?items[i-1][0]:null);}}
+    /* 다음 안내는 앞 단계를 마치고 숨 돌릴 틈(12초)을 둔 뒤에 — 너무 급하지 않게 (첫 안내는 바로) */
+    if(S.tut.calm>=2&&(S.tut.pend===0||Date.now()-(S.tut.pendT||0)>12000)){S.tut.calm=0;const i=S.tut.pend;S.tut.pend=undefined;tutHerald(i,items[i],items.length,i>0&&items[i-1][3]?items[i-1][0]:null);}}
   const html=`<div class="gh"><span>${guidePhase()===2?"둘째 주 길잡이":"첫 주 길잡이"}</span><em>${done}/${items.length}</em><button data-a="guideSkip" title="이 단계 건너뛰기">건너뛰기</button><button data-a="guideFold" title="접기/펴기">${S.tut.open?"▾":"▸"}</button><button data-a="guideOff" title="숨기기">✕</button></div>
     <div class="gcur"><b>${ci+1}</b><span>${cur[0]}</span></div>
     ${S.tut.open?`<div class="gwhy">${cur[1]}</div><div class="ghow">${cur[2]}</div>`:""}
@@ -7722,6 +7728,7 @@ function renderGuide(){const el=$("#guide");if(!el||!S)return;const ph=guidePhas
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.116","지도 펼치기가 빨라졌다(거점 모형을 바뀐 것만 다시 만들고, 지도는 왕궁에 들어온 뒤 미리 지어 둔다) · 길잡이: 시작하고 15초쯤 뒤에 '길잡이와 함께 할지' 묻는다(혼자 해 보기 가능) · 한 단계를 마치면 다음 안내까지 12초 여유 · 건물 앞 상호작용 버튼과 'Esc' 안내가 겹치지 않게(버튼이 뜨면 안내를 숨김)"],
  ["0.9.115","출시 앱 준비: 앱(PC판·홈 화면 앱)의 첫 화면은 싱글플레이(N일째)·멀티플레이(준비 중)만, 전투 연습은 설정으로 · 앱에서도 내 Claude API 키로 연결 · 게임 아이콘"],
  ["0.9.114","기술 재사용 대기: 남은 초를 버튼에 크게 — 병종 기술 버튼(예: 창벽 12초), 왕의 회오리·함성·돌진(왼쪽 위 상태창), 휴대폰 손가락 버튼(버튼 위에 숫자, 아직 안 열린 기술은 자물쇠)"],
  ["0.9.113","지도 화면 돌리기: 오른쪽으로 끌면 오른쪽을 본다(왕 시점과 같은 방향, 방향키도), 두 손가락으로 돌릴 때·지도로 다시 올 때 한 바퀴 휙 도는 문제 수정 · 시간을 멈춘 동안엔 지도 보기·왕 움직이기만 — 내정·원정·상호작용 같은 명령은 ▶를 눌러야 한다"],
@@ -8030,17 +8037,18 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.115 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.116 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(){
   const name=KING_NAME;
   newState();S.slot=UI.nextSlot||1;S.ruler=name;S.skin="ashen";S.kingWound=0;S.paused=true;UI.sel=null;UI.camSaved=null;CAP.pos={x:0,z:34};CAP.face=Math.PI;CAP.camInit=false;
+  S.guideOff=true;S.guide2Off=true;S.guideAsk=true;tutAsk(15000);   /* 길잡이는 15초쯤 둘러본 뒤 할지 묻는다 */
   buildCapital();rebuildCapital(true);enterCapital();
   herald("즉위",`${name}이(가) 아스테라의 왕관을 썼다. 강 건너 마을들은 망자의 땅과 맞닿아 있고, 북쪽 요새들은 날마다 병력을 불리고 있다. 여울목을 지키고 마을에 수비군을 두라. 성 안을 걸으며 병영과 궁술장을 둘러보고, 성채의 전쟁 탁자에서 지도를 펼쳐 원정을 보내라. 직접 칼을 들고 나갈 수도 있다.`);
   saveGame();
 }
-function continueGame(){S=LOADED;migrateState(S);ensureRealms();ensureFog();S.paused=true;S.title=false;UI.sel=null;UI.camSaved=null;CAP.camInit=false;buildCapital();rebuildCapital(true);if(kingHome())enterCapital();else openMap();toast(`${S.day}일째에서 이어간다.`);}
+function continueGame(){S=LOADED;migrateState(S);if(S.guideAsk)tutAsk(8000);ensureRealms();ensureFog();S.paused=true;S.title=false;UI.sel=null;UI.camSaved=null;CAP.camInit=false;buildCapital();rebuildCapital(true);if(kingHome())enterCapital();else openMap();toast(`${S.day}일째에서 이어간다.`);}
 // 전투 연습: 저장된 판을 건드리지 않고 정해진 전투 하나만 바로 해 본다 (끝나면 처음 화면으로)
 const PRACTICE={
   king:{n:"왕이 이끄는 들판 회전",d:"왕(무예 30)과 13개 중대 vs 망자 약 1,800 — 칼질·기술·무쌍난무·병종 지휘 연습"},
@@ -8079,6 +8087,10 @@ UI.inspect=s=>{const u=U[s.t];toast(`${u.n} ${s.alive}명 — ${u.d}`);};
   if(S&&S.title)showTitle(false);
   UI.aiStatus();
 })();
+
+/* 길잡이를 할지 묻는다: 시작하고 조금 둘러본 뒤 — 창이 열려 있으면 닫힐 때까지 기다린다 */
+function tutAsk(ms){setTimeout(function chk(){if(!S||!S.guideAsk||S.title||S.practice)return;if(UI.modalOpen||BT||!(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")){setTimeout(chk,3000);return;}
+  S.paused=true;UI.openModal(`${winHead("길잡이",false)}<div class="wbody"><p class="story" style="font-size:16px">첫 주 동안 할 일을 하나씩 안내하는 <b>길잡이</b>와 함께 하겠는가?</p><p class="note">왕궁 둘러보기 → 지도·신하 → 건설·징병 → 마을·첩자·외교 → 대련까지, 할 일을 하나씩 알려 주고 눌러야 할 곳을 빛나게 한다. 처음 하는 왕이라면 권한다. 나중에 설정에서 켜고 끌 수 있다.</p></div><div class="wfoot"><button class="b ghost" data-a="tutNo">혼자 해 보겠다</button><button class="b gold" data-a="tutYes">길잡이와 함께</button></div>`,{narrow:true,blocking:true});},ms);}
 
 /* ════════ 저장 관리: 자동 백업 · 파일로 내보내기/가져오기 ════════ */
 // 닷새마다 그 슬롯의 판을 백업해 둔다 (최근 3개) — 잘못 고른 선택·무너진 판을 되돌릴 수 있게
