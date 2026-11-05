@@ -467,6 +467,8 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 .kres{display:flex;gap:18px;align-items:center;padding:7px 16px;border-bottom:1px solid rgba(226,192,122,.18);background:rgba(0,0,0,.25);font-size:14px;color:#efe4cc}.kres span{display:flex;align-items:center;gap:5px}.kres svg{width:16px;height:16px}.kres b{font-variant-numeric:tabular-nums}.kres small{opacity:.75;font-size:11.5px}.kres small.up{color:#9fd08a;opacity:1}.kres small.dn{color:#e8a79a;opacity:1}
 #tutNow{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);z-index:8;max-width:min(640px,calc(100vw - 32px));display:flex;gap:10px;align-items:center;padding:8px 14px;background:rgba(14,10,6,.88);border:1px solid rgba(242,196,106,.75);border-radius:3px;box-shadow:0 0 18px rgba(242,196,106,.25);font-size:15px;color:#f3e7cc;pointer-events:none;animation:notein .3s ease-out}#tutNow .tn-h{flex:none;font-size:11px;letter-spacing:.12em;color:#1a120a;background:#f2c46a;padding:2px 6px;border-radius:2px}#tutNow b{color:#ffe08a}
 @media (pointer:coarse){#tutNow{bottom:auto;top:96px;font-size:13px;zoom:.9}}
+#infHud{position:fixed;inset:0;pointer-events:none;z-index:6}#infHud .vig{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 140px 40px rgba(200,30,20,.75);transition:opacity .2s}#infHud .dir{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(10,8,6,.8);border:1px solid rgba(242,196,106,.6);color:#f3e7cc;font-size:13.5px;border-radius:3px}#infHud .dir i{font-style:normal;color:#ffd76a;display:inline-block;font-size:18px}#infHud .eye{position:absolute;left:50%;top:112px;transform:translateX(-50%);font-size:14px;color:#efe4cc;text-shadow:0 1px 3px #000}#infHud .eye.on{color:#ff8a7a;font-weight:700;font-size:17px}
+#jobMarks{position:fixed;inset:0;pointer-events:none;z-index:4}#jobMarks .jm{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:1px}#jobMarks .jm span{font-size:20px;filter:drop-shadow(0 1px 2px #000);animation:jmb .6s ease-in-out infinite alternate}#jobMarks .jm.work span{animation:jmw .35s ease-in-out infinite alternate}#jobMarks .jm small{font-size:10.5px;color:#f3e7cc;background:rgba(10,8,6,.75);padding:1px 5px;border-radius:2px;white-space:nowrap}#jobMarks .jt{position:absolute;transform:translate(-50%,-50%);font-size:13px;opacity:.45}@keyframes jmb{to{transform:translateY(-3px)}}@keyframes jmw{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -2646,7 +2648,7 @@ const isCamped=a=>a.side===0&&!a.moving&&(a.mission==="camp"||a.mission==="guard
 function mapCrowd(t){if(!WR.crowd)WR.crowd={};if(WR.crowd[t]!==undefined)return WR.crowd[t];const vs=unitChr(t);if(!vs){WR.crowd[t]=null;return null;}
   const out=vs.map(v=>new Crowd(v.c,v.st,120,v.p||[],{scale:(v.s||1)*3.8,tint:v.tint,ry:v.ry,rider:v.rider}));if(!out.every(c=>c.ok)){WR.crowd[t]=null;return null;}
   for(const c of out)for(const m of c.meshes())WR.scene.add(m);WR.crowd[t]=out;return out;}
-function animateWorld(dt,t){if(UI.mode==="map"&&typeof tutMapTick==="function")tutMapTick(dt);
+function animateWorld(dt,t){if(UI.mode==="map"&&typeof tutMapTick==="function")tutMapTick(dt);try{jobMapTick();}catch(e){}
   // 지도 위 병사들: 군대마다 몇 명씩 실사 병사가 걷는다
   if(WR.crowd)for(const k in WR.crowd)if(WR.crowd[k])for(const c of WR.crowd[k])c.begin();
   for(const a of S.armies){const o=WR.armyObjs[a.id];if(!o||!o.g.visible||!o.g.userData.figs)continue;const base=o.g.position,ry=o.g.rotation.y,sc=2.4;
@@ -4243,7 +4245,7 @@ const spyMax=()=>2+S.spy.lvl;
 const spyFree=()=>S.spy.agents-S.spy.ops.length;
 const spyCost=()=>60;
 function spyable(s){const st=S.sites[s.id];return ((s.kind==="fortress"||s.kind==="throne")&&st.state==="active")||(s.kind==="village"&&st.state==="besieged");}
-function spyChance(s){const b=s.kind==="throne"?0.5:s.kind==="fortress"?0.68:0.86;return clamp(b+0.09*(S.spy.lvl-1)-(S.intel[s.id]&&S.intel[s.id].alarm>S.day?0.15:0),0.1,0.95);}
+function spyChance(s){const b=s.kind==="throne"?0.62:s.kind==="fortress"?0.82:0.93;return clamp(b+0.09*(S.spy.lvl-1)-(S.intel[s.id]&&S.intel[s.id].alarm>S.day?0.15:0),0.1,0.95);}
 const opAt=id=>S.spy.ops.find(o=>o.site===id);
 function siteForces(s){const st=S.sites[s.id];if((s.kind==="fortress"||s.kind==="throne")&&st.state==="active")return st.garrison;
   if(s.kind==="village"&&st.state==="besieged"){const sg=S.armies.find(a=>a.side===1&&a.mission==="siege"&&a.target===s.id);return sg?sg.comps:[];}return [];}
@@ -4286,6 +4288,10 @@ function resolveSpy(op){
     logMsg(`첩보 보고: ${s.name} — ${compsText(I.comps)}.`,"gold");
     UI.dirty=true;saveGame();
     spyReport(s.id,true);setTimeout(()=>hintOnce("spy"),800);if(S.lordNext&&S.lordNext.from===s.id)setTimeout(()=>{if(typeof lordPeek==="function")lordPeek(false);},1600);
+  } else if(Math.random()<0.5){
+    /* 절반은 들키기 전에 눈치채고 빈손으로 돌아온다 — 첩자를 잃지 않는다 */
+    const I=S.intel[s.id]||{found:[]};I.alarm=S.day+3;S.intel[s.id]=I;spyLeave(op);
+    logMsg(`${s.name}의 경계가 삼엄해 첩자가 들어가지 못하고 돌아온다. 며칠 뒤 다시 보내라.`,"bad");UI.dirty=true;
   } else {
     S.spy.agents--;S.spy.ops=S.spy.ops.filter(o=>o!==op);
     const I=S.intel[s.id]||{found:[]};I.alarm=S.day+6;S.intel[s.id]=I;
@@ -4364,11 +4370,11 @@ function enterInfiltration(id){
     const L=addLabel(el,()=>({x,y:svH(x,z)+3.4,z}),{maxD:70});
     return {k,x,z,col,el,L,found};});
   // 첩자
-  INF.spy=meshOf(MODELS.spy);SV.scene.add(INF.spy);
+  INF.spy=meshOf(MODELS.spy);SV.scene.add(INF.spy);INF.cones=null;
   setCamMode("tp");E.tp.clampFn=null;E.tp.ceil=null;E.tp.target=()=>({x:INF.pos.x,y:svH(INF.pos.x,INF.pos.z),z:INF.pos.z});E.tp.heightFn=svH;E.tp.yaw=0;E.tp.pitch=0.3;E.tp.dd=6.5;E.tp.snap=true;
   E.onTap=null;E.onFrame=dt=>{svTick(dt);infTick(dt);uiTick(dt);};
   UI.mode="spy";UI.sel=null;if($("#tutArrow"))$("#tutArrow").hidden=true;showInfHUD();
-  UI.bannerSay(COARSE?"조이스틱으로 몰래 움직인다 · 망자의 시선을 피해 ? 표시를 찾아라":"WASD 살금살금 · Shift 달리기(들키기 쉽다) · 망자의 시선을 피해 ? 표시를 찾아라");
+  UI.bannerSay(COARSE?"바닥의 부채꼴이 망자의 시선 — 그 밖으로 돌아 ? 빛기둥 세 곳을 밟아라":"바닥의 부채꼴이 망자의 시선 — 밖으로 돌아 ? 빛기둥 세 곳을 밟아라 · WASD 살금살금 · Shift 달리기(시선이 길어진다)");
 }
 function showInfHUD(){$("#whud").hidden=false;$("#bhud").hidden=true;$("#prompt").hidden=true;$("#title").hidden=true;renderTop();renderInfSide();}
 function renderInfSide(){
@@ -4377,14 +4383,15 @@ function renderInfSide(){
   el.innerHTML=`${winHead("잠입 정찰",false)}<div class="body"><h2>${esc(s.name)}</h2>
     <div><div class="eyebrow" style="margin-bottom:4px">발각 위험</div><div class="bar big"><i id="infBar" style="width:${INF.meter}%;background:${INF.meter>70?"var(--blood)":"var(--gold)"}"></i></div></div>
     <div>${INF.pois.map(p=>`<div class="qrow"><span class="glyph" style="background:${p.found?"var(--gold)":"#555"}">${p.found?"✓":"?"}</span>${p.found?`<span><b>${esc(WEAK[p.k].n)}</b><br><span class="note">${esc(WEAK[p.k].d)}</span></span>`:`<span class="note">미확인 지점</span>`}</div>`).join("")}</div>
-    <p class="note">${night?"밤이다 — 망자의 눈이 어둡다.":"낮에는 멀리서도 보인다. 망자가 등을 돌릴 때 움직여라."} 망자 정면을 피하라.</p>
+    ${(()=>{const c=siteCaptain(s.id);const st=S.sites[s.id];const men=st&&st.garrison?compMen(st.garrison):0;return `<div class="tile" style="margin:6px 0"><div class="hd"><span class="nm">${esc(c[0])}</span><span class="note" style="margin-left:auto">${men?`망자 약 ${fmtN(men)}`:""}</span></div><div class="ds">${esc(c[1])}</div></div>`;})()}
+    <div class="kv" style="grid-template-columns:auto 1fr;gap:3px 10px;font-size:12.5px"><dt>시각</dt><dd>${night?"밤 — 시선이 40% 짧다":"낮 — 밤(지도 시계 저녁 무렵)에 들어가면 쉽다"}</dd><dt>시선</dt><dd>바닥의 노란 부채꼴 · 붉어지면 나를 보고 있다</dd><dt>요령</dt><dd>가만히 서면 시선이 30% 짧다 · 달리면 길어진다 · 등 뒤로 돌아라</dd><dt>들키면</dt><dd>75%는 빠져나오고, 찾은 약점은 남는다</dd></div>
     <div class="acts"><button class="b" data-a="infOut">철수한다</button></div></div>`;
 }
 const isNight=()=>{const f=S?S.t:0.3;return f>0.76&&f<0.97;};
 function infTick(dt){
   if(!INF.on)return;INF.t+=dt;
   if(INF.end>0){INF.end-=dt;if(INF.end<=0)leaveInfiltration();return;}
-  const inp=UI.modalOpen?{mag:0}:moveInput(),run=inp.run,sp=inp.mag*(run?6.4:2.3);
+  const inp=UI.modalOpen?{mag:0}:moveInput(),run=inp.run,sp=inp.mag*(run?6.4:3.2);
   if(inp.mag>0.05){const w=inputToWorld(inp),l=Math.hypot(w.x,w.z)||1;let nx=INF.pos.x+w.x/l*sp*dt,nz=INF.pos.z+w.z/l*sp*dt;
     const R0=infRadius(INF.site),r=Math.hypot(nx,nz);if(R0&&r<R0){nx*=R0/r;nz*=R0/r;}
     if(INF.site.kind==="village"){for(let i=0;i<8;i++){const a=i/8*Math.PI*2,hx=Math.cos(a)*22,hz=Math.sin(a)*22,d=Math.hypot(nx-hx,nz-hz);if(d<4.6){nx=hx+(nx-hx)/d*4.6;nz=hz+(nz-hz)/d*4.6;}}}
@@ -4395,22 +4402,22 @@ function infTick(dt){
   const m=INF.spy,bob=Math.abs(Math.sin(INF.t*(run?11:6)))*(INF.spd>0.3?0.06:0);
   m.position.set(INF.pos.x,svH(INF.pos.x,INF.pos.z)+bob,INF.pos.z);m.rotation.y=INF.face;m.rotation.x=run?0.12:0.22;
   // 시선: 망자가 바라보는 방향의 부채꼴 안에 들어가면 위험이 오른다
-  const R=(run?12:7.5)*(isNight()?0.6:1)*(INF.spd<0.2?0.7:1);let heat=0;
+  const R=(run?11:6.5)*(isNight()?0.6:1)*(INF.spd<0.2?0.7:1);let heat=0;INF.seen=INF.seen||new Set();INF.seen.clear();
   for(const c of SV.crowds){if(!c.foe)continue;for(const g of c.ag){const dx=INF.pos.x-g.x,dz=INF.pos.z-g.z,d=Math.hypot(dx,dz);if(d>R)continue;
     const dot=(Math.sin(g.a)*dx+Math.cos(g.a)*dz)/(d||1);
-    if(d<2.2||dot>0.45){const h=(1-d/R)*(d<2.2?1.6:1);heat+=h;g.a+=angDiff(g.a,Math.atan2(dx,dz))*Math.min(1,dt*1.5*h);g.w=0;}}}
-  INF.meter=clamp(INF.meter+(heat>0?heat*dt*55:-dt*12),0,100);
+    if(d<1.8||dot>0.5){const h=(1-d/R)*(d<1.8?1.6:1);heat+=h;INF.seen.add(g);g.a+=angDiff(g.a,Math.atan2(dx,dz))*Math.min(1,dt*1.5*h);g.w=0;}}}
+  INF.meter=clamp(INF.meter+(heat>0?Math.min(heat,1.6)*dt*24:-dt*22),0,100);infCones(R);infHudTick();
   const bar=$("#infBar");if(bar){bar.style.width=INF.meter+"%";bar.style.background=INF.meter>70?"var(--blood)":"var(--gold)";}
   if(INF.meter>=100){infCaught();return;}
   // 약점 지점
   for(const p of INF.pois){p.col.material.opacity=p.found?0.08:0.18+Math.sin(INF.t*3)*0.08;
-    if(!p.found&&Math.hypot(p.x-INF.pos.x,p.z-INF.pos.z)<3.6){p.found=true;const I=S.intel[INF.site.id];I.found=I.found||[];if(!I.found.includes(p.k))I.found.push(p.k);
+    if(!p.found&&Math.hypot(p.x-INF.pos.x,p.z-INF.pos.z)<4.6){p.found=true;const I=S.intel[INF.site.id];I.found=I.found||[];if(!I.found.includes(p.k))I.found.push(p.k);
       p.el.innerHTML=`<b>${esc(WEAK[p.k].n)}</b>`;UI.bannerSay(`약점 발견: ${WEAK[p.k].n} — ${WEAK[p.k].d}`);renderInfSide();saveGame();
       if(INF.pois.every(q=>q.found)){UI.bannerSay("약점을 모두 찾았다. 첩자가 빠져나간다.");INF.end=2.2;}}}
 }
 function infCaught(){
   if(INF.caught)return;INF.caught=true;const op=opAt(INF.site.id);
-  const lost=Math.random()<0.5;
+  const lost=Math.random()<0.25;
   if(lost){S.spy.agents--;S.spy.ops=S.spy.ops.filter(o=>o!==op);logMsg(`${INF.site.name}에 잠입한 첩자가 발각되어 붙잡혔다.`,"bad");UI.bannerSay("발각됐다! 첩자가 붙잡혔다.");}
   else{if(op)spyLeave(op);logMsg(`${INF.site.name}의 첩자가 발각됐지만 간신히 빠져나왔다.`);UI.bannerSay("발각됐다! 첩자가 간신히 도망친다.");}
   const I=S.intel[INF.site.id];if(I)I.alarm=S.day+6;
@@ -4419,11 +4426,31 @@ function infCaught(){
 function leaveInfiltration(){
   if(!INF.on)return;INF.on=false;const s=INF.site,op=opAt(s.id);
   if(op&&op.phase==="in"&&!INF.caught)spyLeave(op);
-  for(const p of INF.pois)removeLabel(p.L);
+  for(const p of INF.pois)removeLabel(p.L);if(INF.cones&&INF.cones.parent)INF.cones.parent.remove(INF.cones);INF.cones=null;const hv=$("#infHud");if(hv)hv.hidden=true;
   const n=(S.intel[s.id]&&S.intel[s.id].found||[]).length;
   saveGame();openMap();selectObj({kind:"site",id:s.id});
   if(!INF.caught)toast(n?`${s.name}: 약점 ${n}곳을 파악했다. 공략전에서 효과를 본다.`:`${s.name}에서 첩자가 빈손으로 물러났다.`);
 }
+
+/* 망자의 시선을 바닥에 부채꼴로 그린다 (가까운 망자만) — 보이지 않는 시선에 걸려 들키던 것이 가장 억울했다 */
+function infCones(R){if(!SV.scene)return;
+  if(!INF.cones){const N=48,seg=14,h=Math.acos(0.5),pos=[0,0,0];for(let i=0;i<=seg;i++){const f=-h+2*h*i/seg;pos.push(Math.sin(f),0,Math.cos(f));}
+    const idx=[];for(let i=1;i<=seg;i++)idx.push(0,i,i+1);const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);
+    const m=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.15,depthWrite:false,side:THREE.DoubleSide,toneMapped:false});
+    const im=new THREE.InstancedMesh(g,m,N);im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);for(let i=0;i<N;i++)im.setColorAt(i,new THREE.Color(0xffb02e));SV.scene.add(im);INF.cones=im;}
+  const im=INF.cones,N=im.count,m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),sc=new THREE.Vector3(),cY=new THREE.Color(0xffb02e),cR=new THREE.Color(0xff3b2e);
+  const near=[];for(const c of SV.crowds){if(!c.foe)continue;for(const g of c.ag){const d=Math.hypot(g.x-INF.pos.x,g.z-INF.pos.z);if(d<26)near.push([d,g]);}}near.sort((a,b)=>a[0]-b[0]);
+  for(let i=0;i<N;i++){const it=near[i];if(!it){m4.makeScale(0,0,0);im.setMatrixAt(i,m4);continue;}const g=it[1];
+    q.setFromEuler(e.set(0,g.a,0));m4.compose(v.set(g.x,svH(g.x,g.z)+0.12,g.z),q,sc.set(R,1,R));im.setMatrixAt(i,m4);im.setColorAt(i,INF.seen&&INF.seen.has(g)?cR:cY);}
+  im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
+/* 화면: 들킬수록 가장자리가 붉어지고, 가장 가까운 미확인 지점 쪽 화살표와 거리 */
+function infHudTick(){let el=$("#infHud");if(!el){el=document.createElement("div");el.id="infHud";el.innerHTML='<div class="vig"></div><div class="dir"><i>➤</i><span></span></div><div class="eye"></div>';document.body.appendChild(el);}
+  el.hidden=!INF.on;if(!INF.on)return;const mtr=INF.meter/100;el.querySelector(".vig").style.opacity=Math.min(1,mtr*1.2);
+  const eye=el.querySelector(".eye");eye.textContent=INF.seen&&INF.seen.size?"👁 보인다 — 시선 밖으로!":INF.meter>5?"숨는 중… 위험이 줄고 있다":"";eye.className="eye"+(INF.seen&&INF.seen.size?" on":"");
+  const left=INF.pois.filter(p=>!p.found);const dir=el.querySelector(".dir");if(!left.length){dir.hidden=true;return;}
+  let b=null,bd=1e9;for(const p of left){const d=Math.hypot(p.x-INF.pos.x,p.z-INF.pos.z);if(d<bd){bd=d;b=p;}}
+  const yaw=E.tp?E.tp.yaw:0,ang=Math.atan2(b.x-INF.pos.x,b.z-INF.pos.z);const rel=ang-(yaw+Math.PI);
+  dir.hidden=false;dir.querySelector("i").style.transform=`rotate(${-rel-Math.PI/2}rad)`;dir.querySelector("span").textContent=`가까운 ? 지점 ${Math.round(bd)}m · 남은 ${left.length}곳`;}
 
 /* ════════ 중립 왕국 · 야영지 · 전장의 안개 · 인구 ════════ */
 
@@ -4991,11 +5018,11 @@ function fireEvent(kind){ensureEvents();
   } else if(kind==="forage"){
     const f=ri(260,380);const c=S.garrison.filter(x=>!(x.eliteT>0)).reduce((b,x)=>!b||x.men>b.men?x:b,null);if(!c)return;
     ask("숲의 열매","사냥꾼 길잡이",`북쪽 숲에 야생 보리와 밤이 익었습니다. 중대 하나를 이틀 보내면 식량 ${f}쯤 거둬 옵니다. 늑대가 있을 수도 있습니다.`,
-      [{n:"중대를 보낸다",d:`${U[c.t].n} 중대 · 이틀 · 식량 +${f}`,f:()=>{S.garrison=S.garrison.filter(x=>x!==c);S.ev.jobs=(S.ev.jobs||[]).concat([{kind:"forage",comp:c,at:nowD()+2,food:f}]);logMsg(`${U[c.t].n} 중대가 숲으로 채집을 떠났다. 이틀 뒤 돌아온다.`);}},{n:"보내지 않는다",f:()=>{}}]);
+      [{n:"중대를 보낸다",d:`${U[c.t].n} 중대 · 이틀 · 식량 +${f}`,f:()=>{S.garrison=S.garrison.filter(x=>x!==c);S.ev.jobs=(S.ev.jobs||[]).concat([{from:nowD(),ang:Math.random()*6.283,kind:"forage",comp:c,at:nowD()+2,food:f}]);logMsg(`${U[c.t].n} 중대가 숲으로 채집을 떠났다. 이틀 뒤 돌아온다.`);}},{n:"보내지 않는다",f:()=>{}}]);
   } else if(kind==="fish"){
     const g=ri(40,70),f1=ri(90,130),f2=ri(220,300);
     ask("강의 고기떼","어부들",`강에 고기떼가 올라왔습니다. 지금 잡으면 식량 ${f1}, 금화 ${g}으로 그물을 더 사면 사흘 뒤 ${f2}까지 됩니다.`,
-      [{n:"지금 잡는다",d:`식량 +${f1}`,f:()=>{S.res.food+=f1;}},{n:`그물을 산다 (금화 ${g})`,d:`사흘 뒤 식량 +${f2}`,can:()=>S.res.gold>=g,f:()=>{S.res.gold-=g;S.ev.jobs=(S.ev.jobs||[]).concat([{kind:"fish",at:nowD()+3,food:f2}]);}}]);
+      [{n:"지금 잡는다",d:`식량 +${f1}`,f:()=>{S.res.food+=f1;}},{n:`그물을 산다 (금화 ${g})`,d:`사흘 뒤 식량 +${f2}`,can:()=>S.res.gold>=g,f:()=>{S.res.gold-=g;S.ev.jobs=(S.ev.jobs||[]).concat([{from:nowD(),ang:Math.random()*6.283,kind:"fish",at:nowD()+3,food:f2}]);}}]);
   } else if(kind==="granary"){
     const f=ri(150,260),risk=Math.random()<0.3;
     ask("버려진 곡창","척후병",`옛 영주의 곡창이 숲 가장자리에 버려져 있습니다. 자루가 꽤 남아 있는 것 같은데, 안에서 무슨 소리가 납니다.`,
@@ -5003,7 +5030,7 @@ function fireEvent(kind){ensureEvents();
   } else if(kind==="woodcut"){
     const g=ri(140,220);
     ask("벌목","목수 조합",`성벽과 집을 지을 목재가 부족합니다. 백성 50명을 사흘 벌목에 보내면 남는 목재를 팔아 금화 ${g}이 됩니다.`,
-      [{n:"보낸다",d:`사흘 뒤 금화 +${g}`,can:()=>S.civ>400,f:()=>{S.civ-=50;S.ev.jobs=(S.ev.jobs||[]).concat([{kind:"woodcut",at:nowD()+3,gold:g,civ:50}]);}},{n:"보내지 않는다",f:()=>{}}]);
+      [{n:"보낸다",d:`사흘 뒤 금화 +${g}`,can:()=>S.civ>400,f:()=>{S.civ-=50;S.ev.jobs=(S.ev.jobs||[]).concat([{from:nowD(),ang:Math.random()*6.283,kind:"woodcut",at:nowD()+3,gold:g,civ:50}]);}},{n:"보내지 않는다",f:()=>{}}]);
   } else if(kind==="caravan"){
     const g=ri(120,200);
     ask("길 잃은 상단","상단 행수",`길을 잃은 상단이 성문 앞에 닿았습니다. 하룻밤 재워 주면 금화 ${g}을(를) 사례로 내겠답니다. 다만 식량 60이 듭니다.`,
@@ -5086,6 +5113,20 @@ function jobReturn(j){
   else if(j.kind==="fish"){S.res.food+=j.food;logMsg(`어부들이 그물을 거뒀다. 식량 +${j.food}.`,"gold");}
   else if(j.kind==="woodcut"){S.res.gold+=j.gold;S.civ+=j.civ;logMsg(`벌목단이 돌아왔다. 목재를 팔아 금화 +${j.gold}.`,"gold");}
   renderTop();}
+
+/* 채집·고기잡이·벌목: 지도 위에 작은 무리가 왕도에서 일터로 걸어가고, 일하고, 짐을 지고 돌아오는 모습 */
+const JOB_LOOK={forage:["🌿","채집대"],fish:["🎣","어부들"],woodcut:["🪓","벌목단"]};
+function jobMapTick(){let box=$("#jobMarks");if(!box){box=document.createElement("div");box.id="jobMarks";document.body.appendChild(box);}
+  const jobs=(S&&S.ev&&S.ev.jobs)||[];if(UI.mode!=="map"||!jobs.length||UI.modalOpen){box.hidden=true;return;}box.hidden=false;
+  const cap=siteById("capital");const now=nowD();const st=$("#stage").getBoundingClientRect();let h="";
+  for(const j of jobs){const L=JOB_LOOK[j.kind];if(!L)continue;const from=j.from??(j.at-(j.kind==="forage"?2:3)),dur=Math.max(0.1,j.at-from),p=clamp((now-from)/dur,0,1);
+    const a=j.ang??(j.kind.length*1.7),D=j.kind==="fish"?55:70;const tx=cap.x+Math.sin(a)*D,tz=cap.z+Math.cos(a)*D;
+    const out=p<0.35?p/0.35:p<0.65?1:1-(p-0.65)/0.35;const x=lerp(cap.x,tx,out),z=lerp(cap.z,tz,out);
+    const sp=worldToScreen(x,worldH(x,z)+3,z);if(!sp.vis)continue;const left=Math.max(0,j.at-now);
+    const what=p<0.35?"가는 중":p<0.65?"일하는 중":"짐 지고 돌아오는 중";
+    h+=`<div class="jm${p>=0.35&&p<0.65?" work":""}" style="left:${st.left+sp.x}px;top:${st.top+sp.y}px"><span>${L[0]}</span><small>${L[1]} · ${what} · ${left<1?Math.max(1,Math.round(left*24))+"시간":left.toFixed(1)+"일"} 뒤</small></div>`;
+    const tp=worldToScreen(tx,worldH(tx,tz)+1,tz);if(tp.vis)h+=`<div class="jt" style="left:${st.left+tp.x}px;top:${st.top+tp.y}px">${L[0]}</div>`;}
+  box.innerHTML=h;}
 
 /* ════════ 길잡이 표식: 바닥의 노란 점선 길과 빛기둥, 지도 위 고리, 반짝이는 버튼 ════════ */
 // 단계 → 어디로 가야 하는가
@@ -7756,7 +7797,7 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
   ["이웃 왕국에 사절을 보낸다","관계 40이면 교역·조약, 70이면 원군을 빌릴 수 있다. 사절은 금화가 들지 않는다.","지도에서 이웃 수도 클릭 → 사절 파견. 5일마다 한 번",Object.values(S.realms||{}).some(r=>r.envD||r.pact||r.rel>=40)],
   ["콜로세움에서 장군과 대련한다","대련은 무예와 장군 경험을 함께 올리고 금화도 준다.","서쪽 콜로세움 문에서 E → 장군을 고른다. 한 판을 끝내면(이기든 지든) 통과. 상대는 왕의 무예에 맞춰 힘을 조절한다",(S.duelDone||0)>0],
 ].map((it,i)=>{if((T.skip||[]).includes(i))it[3]=true;return it;});}
-function renderGuide(){try{tutNowTick();}catch(e){}const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
+function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(jb&&UI.mode!=="map")jb.hidden=true;}const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
   if(off||!(UI.mode==="capital"||UI.mode==="map"||UI.mode==="palace")){el.hidden=true;document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));return;}
   S.tut=S.tut||{};if(S.tut.ph!==ph){S.tut.ph=ph;S.tut.curI=undefined;S.tut.pend=undefined;}
   const items=guideItems();if(items.every(i=>i[3])){if(ph===1)S.guideOff=true;else S.guide2Off=true;el.hidden=true;toast(ph===1?"첫 주 길잡이를 모두 마쳤다. 이제 망자의 요새를 노려라.":"둘째 주 길잡이를 마쳤다. 이제 왕국은 네 손에 있다.");return;}
@@ -7780,6 +7821,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}const el=$("#guide");if(!el||
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.120","첩자가 쉬워지고 자세해졌다 — 잠입 화면 바닥에 망자마다 시선 부채꼴(나를 보면 붉게), 들킬수록 화면 가장자리가 붉어지고 '보인다' 경고, 가장 가까운 ? 지점 방향 화살표·거리, 옆 창에 요새 대장·병력·밤낮·요령. 발각 속도 절반 이하·숨으면 빨리 식는다·걸음이 빨라지고 ? 지점을 밟는 범위가 넓어졌다. 들켜도 붙잡힐 확률 50%→25%. 첩보 성공률 요새 68→82%, 왕좌 50→62%, 실패해도 절반은 빈손으로 돌아온다(첩자를 잃지 않는다) · 채집·고기잡이·벌목: 지도 위에 무리가 왕도에서 일터로 걸어가고, 일하고, 짐을 지고 돌아오는 모습과 남은 시간"],
  ["0.9.119","길잡이 미션이 뜨면 화면 아래 가운데에 '지금 할 일' 한 줄: 어느 건물로 몇 m 걸어가라 / 앞에 서면 E(버튼)를 눌러라 / 지도에서 어느 거점을 눌러라 / 어느 버튼을 눌러라 — 왕이 움직이는 대로 바뀐다 · 섭정: 왕이 출정해도 왕도·왕궁에 들어갈 수 있다 — 그동안 움직이는 인물은 섭정(재상 등)이고, 내정·징병·사건·옷장 등은 그대로 본다. 결투장 결투와 '왕의 발걸음' 특혜는 왕이 돌아와야 한다. 왕이 떠나고 돌아올 때 그 자리에서 인물이 바뀌고 알려 준다"],
  ["0.9.118","'새로 알게 된 것'은 누를 필요 없이 잠깐 떴다 저절로 사라진다(글 길이만큼, 여럿이면 차례로, 눌러서 넘기기) · 길잡이가 빛내던 버튼은 한 번 누르면 그 단계에서 더 빛나지 않는다(창을 닫으면 다시 알려 줌) · 내정 창 위에 금화·식량(하루 증감)·백성·빚 표시 · '처음 보는 창' 설명도 '알겠다' 없이: 처음 연 뒤 1분만 보이고 사라진다(✕로 바로 치우기) · 화면 회전에 관성이 없다: 끄는 만큼만 돌고 바로 멈춘다(왕 시점·지도 모두)"],
  ["0.9.117","바닥의 길 안내가 끊기지 않게: 대전 안 일이면 왕궁에서 대전 입구로, 지도 일이면 전쟁 탁자로, 대전에서 바깥 일이면 문으로 이어 준다 · 대전의 열린 문으로 걸어 나가면 E 없이 마당으로 나간다(콜로세움처럼) · 설정에 Claude 연결 칸: 앱에서 API 키를 언제든 넣고·바꾸고·지우고, 연결을 다시 확인할 수 있다 · 길잡이 없이 시작해도 첫 주가 비지 않게: 2일째쯤 작은 망자 척후대가 꼭 한 번 오고(잡으면 금화), 이후 척후대·늑대 떼가 섞여 나온다"],
@@ -8097,7 +8139,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.119 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.120 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(){
