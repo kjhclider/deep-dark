@@ -2107,7 +2107,7 @@ function bindInput(){
   /* 전체 화면에서 Esc: 브라우저는 원래 전체 화면까지 풀어 버린다 — 키보드 잠금으로 Esc를 게임이 받아 커서만 꺼낸다 (Esc를 길게 누르면 전체 화면이 풀린다 · 크롬/엣지) */
   const fsKeys=()=>{try{const fs=document.fullscreenElement||document.webkitFullscreenElement;if(fs&&navigator.keyboard&&navigator.keyboard.lock)navigator.keyboard.lock(["Escape"]).catch(()=>{});else if(!fs&&navigator.keyboard&&navigator.keyboard.unlock)navigator.keyboard.unlock();}catch(e){}};
   document.addEventListener("fullscreenchange",fsKeys);document.addEventListener("webkitfullscreenchange",fsKeys);
-  addEventListener("keydown",e=>{if(e.key==="Escape"&&document.pointerLockElement){E.camWant=false;try{document.exitPointerLock();}catch(err){}}},true);E.camWant=true;
+  E.camWant=true;   /* 커서/시점 전환은 Alt만 — Esc는 쓰지 않는다 (브라우저가 Esc로 억지로 풀면, 화면 클릭 한 번에 시점 모드로 돌아온다) */
   document.addEventListener("selectstart",e=>{if(!(e.target.closest&&e.target.closest("input,textarea,[contenteditable]")))e.preventDefault();});
   document.addEventListener("pointerlockchange",()=>{lockTip();if(!document.pointerLockElement){try{window.focus();}catch(err){}const st=document.getElementById("stage");if(st){st.tabIndex=-1;try{st.focus({preventScroll:true});}catch(err){}}E.keys.clear();}});
   document.addEventListener("mousemove",e=>{if(document.pointerLockElement===c&&E.camMode==="tp"){E.tp.rotate(e.movementX,e.movementY);return;}
@@ -7937,6 +7937,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.130","커서/시점 전환은 Alt만 — Esc는 더 이상 커서를 꺼내지 않는다(창 닫기만 한다)"],
  ["0.9.129","마우스: Alt 한 번 → 커서 모드(버튼 누르기), 한 번 더 → 시점 모드(마우스로 화면 돌리기). 더는 Esc를 누르고 화면을 클릭할 필요가 없다 (예전 'Alt 누른 채 자유 시점'은 없앴다)"],
  ["0.9.128","'지금 할 일' 줄이 '화면 클릭 — 마우스로 시점 돌리기' 안내와 겹치던 것 고침(위로 올림) · 몇 m 남았는지 숫자는 없앴다(길 안내·잠입 화살표)"],
  ["0.9.127","로그인은 구글 계정 하나로만 (아이디·비밀번호는 잊으면 찾을 방법이 없어 뺐다) — 게스트로도 시작할 수 있다"],
@@ -8329,7 +8330,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.129 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.130 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
