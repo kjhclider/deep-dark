@@ -2107,7 +2107,7 @@ function bindInput(){
   /* 전체 화면에서 Esc: 브라우저는 원래 전체 화면까지 풀어 버린다 — 키보드 잠금으로 Esc를 게임이 받아 커서만 꺼낸다 (Esc를 길게 누르면 전체 화면이 풀린다 · 크롬/엣지) */
   const fsKeys=()=>{try{const fs=document.fullscreenElement||document.webkitFullscreenElement;if(fs&&navigator.keyboard&&navigator.keyboard.lock)navigator.keyboard.lock(["Escape"]).catch(()=>{});else if(!fs&&navigator.keyboard&&navigator.keyboard.unlock)navigator.keyboard.unlock();}catch(e){}};
   document.addEventListener("fullscreenchange",fsKeys);document.addEventListener("webkitfullscreenchange",fsKeys);
-  addEventListener("keydown",e=>{if(e.key==="Escape"&&document.pointerLockElement){try{document.exitPointerLock();}catch(err){}}},true);
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&document.pointerLockElement){E.camWant=false;try{document.exitPointerLock();}catch(err){}}},true);E.camWant=true;
   document.addEventListener("selectstart",e=>{if(!(e.target.closest&&e.target.closest("input,textarea,[contenteditable]")))e.preventDefault();});
   document.addEventListener("pointerlockchange",()=>{lockTip();if(!document.pointerLockElement){try{window.focus();}catch(err){}const st=document.getElementById("stage");if(st){st.tabIndex=-1;try{st.focus({preventScroll:true});}catch(err){}}E.keys.clear();}});
   document.addEventListener("mousemove",e=>{if(document.pointerLockElement===c&&E.camMode==="tp"){E.tp.rotate(e.movementX,e.movementY);return;}
@@ -2123,7 +2123,8 @@ function bindInput(){
   c.addEventListener("pointerdown",e=>{if(e.button===2){E._rd=true;setTimeout(()=>{E._rd=false;},50);}},true);
   c.addEventListener("pointerdown",e=>{
     if(e.button===2&&E.onRightDown)E.onRightDown();
-    if(E.wantLock&&!E.soft&&e.button===0&&document.pointerLockElement!==c&&!UI.modalOpen){try{const r=c.requestPointerLock();if(r&&r.catch)r.catch(()=>{});}catch(err){}}
+    /* 시점 모드(커서 숨김)는 Alt로만 켜고 끈다 — 화면을 클릭해도 저절로 잠기지 않는다. 단, 시점 모드였다가 창 때문에 풀렸으면 클릭 한 번에 돌아온다 */
+    if(E.wantLock&&!E.soft&&e.button===0&&E.camWant&&document.pointerLockElement!==c&&!UI.modalOpen)camLock(true);
     try{c.setPointerCapture(e.pointerId);}catch(err){}
     PTR.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,btn:e.button});
     if(PTR.size===1){const p=local(e);gesture={mode:"maybe",btn:e.button,shift:e.shiftKey,moved:false,custom:false};
@@ -2155,9 +2156,9 @@ function bindInput(){
   // 한글 입력 상태여도 같은 자리의 키로 움직이게: 물리 키(code) 기준으로 이름을 정한다
   const keyName=e=>{const c=e.code||"";if(/^Key[A-Z]$/.test(c))return c[3].toLowerCase();if(c==="Space")return " ";if(c.startsWith("Shift"))return "shift";if(c.startsWith("Arrow"))return c.toLowerCase();return e.key.toLowerCase();};
   addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("input,textarea"))return;
-    // Alt: 자유 시점 — 누르고 있는 동안 왕은 그대로 두고 카메라만 돌려 앞·옆모습을 본다
-    if(e.key==="Alt"){e.preventDefault();if(E.camMode==="tp"&&!E.free)E.free={yaw:E.freeBack!=null?E.freeBack:E.tp.yaw};E.freeBack=null;return;}E.keys.add(keyName(e));if(e.key.startsWith("Arrow")||e.key===" ")e.preventDefault();});
-  addEventListener("keyup",e=>{if(e.key==="Alt"){e.preventDefault();if(E.free){E.freeBack=E.free.yaw;E.free=null;}return;}E.keys.delete(keyName(e));E.keys.delete(e.key.toLowerCase());});
+    // Alt: 한 번 누르면 커서 모드(마우스로 버튼 누르기), 또 누르면 시점 모드(마우스로 화면 돌리기)
+    if(e.key==="Alt"){e.preventDefault();if(!e.repeat&&E.wantLock&&!E.soft&&!(typeof UI!=="undefined"&&UI.modalOpen)){const on=document.pointerLockElement!==c;E.camWant=on;camLock(on);}return;}E.keys.add(keyName(e));if(e.key.startsWith("Arrow")||e.key===" ")e.preventDefault();});
+  addEventListener("keyup",e=>{if(e.key==="Alt"){e.preventDefault();return;}E.keys.delete(keyName(e));E.keys.delete(e.key.toLowerCase());});
   addEventListener("blur",()=>{E.keys.clear();if(E.free){E.freeBack=E.free.yaw;E.free=null;}if(typeof UI!=="undefined"&&(UI.mode==="capital"||UI.mode==="palace")&&typeof toast==="function")setTimeout(()=>{if(!document.hasFocus())toast("화면을 한 번 클릭하면 조작이 돌아온다");},150);});
 }
 function bindJoystick(){
@@ -2216,9 +2217,10 @@ const makeLights=(scene,o={})=>lightRig(scene,{...o,sunI:(o.sunI||1.1)*1.8});
 const followShadow=(L,t)=>followSun(L,t);
 
 // 마우스 잠금 안내: 잠겨 있으면 'Esc로 커서 꺼내기', 풀려 있으면 '화면 클릭으로 둘러보기' (왕궁·대전에서만)
+function camLock(on){const c=E.renderer&&E.renderer.domElement||document.querySelector("#stage canvas");if(on){if(c&&document.pointerLockElement!==c){try{const r=c.requestPointerLock();if(r&&r.catch)r.catch(()=>{});}catch(err){}}}else if(document.pointerLockElement)document.exitPointerLock();}
 function lockTip(){let el=document.getElementById("lockTip");if(!el){el=document.createElement("div");el.id="lockTip";el.style.cssText="position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:30;pointer-events:none;font:600 12.5px/1 var(--f-body,sans-serif);color:#e8dcc0;background:rgba(12,9,7,.72);border:1px solid rgba(226,192,122,.35);padding:7px 12px;border-radius:3px;letter-spacing:.02em;transition:opacity .4s";document.body.appendChild(el);}
   const mode=typeof UI!=="undefined"?UI.mode:"";const near=(mode==="capital"&&typeof CAP!=="undefined"&&CAP.near)||(mode==="palace"&&typeof PAL!=="undefined"&&PAL.near);const show=!COARSE&&!E.soft&&(mode==="capital"||mode==="palace")&&!(typeof UI!=="undefined"&&UI.modalOpen)&&!near;   /* 건물 앞 상호작용 버튼이 뜨면 Esc 안내는 비켜 준다 */
-  if(!show){el.style.opacity=0;return;}const locked=!!document.pointerLockElement;const fs=!!(document.fullscreenElement||document.webkitFullscreenElement)&&!!(navigator.keyboard&&navigator.keyboard.lock);const t=(locked?"Esc — 커서 보이기":"화면 클릭 — 마우스로 시점 돌리기 · Esc — 커서 보이기");if(el.textContent!==t)el.textContent=t;el.style.opacity=locked?0.78:0.92;}   /* 왕궁·대전에 있는 동안 늘 띄워 둔다 */
+  if(!show){el.style.opacity=0;return;}const locked=!!document.pointerLockElement;const fs=!!(document.fullscreenElement||document.webkitFullscreenElement)&&!!(navigator.keyboard&&navigator.keyboard.lock);const t=(locked?"Alt — 커서 보이기":"Alt — 마우스로 시점 돌리기");if(el.textContent!==t)el.textContent=t;el.style.opacity=locked?0.78:0.92;}   /* 왕궁·대전에 있는 동안 늘 띄워 둔다 */
 setInterval(()=>{try{lockTip();}catch(e){}},500);
 
 /* ════════ 휴대폰: 오른쪽 손가락 버튼 (왼쪽은 조이스틱) — 베기·찌르기·구르기·점프·막기·달리기·웅크리기·기술·상호작용 ════════ */
@@ -7874,7 +7876,7 @@ function settingsModal(){
     ${APP_MODE?`<div style="margin-top:14px"><div class="acts"><button class="b" data-a="practice">전투 연습</button></div></div>`:""}
     <div style="margin-top:14px"><div class="acts"><button class="b" data-a="controls">조작법 보기</button><button class="b" data-a="glossary">수치 설명</button><button class="b" data-a="changes">바뀐 점</button></div></div>
     <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">조작</div>
-    <p class="note">WASD 이동 · Shift 달리기 · 방향키 ←→ 화면 회전, ↑↓ 기울기 · 마우스 끌기 시점 · E 상호작용 · M 지도</p></div>
+    <p class="note">WASD 이동 · Shift 달리기 · 방향키 ←→ 화면 회전, ↑↓ 기울기 · Alt 커서/시점 모드 전환 · E 상호작용 · M 지도</p></div>
     <p class="note" style="margin-top:14px;opacity:.7">지형·석재 사진 텍스처: Babylon.js Assets (CC BY 4.0)</p></div>`;
 }
 function toggleBattleView(force){if(!BT||!BT.cmd)return;const toTp=(force!==undefined?force:E.camMode!=="tp")&&!!BT.king&&!BT.kingDown&&!KC.ko;if(!toTp)hideKingHud();if(!toTp&&E.camMode!=="tp"&&force===undefined){bSay(BT.king?"왕이 쓰러져 친위대가 뒤로 모셨다 — 전체 시점으로 지휘한다.":"장군이 이끄는 전투는 전체 시점으로 지휘한다.");return;}   // 장군이 이끌면 전체 시점만
@@ -7935,6 +7937,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.129","마우스: Alt 한 번 → 커서 모드(버튼 누르기), 한 번 더 → 시점 모드(마우스로 화면 돌리기). 더는 Esc를 누르고 화면을 클릭할 필요가 없다 (예전 'Alt 누른 채 자유 시점'은 없앴다)"],
  ["0.9.128","'지금 할 일' 줄이 '화면 클릭 — 마우스로 시점 돌리기' 안내와 겹치던 것 고침(위로 올림) · 몇 m 남았는지 숫자는 없앴다(길 안내·잠입 화살표)"],
  ["0.9.127","로그인은 구글 계정 하나로만 (아이디·비밀번호는 잊으면 찾을 방법이 없어 뺐다) — 게스트로도 시작할 수 있다"],
  ["0.9.126","구글 로그인: 버튼을 누르면 브라우저에 구글 로그인 페이지가 바로 열리고, 계정을 고르면 게임이 저절로 로그인된다(코드 입력 없음) · 로그인 정보를 넘기다 'idToken' 오류가 나던 것 고침 · PC 앱이 같은 버전 번호로 올린 고침을 받지 못하던 것 고침"],
@@ -8062,7 +8065,7 @@ const CHANGES=[
 function changesModal(){return `${winHead("바뀐 점")}<div class="wbody">${CHANGES.map(([v,t])=>`<div class="tile"><div class="hd"><span class="nm">v${v}</span></div><div class="ds">${t}</div></div>`).join("")}</div><div class="wfoot"><button class="b ghost" data-a="close">닫기</button></div>`;}
 
 function controlsModal(){const T=(title,rows)=>`<div class="tile"><div class="hd"><span class="nm">${title}</span></div><div class="ds keys">${rows}</div></div>`;return `${winHead("조작법")}<div class="wbody">
-  ${T("왕궁 · 대전 — 왕이 걷는다","<kbd>WASD</kbd> 이동 · <kbd>Shift</kbd> 달리기 · 마우스: 화면 위에서 움직이면 시점이 돈다(커서는 늘 보이고, 화면 양 끝에 대면 계속 돈다 — 버튼·창 위에선 안 돈다) · <kbd>Esc</kbd> 해제) · <kbd>Alt</kbd>를 누른 채 마우스: 자유 시점(왕의 앞·옆모습) · <kbd>E</kbd> 문 열기·말하기·말 타기/내리기, 창 닫기 · <kbd>M</kbd> 지도 · <kbd>P</kbd> 일시정지<br><kbd>우클릭</kbd> 베기(연타: 3연격) · <kbd>R</kbd> 찌르기(오른팔만 곧게 뻗는다 — 사거리가 길다) · <kbd>B</kbd> 막기(정면, 기력 소모) · <kbd>Ctrl</kbd> 구르기 · <kbd>Space</kbd> 점프 · <kbd>C</kbd> 쪼그려 앉기(켜고 끔, 앉은 채 천천히 걷는다)<br>왕의 기술: <kbd>1</kbd> 회오리 베기(무예 10) · <kbd>2</kbd> 불굴의 외침(무예 25) · <kbd>3</kbd> 돌진 베기(무예 40)")}
+  ${T("왕궁 · 대전 — 왕이 걷는다","<kbd>WASD</kbd> 이동 · <kbd>Shift</kbd> 달리기 · <kbd>Alt</kbd> 한 번: 커서 모드(마우스로 버튼 누르기) ↔ 한 번 더: 시점 모드(마우스를 움직이는 대로 화면이 돈다) · <kbd>E</kbd> 문 열기·말하기·말 타기/내리기, 창 닫기 · <kbd>M</kbd> 지도 · <kbd>P</kbd> 일시정지<br><kbd>우클릭</kbd> 베기(연타: 3연격) · <kbd>R</kbd> 찌르기(오른팔만 곧게 뻗는다 — 사거리가 길다) · <kbd>B</kbd> 막기(정면, 기력 소모) · <kbd>Ctrl</kbd> 구르기 · <kbd>Space</kbd> 점프 · <kbd>C</kbd> 쪼그려 앉기(켜고 끔, 앉은 채 천천히 걷는다)<br>왕의 기술: <kbd>1</kbd> 회오리 베기(무예 10) · <kbd>2</kbd> 불굴의 외침(무예 25) · <kbd>3</kbd> 돌진 베기(무예 40)")}
   ${T("말 위","<kbd>WASD</kbd> 달린다 · <kbd>Shift</kbd> 질주 · <kbd>우클릭</kbd> 달리며 베기 · 빠르게 달리면 앞의 적을 짓밟는다 · 왕궁에선 <kbd>E</kbd>, 전장에선 <kbd>M</kbd>으로 내린다")}
   ${T("세계 지도","끌기·<kbd>WASD</kbd> 이동 · 휠 확대 · <kbd>우클릭 끌기</kbd> 회전 · 거점·군대 클릭: 정보 · 군대를 고르고 땅/거점/적을 <kbd>우클릭</kbd>: 이동·임무 · <kbd>P</kbd> 일시정지 · <kbd>M</kbd> 왕궁으로")}
   ${T("전장 — 전체 시점","끌어서 상자 선택 · 부대 두 번 클릭: 같은 병종 전부 · <kbd>Ctrl+A</kbd> 전체 · <kbd>5</kbd>~<kbd>9</kbd> 병종 지휘(보병·창병·궁병·기병·전군) · 땅 <kbd>우클릭</kbd> 이동 · 적 <kbd>우클릭</kbd> 공격<br><kbd>R</kbd> 부대 능력 · <kbd>Q</kbd> 장군 능력 · <kbd>G</kbd> 돌격(고른 부대, 없으면 지휘 중인 병종 — 방어전에서 전군 돌격이면 성문을 열고 출격, 공성이면 사다리로) · <kbd>H</kbd> 후퇴 · <kbd>J</kbd><kbd>K</kbd> 병종 기술 · <kbd>F</kbd> 나를 따르라 · <kbd>V</kbd> 왕의 시점(왕이 이끌 때만) · <kbd>Space</kbd>/<kbd>P</kbd> 일시정지 · <kbd>/</kbd> 도움말 다시 보기")}
@@ -8326,7 +8329,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.128 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.129 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
