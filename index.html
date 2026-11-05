@@ -465,7 +465,7 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 #gcmd button .cdn{display:inline-block;margin-left:4px;padding:0 6px;border-radius:8px;background:#5a1a14;color:#ffd7c8;font-weight:800}
 
 .kres{display:flex;gap:18px;align-items:center;padding:7px 16px;border-bottom:1px solid rgba(226,192,122,.18);background:rgba(0,0,0,.25);font-size:14px;color:#efe4cc}.kres span{display:flex;align-items:center;gap:5px}.kres svg{width:16px;height:16px}.kres b{font-variant-numeric:tabular-nums}.kres small{opacity:.75;font-size:11.5px}.kres small.up{color:#9fd08a;opacity:1}.kres small.dn{color:#e8a79a;opacity:1}
-#tutNow{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);z-index:8;max-width:min(640px,calc(100vw - 32px));display:flex;gap:10px;align-items:center;padding:8px 14px;background:rgba(14,10,6,.88);border:1px solid rgba(242,196,106,.75);border-radius:3px;box-shadow:0 0 18px rgba(242,196,106,.25);font-size:15px;color:#f3e7cc;pointer-events:none;animation:notein .3s ease-out}#tutNow .tn-h{flex:none;font-size:11px;letter-spacing:.12em;color:#1a120a;background:#f2c46a;padding:2px 6px;border-radius:2px}#tutNow b{color:#ffe08a}
+#tutNow{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);z-index:8;max-width:min(640px,calc(100vw - 32px));display:flex;gap:10px;align-items:center;padding:8px 14px;background:rgba(14,10,6,.88);border:1px solid rgba(242,196,106,.75);border-radius:3px;box-shadow:0 0 18px rgba(242,196,106,.25);font-size:15px;color:#f3e7cc;pointer-events:none;animation:notein .3s ease-out}#tutNow .tn-h{flex:none;font-size:11px;letter-spacing:.12em;color:#1a120a;background:#f2c46a;padding:2px 6px;border-radius:2px}#tutNow b{color:#ffe08a}
 @media (pointer:coarse){#tutNow{bottom:58px;top:auto;font-size:11px;padding:5px 9px;gap:6px;max-width:min(430px,52vw)}#tutNow .tn-h{font-size:9px}}
 #infHud{position:fixed;inset:0;pointer-events:none;z-index:6}#infHud .vig{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 140px 40px rgba(200,30,20,.75);transition:opacity .2s}#infHud .dir{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(10,8,6,.8);border:1px solid rgba(242,196,106,.6);color:#f3e7cc;font-size:13.5px;border-radius:3px}#infHud .dir i{font-style:normal;color:#ffd76a;display:inline-block;font-size:18px}#infHud .eye{position:absolute;left:50%;top:112px;transform:translateX(-50%);font-size:14px;color:#efe4cc;text-shadow:0 1px 3px #000}#infHud .eye.on{color:#ff8a7a;font-weight:700;font-size:17px}
 #jobMarks{position:fixed;inset:0;pointer-events:none;z-index:4}#jobMarks .jm{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:1px}#jobMarks .jm span{font-size:20px;filter:drop-shadow(0 1px 2px #000);animation:jmb .6s ease-in-out infinite alternate}#jobMarks .jm.work span{animation:jmw .35s ease-in-out infinite alternate}#jobMarks .jm small{font-size:10.5px;color:#f3e7cc;background:rgba(10,8,6,.75);padding:1px 5px;border-radius:2px;white-space:nowrap}#jobMarks .jt{position:absolute;transform:translate(-50%,-50%);font-size:13px;opacity:.45}@keyframes jmb{to{transform:translateY(-3px)}}@keyframes jmw{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
@@ -4496,7 +4496,7 @@ function infHudTick(){let el=$("#infHud");if(!el){el=document.createElement("div
   const left=INF.pois.filter(p=>!p.found);const dir=el.querySelector(".dir");if(!left.length){dir.hidden=true;return;}
   let b=null,bd=1e9;for(const p of left){const d=Math.hypot(p.x-INF.pos.x,p.z-INF.pos.z);if(d<bd){bd=d;b=p;}}
   const yaw=E.tp?E.tp.yaw:0,ang=Math.atan2(b.x-INF.pos.x,b.z-INF.pos.z);const rel=ang-(yaw+Math.PI);
-  dir.hidden=false;dir.querySelector("i").style.transform=`rotate(${-rel-Math.PI/2}rad)`;dir.querySelector("span").textContent=`가까운 ? 지점 ${Math.round(bd)}m · 남은 ${left.length}곳`;}
+  dir.hidden=false;dir.querySelector("i").style.transform=`rotate(${-rel-Math.PI/2}rad)`;dir.querySelector("span").textContent=`가까운 ? 지점 쪽 · 남은 ${left.length}곳`;}
 
 /* ════════ 중립 왕국 · 야영지 · 전장의 안개 · 인구 ════════ */
 
@@ -5220,7 +5220,7 @@ function tutDockClass(){const T=tutTarget();const b=document.querySelector('#doc
 /* 미션이 뜨면 '지금 어디로 가서 무엇을 누르나'를 화면 아래 가운데에 한 줄로 — 왕의 위치에 따라 바뀐다 */
 function tutNowText(){const T=tutTarget();if(!T&&!(S&&S.tut&&S.tut.curI!==undefined))return "";
   const items=guideItems(),cur=items[S.tut.curI];if(!cur||cur[3])return "";const key=COARSE?"아래 버튼":"E";
-  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?`<b>${esc(sp.name)}</b> 앞이다 — ${extra||key+"를 눌러라"}`:`<b>${esc(sp.name)}</b>(으)로 걸어가라 — 바닥의 노란 길 · ${Math.round(d)}m`;};
+  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?`<b>${esc(sp.name)}</b> 앞이다 — ${extra||key+"를 눌러라"}`:`<b>${esc(sp.name)}</b>(으)로 걸어가라 — 바닥의 노란 길을 따라`;};
   const m=UI.mode;
   if(T&&T.ui==="kingdom")return m==="map"?"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼)":"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼) — 창이 열리면 빛나는 탭";
   if(m==="capital"&&T){const want=T.cap||(T.pal?"keep":T.map?"table":null);const sp=want&&CAP.spots&&CAP.spots.find(x=>x.id===want);
@@ -5228,7 +5228,7 @@ function tutNowText(){const T=tutTarget();if(!T&&!(S&&S.tut&&S.tut.curI!==undefi
     if(T.pal&&sp)return go(CAP.pos,sp,`${key}를 눌러 대전으로 들어간다`);
     if(sp)return go(CAP.pos,sp);}
   if(m==="palace"&&T){if(T.pal){const sp=PAL.spots&&PAL.spots.find(x=>x.id===T.pal);if(sp)return go(PAL.pos,sp);}
-    const dr=PAL.spots&&PAL.spots.find(x=>x.id==="door");if(dr){const d=Math.hypot(dr.x-PAL.pos.x,dr.z-PAL.pos.z);return `<b>대전 문</b>으로 걸어 나가라 — 문이 열리면 그대로 마당으로 · ${Math.round(d)}m`;}}
+    const dr=PAL.spots&&PAL.spots.find(x=>x.id==="door");if(dr){const d=Math.hypot(dr.x-PAL.pos.x,dr.z-PAL.pos.z);return `<b>대전 문</b>으로 걸어 나가라 — 문이 열리면 그대로 마당으로`;}}
   if(m==="map"&&T){if(T.cap||T.pal)return "왼쪽 위 <b>왕궁으로</b> 버튼을 눌러 왕도로 돌아가라";
     if(T.map){const s=T.map;if(UI.sel&&UI.sel.kind==="site"&&UI.sel.id===s.id)return `오른쪽 창에서 — ${cur[2]}`;
       const p=worldToScreen(s.x,worldH(s.x,s.z)+5,s.z),off=!p.vis||p.x<20||p.x>E.W-20||p.y<20||p.y>E.H-20;
@@ -7935,6 +7935,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.128","'지금 할 일' 줄이 '화면 클릭 — 마우스로 시점 돌리기' 안내와 겹치던 것 고침(위로 올림) · 몇 m 남았는지 숫자는 없앴다(길 안내·잠입 화살표)"],
  ["0.9.127","로그인은 구글 계정 하나로만 (아이디·비밀번호는 잊으면 찾을 방법이 없어 뺐다) — 게스트로도 시작할 수 있다"],
  ["0.9.126","구글 로그인: 버튼을 누르면 브라우저에 구글 로그인 페이지가 바로 열리고, 계정을 고르면 게임이 저절로 로그인된다(코드 입력 없음) · 로그인 정보를 넘기다 'idToken' 오류가 나던 것 고침 · PC 앱이 같은 버전 번호로 올린 고침을 받지 못하던 것 고침"],
  ["0.9.125","앱: 아이디·비밀번호 로그인 — 처음 화면에서 회원가입·로그인 또는 '게스트로 시작'. 로그인하면 저장이 클라우드에 올라가 폰·PC 어디서든 같은 왕국을 이어 한다(이 기기에만 있던 더 최근 저장은 로그인할 때 올라간다)"],
@@ -8325,7 +8326,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.127 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.128 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
