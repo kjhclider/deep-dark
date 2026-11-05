@@ -507,6 +507,8 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
   #pend{zoom:.55!important}
 }
 #infHud .mtr{display:none}@media (pointer:coarse){#infHud .mtr{display:flex;position:absolute;left:12px;top:80px;zoom:.85;align-items:center;gap:6px;padding:4px 8px;background:rgba(10,8,6,.8);border:1px solid rgba(226,192,122,.5);font-size:12px;color:#efe4cc;border-radius:3px}#infHud .mtr b{display:block;width:110px;height:8px;background:rgba(255,255,255,.12)}#infHud .mtr i{display:block;height:100%}#infHud .mtr button{pointer-events:auto;margin-left:6px;padding:4px 10px;font-size:12px;background:rgba(40,28,12,.9);color:#ffe2a0;border:1px solid #f2c46a;border-radius:3px}}
+.lgpanel{display:flex;flex-direction:column;gap:10px;align-items:stretch;width:min(360px,92vw);margin-top:auto;padding:16px 18px;background:rgba(10,8,6,.82);border:1px solid rgba(226,192,122,.5);border-radius:4px;animation:tin 1.6s .4s ease-out both}.lgpanel h3{margin:0;font-size:18px;color:#ffe2a0;letter-spacing:.1em}.lgpanel p{margin:0;font-size:13.5px;color:#efe4cc;line-height:1.5}.lgpanel .lgbig{font-size:16px;padding:12px}.lgpanel .g{display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;background:#fff;color:#4285f4;font-weight:900;margin-right:8px}.lgpanel small{opacity:.7}
+.lgchip{position:absolute;top:14px;right:16px;display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(10,8,6,.75);border:1px solid rgba(226,192,122,.4);border-radius:3px;font-size:12.5px;color:#efe4cc;z-index:3}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -5901,6 +5903,8 @@ function bDamage(a,d,dmg){
   if(!act(d)||dmg<=0)return;const D=U[d.t];
   if(d.side===1&&(!a||a.side===0))dmg*=OUR_K;else if(d.side===0&&a&&a.side===1)dmg/=OUR_K;   // 우리 병사는 망자보다 FOE_K배 강하다
   d.pool-=dmg;d.hitT=0.15;
+  /* 왕을 직접 조종하는 동안엔 친위대가 다 쓰러져도 왕은 체력(왼쪽 위 막대)이 0이 될 때만 쓰러진다 — 체력이 그대로인데 갑자기 죽던 것 */
+  if(d.isKing&&E.camMode==="tp"&&!KC.ko&&!BT.kingDown&&d.pool<sqHp(d))d.pool=sqHp(d)*0.999;
   const na=Math.max(0,Math.ceil(d.pool/sqHp(d)-1e-6)),deaths=d.alive-na;
   if(deaths>0){
     const before=aliveFigs(d);d.alive=na;const after=aliveFigs(d);
@@ -7714,6 +7718,13 @@ document.addEventListener("click",e=>{
     case"lordAI":UI.openModal(settingsModal());break;
     case"buyFood":{const v=+b.dataset.v,g=Math.round(v*0.6);if(S.res.gold>=g&&S.grainBought!==(S.day|0)){S.res.gold-=g;S.res.food+=v;S.grainBought=S.day|0;logMsg(`곡물 상인에게서 식량 ${v}을(를) 금화 ${g}에 샀다.`);renderTop();UI.openModal(kingdomModal());saveGame();}break;}
     case"sellFood":{const v=+b.dataset.v;if(S.res.food>=v+300&&S.grainSold!==(S.day|0)){S.res.food-=v;S.res.gold+=Math.round(v*0.3);S.grainSold=S.day|0;logMsg(`곡물 상인에게 식량 ${v}을(를) 넘기고 금화 ${Math.round(v*0.3)}을(를) 받았다.`,"gold");renderTop();UI.openModal(kingdomModal());saveGame();}break;}
+    case"login":loginGo();break;
+    case"loginCode":loginCode();break;
+    case"guest":try{localStorage.setItem("dd-guest","1");}catch(e){}showTitle();break;
+    case"logout":if(window.firebase&&firebase.auth)firebase.auth().signOut().then(()=>{LOADED=null;try{const r=localStorage.getItem("ashen-crown-v3");if(r)LOADED=JSON.parse(r);}catch(e){}toast("로그아웃했다 — 이제 이 기기에만 저장된다");showTitle();});break;
+    case"loginCancel":LOGIN.code=null;clearInterval(LOGIN.poll);UI.closeModal();break;
+    case"loginOpen":window.open(b.dataset.u,"_blank");break;
+    case"loginCopy":try{navigator.clipboard.writeText(b.dataset.u);toast("주소를 복사했다");}catch(e){toast(b.dataset.u);}break;
     case"multi":toast("멀티플레이는 준비 중이다 — 2~4명이 각자 왕국을 맡는 협동으로 만든다");break;
     case"practice":gateThen(()=>UI.openModal(practiceModal()));break;
     case"mouseMode":E.soft=b.dataset.v==="soft";try{localStorage.setItem("dd-mouse",E.soft?"soft":"lock");}catch(e){}E.wantLock=!E.soft&&(UI.mode==="capital"||UI.mode==="palace");if(E.soft&&document.pointerLockElement)document.exitPointerLock();UI.openModal(settingsModal());break;
@@ -7915,6 +7926,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.124","전투: 왕을 직접 조종하는 동안 친위대가 다 쓰러지면 왕의 체력이 그대로인데도 한 번에 쓰러지던 것 고침 — 이제 왕은 왼쪽 위 체력 막대가 0이 될 때만 쓰러진다 · (준비) 구글 로그인·클라우드 저장"],
  ["0.9.123","휴대폰 화면 대정리(모바일 액션 RPG 방식: 엄지 자리는 조이스틱·행동 버튼, 모서리는 상태, 나머지는 메뉴 안으로) — 왕도·대전: 아래 하단 버튼 줄 대신 '☰ 메뉴' 하나(누르면 큰 메뉴판), 길잡이 패널 대신 '지금 할 일' 한 줄, 목표 문장·화면 이름·소식 줄 숨김, 왕 정보는 막대만, 아직 못 쓰는 기술 버튼(자물쇠)은 숨김, '장군' 버튼은 전장에서만 · 잠입: 오른쪽 큰 창 대신 왼쪽 위 발각 막대와 철수 버튼 · 지도 아래 버튼 조금 크게 · 휴대폰 안내 문구의 'E'·'WASD'를 '버튼'으로 · 요새·왕좌에서 망자가 바닥 구조물 속에 박혀 보이던 것 고침 · 잠입은 망자 무리 바로 바깥에서 시작(빈 들판을 한참 걷지 않게) · 장군 상태 '대기'를 '출정 가능'으로 · 왼쪽 위 장 목표 줄에서 대습격 중복 표시 제거(위 막대가 보여 줌) · '새로 알게 된 것' 카드를 작게 · 창이 열릴 때 잠깐 흐리게 보이던 것 없앰"],
  ["0.9.122","앱: 싱글플레이를 눌러 Claude 연결(API 키) 창을 거치면, 연결되자마자 누른 그대로 게임에 들어간다(다시 누를 필요 없다) · 휴대폰 전장: 아래 지휘판·중대 카드를 조이스틱과 오른쪽 키 사이 가운데로 모아 키와 겹치지 않게, 전장 미니맵은 위 가운데로 · 휴대폰: 목표 막대는 위에 작게, '지금 할 일'은 아래 가운데에 작게 · 휴대폰 전장 정리: 지휘판·중대 카드는 아래 가운데 '지휘판 ▲'로 펼칠 때만 · 왕 정보는 체력·기력 막대만 · 아군/망자 막대는 위에 작게 · 미니맵·설명 줄 숨김 · 장군 기술 버튼과 웅크리기가 겹치지 않게 · 전투·잠입 화면에 목표 막대·지금 할 일이 남던 것 고침"],
  ["0.9.121","처음 하는 사람이 '무슨 게임인지' 바로 알게: START는 프롤로그 '선왕의 마지막 밤' 왕궁 방어전부터(건너뛰기 가능, '프롤로그 없이 시작'도 있다) → 즉위 · 화면 위 가운데 목표 막대: 대습격까지 D-n · 오는 망자 수 · 우리 병력과 비율·한마디 · 길잡이 없이 하면 기능이 날마다 열린다(1일째: 내정 건설·징병·원정·군대·지도 / 2일째 연대기·주둔군·첩자 / 3일째 장군·금고·마을 관리 / 4일째 옷장·외교 / 5일째 전황 / 6일째 개량) · 설명을 짧게: 새로 알게 된 것은 두 문장, 처음 보는 창·길잡이 미션은 한 문장, 길잡이 패널은 '어떻게'만"],
@@ -8135,6 +8147,56 @@ function guideGlow(ph,ci,cur){document.querySelectorAll(".gglow").forEach(e=>e.c
     case 1:if(!modal)add('[data-a="kingdom"]');add('[data-a="ktab"][data-k="build"]');break;
     case 3:toMap();if(!sel||sel.id!=="f_mor")site(s=>s.id==="f_mor");else add('[data-a="compose"][data-t="site:f_mor"]');break;}}}
 
+/* ════════ 로그인 (앱 전용): 구글 계정으로 저장을 클라우드에 — 폰·PC 어디서든 같은 왕국 ════════
+   - claude.ai 안에서는 쓰지 않는다 (거기선 Claude 계정 저장이 이미 있다)
+   - 웹(깃허브 페이지)·폰 홈 화면 앱: 구글 팝업으로 로그인
+   - PC 앱(또는 팝업이 막힐 때): '코드로 로그인' — 브라우저에서 login.html을 열어 구글로 로그인하면, 앱이 코드로 그 로그인을 받아 온다 */
+const FB_CFG=null;   // Firebase 웹 앱 설정 (프로젝트 설정 → 내 앱 → 웹)
+const FBV="10.12.2";
+const LOGIN={user:null,ready:false,loading:null,code:null,poll:null};
+const loginOn=()=>APP_MODE&&!!FB_CFG&&!(window.claude&&window.claude.use);
+function fbLoad(){if(LOGIN.loading)return LOGIN.loading;
+  const add=src=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s);});
+  const b=`https://www.gstatic.com/firebasejs/${FBV}/`;
+  LOGIN.loading=add(b+"firebase-app-compat.js").then(()=>Promise.all([add(b+"firebase-auth-compat.js"),add(b+"firebase-firestore-compat.js")])).then(()=>{
+    if(!firebase.apps.length)firebase.initializeApp(FB_CFG);
+    firebase.auth().onAuthStateChanged(async u=>{LOGIN.user=u||null;LOGIN.ready=true;
+      if(u){DB=FSDB;UID=u.uid;try{const s=await loadGame();if(s)LOADED=s;}catch(e){}
+        /* 이 기기에만 있던 저장이 더 최근이면 클라우드로 올린다 */
+        try{if(LOADED&&(!S||S.title)){const r=localStorage.getItem("ashen-crown-v3");if(r){const loc=JSON.parse(r);if(loc&&loc.savedAt&&loc.savedAt>=(LOADED.savedAt||0))await DB.doc(`data/users/${UID}/save`).set({state:r,day:loc.day,at:Date.now()});}}}catch(e){}
+      }else{DB=null;UID=null;}
+      if(S&&S.title)showTitle();else renderLoginChip();});
+  });return LOGIN.loading;}
+const FSDB={doc:p=>({get:async()=>{const d=await firebase.firestore().doc(p).get();return {exists:d.exists,data:()=>d.data()};},set:v=>firebase.firestore().doc(p).set(v)})};
+/* 처음 화면: 로그인 패널 또는 로그인된 계정 표시 */
+function loginTitleHtml(){if(!loginOn())return "";const u=LOGIN.user;
+  if(u)return `<div class="lgchip"><span>☁ ${esc(u.displayName||u.email||"계정")} · 클라우드 저장</span><button class="b ghost sm" data-a="logout">로그아웃</button></div>`;
+  let guest=false;try{guest=localStorage.getItem("dd-guest")==="1";}catch(e){}
+  if(guest)return `<div class="lgchip"><span>게스트 — 이 기기에만 저장</span><button class="b sm" data-a="login">구글로 로그인</button></div>`;
+  return `<div class="lgpanel"><h3>로그인</h3><p>구글 계정으로 로그인하면 폰·PC 어디서든 같은 왕국을 이어 한다.</p>
+    <button class="b gold lgbig" data-a="login"><b class="g">G</b> Google로 로그인</button>
+    <button class="b ghost" data-a="guest">게스트로 시작 <small>— 이 기기에만 저장</small></button>
+    <button class="b ghost sm" data-a="loginCode" style="opacity:.75">구글 창이 안 열리면: 코드로 로그인</button></div>`;}
+function renderLoginChip(){}
+function loginGo(){if(!FB_CFG)return;fbLoad().then(()=>{
+  if(window.deskApi){loginCode();return;}   // PC 앱 안에서는 구글 팝업이 막힌다 → 코드 방식
+  const p=new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(p).then(()=>{toast("로그인했다 — 저장이 클라우드에 올라간다");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{if(e&&e.code==="auth/popup-closed-by-user")return;toast("구글 창을 열 수 없다 — 코드로 로그인한다");loginCode();});
+}).catch(()=>toast("로그인 서버에 닿지 않는다 — 인터넷 연결을 확인하라"));}
+function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";const r=crypto.getRandomValues(new Uint8Array(8));for(const x of r)c+=A[x%A.length];LOGIN.code=c;
+  const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?c=${c}`;
+  UI.openModal(`${winHead("코드로 로그인")}<div class="wbody"><p>아래 주소를 <b>평소 쓰는 브라우저</b>(크롬 등)에서 열고 구글로 로그인하라. 로그인이 끝나면 이 화면이 저절로 넘어간다.</p>
+    <div class="tile" style="text-align:center"><div class="note">주소</div><div style="font-size:15px;user-select:text;-webkit-user-select:text;word-break:break-all">${esc(url)}</div><div class="note" style="margin-top:8px">코드</div><div style="font:800 28px/1.2 var(--f-num,monospace);letter-spacing:.18em;color:#ffe2a0">${c.slice(0,4)}-${c.slice(4)}</div></div>
+    <p class="note" id="lgWait">기다리는 중…</p></div><div class="wfoot"><button class="b ghost" data-a="loginCancel">취소</button><button class="b" data-a="loginCopy" data-u="${esc(url)}">주소 복사</button><button class="b gold" data-a="loginOpen" data-u="${esc(url)}">브라우저로 열기</button></div>`,{narrow:true});
+  clearInterval(LOGIN.poll);const t0=Date.now();
+  LOGIN.poll=setInterval(async()=>{if(Date.now()-t0>10*60e3||LOGIN.code!==c){clearInterval(LOGIN.poll);return;}
+    try{const ref=firebase.firestore().doc(`linkSessions/${c}`);const d=await ref.get();if(!d.exists)return;const tok=d.data().idToken;if(!tok)return;clearInterval(LOGIN.poll);
+      await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(tok));try{await ref.delete();}catch(e){}
+      try{localStorage.removeItem("dd-guest");}catch(e){}LOGIN.code=null;UI.closeModal();toast("로그인했다 — 저장이 클라우드에 올라간다");}catch(e){const w=$("#lgWait");if(w)w.textContent="로그인을 받아 오지 못했다 — 다시 시도하라 ("+(e&&e.code||"오류")+")";}
+  },2000);});}
+/* 시작할 때: 로그인 기능이 켜져 있으면 조용히 불러와 지난 로그인을 되살린다 */
+if(loginOn())setTimeout(()=>{fbLoad().catch(()=>{});},300);
+
 /* ════════ 부팅 · 저장 · 타이틀 ════════ */
 let DB=null,UID=null,saving=false,saveAgain=false,LOADED=null;
 function snapshotState(){const o={...S};delete o.pendingHerald;return JSON.stringify(o);}
@@ -8232,13 +8294,13 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
   $("#whud").hidden=true;$("#bhud").hidden=true;$("#prompt").hidden=true;
   const has=!fresh&&LOADED;
   $("#title").innerHTML=`<div class="tlogo"><span class="tline"></span><h1 class="ttl">Deep Dark</h1><span class="tline"></span><p class="tsub">망자의 군단</p></div>
-    ${APP_MODE?`<div class="tmenu"><button class="tb main" data-a="${has?"continue":"start"}">싱글플레이<small>${has?`${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕 — 이어 하기`:"새 왕국을 세운다"}</small></button><button class="tb" data-a="multi">멀티플레이<small>준비 중 — 2~4명 협동</small></button></div>`:""}
+    ${APP_MODE?`${typeof loginTitleHtml==="function"?loginTitleHtml():""}<div class="tmenu" ${typeof loginOn==="function"&&loginOn()&&!LOGIN.user&&(()=>{try{return localStorage.getItem("dd-guest")!=="1";}catch(e){return false;}})()?"hidden":""}><button class="tb main" data-a="${has?"continue":"start"}">싱글플레이<small>${has?`${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕 — 이어 하기`:"새 왕국을 세운다"}</small></button><button class="tb" data-a="multi">멀티플레이<small>준비 중 — 2~4명 협동</small></button></div>`:""}
     <div class="tmenu" ${APP_MODE?"hidden":""}>
       ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕</small></button>`:`<button class="tb main" data-a="start">START<small>선왕의 마지막 밤부터</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">프롤로그 없이 시작<small>바로 1일째 왕궁에서</small></button>`}
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.123 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.124 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
