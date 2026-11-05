@@ -160,7 +160,7 @@ hr.orn{border:0;height:9px;margin:4px 0;background:radial-gradient(circle,var(--
 .veil{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(40,24,10,.45),rgba(3,2,4,.8));display:grid;place-items:center;z-index:40;padding:16px;backdrop-filter:blur(2px)}
 .window{width:min(780px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;animation:rise .22s ease-out}
 .window.narrow{width:min(520px,100%)}
-@keyframes rise{from{transform:translateY(8px);opacity:.3}}
+@keyframes rise{from{transform:translateY(8px)}}
 .wbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px}
 .wbody h2{font-family:var(--f-display);font-weight:900;font-size:28px;margin:0;line-height:1.15;text-wrap:balance;letter-spacing:.05em;background:linear-gradient(180deg,#fff6dc,#f1d48a 45%,#cfa04a 70%,#ffe9b0);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 2px #000)}
 .wbody .story{font-family:var(--f-display);font-weight:400;font-size:16px;line-height:1.8;color:#e6dcc5;white-space:pre-wrap;margin:0}
@@ -398,8 +398,8 @@ body :where(*:not(button):not([data-a]):not(a):not(.tile):not(summary):not(selec
 #pend .pdrop{width:auto;font-size:11px;padding:2px 8px;margin:-2px 0 4px auto;display:block;opacity:.8}
 .lbl .vbadge{display:inline-block;margin-left:6px;padding:1px 5px;font-style:normal;font-size:10px;line-height:1.3;color:#1a1208;background:#e2c07a;border-radius:2px;vertical-align:middle;letter-spacing:.02em}
 /* 새로 알게 된 것: 화면 위 가운데, 크게 */
-#hint{right:auto;bottom:auto;left:50%;top:140px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));padding:16px 20px 14px;border-width:2px;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 34px rgba(242,196,106,.35),0 12px 40px rgba(0,0,0,.7);z-index:39;animation:hintIn .45s cubic-bezier(.2,1.3,.4,1)}
-#hint .ht{font-size:12.5px}#hint b{display:block;font-size:20px;margin:6px 0 6px;color:#ffe2a0}#hint p{font-size:15px;line-height:1.55;margin:0 0 10px;color:#efe4cc}
+#hint{right:auto;bottom:auto;left:50%;top:140px;transform:translateX(-50%);width:min(440px,calc(100vw - 32px));max-height:42vh;overflow:hidden;padding:16px 20px 14px;border-width:2px;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 34px rgba(242,196,106,.35),0 12px 40px rgba(0,0,0,.7);z-index:39;animation:hintIn .45s cubic-bezier(.2,1.3,.4,1)}
+#hint .ht{font-size:12.5px}#hint b{display:block;font-size:17px;margin:4px 0 5px;color:#ffe2a0}#hint p{font-size:13.5px;line-height:1.55;margin:0 0 10px;color:#efe4cc}
 #hint{cursor:pointer}#hint .hbar{display:block;height:2px;background:var(--gold);transform-origin:left;animation:hbar linear forwards;opacity:.7}@keyframes hbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @keyframes hintIn{from{opacity:0;transform:translate(-50%,-14px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
 /* 게임 안에서는 글자가 파랗게 선택되지 않는다 (드래그·더블클릭·Ctrl+A) */
@@ -3477,7 +3477,7 @@ function priestModal(){
 }
 function councilModal(){
   return `${winHead("작전 회의")}<div class="wbody"><p class="story" style="font-size:15px">탁자 위 지도에 망자의 요새마다 검은 돌이 놓여 있다. 장군들이 왕의 말을 기다린다.</p>
-    ${S.gens.map(g=>{const G=genById(g.id);return `<div class="gen" style="grid-template-columns:auto 1fr auto"><span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"대기",march:"원정 중",wounded:`부상 ${g.wound}일`,dead:"전사"}[g.status]}</span></div>`;}).join("")}
+    ${S.gens.map(g=>{const G=genById(g.id);return `<div class="gen" style="grid-template-columns:auto 1fr auto"><span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"출정 가능",march:"원정 중",wounded:`부상 ${g.wound}일`,dead:"전사"}[g.status]}</span></div>`;}).join("")}
     ${S.court&&S.court.hire?`<div class="tile"><div class="hd"><span class="seal">${S.court.hire.name[0]}</span><span class="nm">${S.court.hire.name} · ${GEN_KIT[S.court.hire.unit].title} (Lv${S.court.hire.lvl})</span></div><div class="ds">${esc(S.court.hire.bio)} ${GEN_KIT[S.court.hire.unit].passive} · ${GEN_KIT[S.court.hire.unit].ab}</div><div class="cost">금화 ${S.court.hire.cost} · ${S.court.hire.until-S.day}일 안에</div><button class="b sm gold" data-a="hireGen" ${S.res.gold>=S.court.hire.cost&&S.gens.length<7?"":"disabled"}>영입</button></div>`:""}
     <div><div class="eyebrow" style="margin:8px 0 4px">장군 승급 — ★★★ 중대장을 장군으로 (금화 500, 최대 7명)</div>${S.garrison.map((c,i)=>({c,i})).filter(x=>(x.c.vet||0)>=3).map(({c,i})=>`<div class="qrow"><span class="glyph" style="background:${U[c.t].col}">${U[c.t].g}</span>${U[c.t].n} 중대 <span style="color:var(--gold)">★★★</span><span class="note" style="margin-left:6px">${GEN_KIT[c.t]?GEN_KIT[c.t].title+" · "+GEN_KIT[c.t].ab:""}</span><button class="b sm gold" style="margin-left:auto" data-a="promote" data-i="${i}" ${S.res.gold>=500&&S.gens.length<7?"":"disabled"}>승급</button></div>`).join("")||'<p class="note">★★★ 중대가 아직 없다. 실전에서 살아남은 중대만 세 번째 별을 단다.</p>'}</div>
     <div class="acts"><button class="b gold" data-a="compose">원정군 편성</button><button class="b" data-a="armies">군대 지휘</button><button class="b" data-a="map">세계 지도</button><button class="b" data-a="spyNet">첩보 현황</button></div></div>`;
@@ -4401,7 +4401,7 @@ function enterInfiltration(id){
   enterSiteView(id,{spy:true});
   const I=S.intel[id],weak=I.weak||siteWeak(id);I.weak=weak;
   INF.on=true;INF.site=s;INF.meter=0;INF.t=0;INF.end=0;INF.spd=0;INF.caught=false;
-  INF.pos={x:6,z:84};INF.face=Math.PI;
+  {const outer=Math.max(40,...SV.crowds.filter(c=>c.foe).map(c=>c.rad));INF.pos={x:6,z:Math.min(84,outer+7)};}INF.face=Math.PI;   /* 망자 무리 바로 바깥에서 시작 — 빈 들판을 한참 걷지 않게 */
   // 약점 위치: 요새 바로 옆 세 곳 (망자 무리 안쪽)
   const R=s.kind==="village"?38:infRadius(s)+4;
   INF.pois=weak.map((k,i)=>{const a=-Math.PI/2+(i-1)*1.9+0.35,x=Math.cos(a)*R,z=Math.sin(a)*R;
@@ -5425,7 +5425,7 @@ function surge(){
   UI.dirty=true;
 }
 // 상단 표시용 한 줄
-function campaignLine(){const c=chapter();const nd=nextSurgeDay();const d=nd-S.day;const wv=(S.camp&&S.camp.surges||0)+(d<=1&&S.camp&&S.camp.surges&&S.armies.some(a=>a.side===1&&a.surge===S.camp.surges)?0:1);const zt=typeof zombieTier==="function"?zombieTier():1;return `${c.n} · ${c.goal()}${zt>1.02?` · <span title="망자는 7일째부터 날마다 질겨진다 (체력·공격)">망자 강화 ×${zt.toFixed(2)}</span>`:""}${S.day>=7&&d<=5&&d>0?` · <b style="color:var(--blood)">대습격 D-${d} · 약 ${fmtN(surgeMen(wv))}명</b>`:S.day<7?"":` · 다음 대습격 ${nd}일째 (약 ${fmtN(surgeMen(wv))}명)`}`;}
+function campaignLine(){const c=chapter();const nd=nextSurgeDay();const d=nd-S.day;const wv=(S.camp&&S.camp.surges||0)+(d<=1&&S.camp&&S.camp.surges&&S.armies.some(a=>a.side===1&&a.surge===S.camp.surges)?0:1);const zt=typeof zombieTier==="function"?zombieTier():1;return `${c.n} · ${c.goal()}${zt>1.02?` · <span title="망자는 7일째부터 날마다 질겨진다 (체력·공격)">망자 강화 ×${zt.toFixed(2)}</span>`:""}${typeof goalBarTick==="function"?"":(S.day>=7&&d<=5&&d>0?` · <b style="color:var(--blood)">대습격 D-${d} · 약 ${fmtN(surgeMen(wv))}명</b>`:S.day<7?"":` · 다음 대습격 ${nd}일째 (약 ${fmtN(surgeMen(wv))}명)`)}`;}
 
 // 1막 뒤 자유 통치 목표: 이룰 때마다 명성
 const AFTER_GOALS=[
@@ -7366,7 +7366,7 @@ function composeModal(){
   const odds=foe&&picked.length?battleOdds(picked.map(i=>S.garrison[i]),foe,"field",0):null;
   return `${winHead("원정군 편성")}<div class="wbody">${odds?oddsHtml(odds):foe?"":d.target&&d.target.kind==="site"?`<p class="note">적 병력을 모른다 — 첩자를 보내면 예상 전력이 나온다.</p>`:""}
     <div><div class="eyebrow" style="margin-bottom:6px">지휘관 <span class="note" style="letter-spacing:0;margin-left:6px">여럿을 고르면 함께 출정한다 · 먼저 고른 이가 총지휘</span></div><div style="display:grid;gap:6px">${kingHome()?`<button class="gen" data-a="dgen" data-id="king" aria-pressed="${dHas(d,"king")}" ${S.kingWound>0?"disabled":""}><span class="seal" style="color:#e8c46a;border-color:#e8c46a">왕</span><span class="nm">${esc(S.ruler)}<small>국왕 친정</small></span><span class="st ${S.kingWound>0?"wounded":"ready"}">${S.kingWound>0?`부상 ${S.kingWound}일`:"출정 가능"}</span><span class="sub">왕이 직접 친위대 40명과 싸운다 · 전장에서 3인칭으로 조종 · 왕의 함성</span></button>`:""}${S.gens.map(g=>{const G=genById(g.id);return `<button class="gen" data-a="dgen" data-id="${g.id}" aria-pressed="${dHas(d,g.id)}" ${g.status!=="ready"?"disabled":""}>
-      <span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"대기",march:"원정 중",wounded:`부상 ${g.wound}일`,dead:"전사"}[g.status]}</span>
+      <span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"출정 가능",march:"원정 중",wounded:`부상 ${g.wound}일`,dead:"전사"}[g.status]}</span>
       <span class="sub">Lv${g.lvl} · ${G.passive} · ${G.ab}</span></button>`;}).join("")}</div></div>
     <div><div class="eyebrow" style="margin-bottom:6px">병종별 중대 배정 (왕궁 주둔군에서)</div><div style="display:grid;gap:5px">${[...OURS,"einf","espear","earcher","ecav","militia"].flatMap(t=>{const vs=[3,2,1,0].filter(v=>avail[t+"#"+v]);if(!vs.length)return OURS.includes(t)?[[t,0]]:[];return vs.map(v=>[t,v]);}).map(([t,v])=>{const key=t+"#"+v,have=(avail[key]||[]).length,n=d.n[key]||0;
       return `<div class="pickrow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span><div>${U[t].n} <b style="color:${v?"var(--gold)":"var(--steel)"};font-size:12px">${v?"★".repeat(v):"신병"}</b><small>보유 ${have}개 중대${v?` · 공격 +${v*8}% · 받는 피해 -${v*6}%`:""} · ${COUNTER_TEXT[t][0]}에 강함</small></div>
@@ -7445,7 +7445,7 @@ function startTargeting(o,msg){UI.targeting=o;const el=$("#targeting");el.innerH
 /* ── 장군·연대기 ── */
 function gensModal(){
   return `${winHead("장군들")}<div class="wbody">${S.gens.map(g=>{const G=genById(g.id);return `<div class="gen" style="grid-template-columns:auto 1fr auto"><span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span>
-    <span class="st ${g.status}">${{ready:"대기",march:"원정 중",wounded:`부상 ${g.wound}일`,dead:"전사"}[g.status]}</span>
+    <span class="st ${g.status}">${{ready:"출정 가능",march:"원정 중",wounded:`부상 ${g.wound}일`,dead:"전사"}[g.status]}</span>
     <span class="sub">${esc(G.bio)}<br><b style="color:var(--bone)">Lv${g.lvl}</b> (경험 ${g.xp}) · 상시: ${G.passive}<br>능력 <b style="color:var(--gold)">${G.ab}</b> (${G.cd}초): ${G.abd}</span></div>`;}).join("")}</div>`;
 }
 function chronModal(){return `${winHead("왕국 연대기")}<div class="wbody">${S.log.slice().reverse().map(l=>`<div class="qrow" style="align-items:flex-start"><span class="num" style="color:var(--gold-dim);font-size:11px;min-width:40px">${l.d}일</span><span style="${l.k==="bad"?"color:#f0b0a6":l.k==="gold"?"color:var(--gold)":l.k==="chron"?"font-style:italic;color:var(--steel)":""}">${esc(l.t)}</span></div>`).join("")}</div>`;}
@@ -7915,7 +7915,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
- ["0.9.123","휴대폰 화면 대정리(모바일 액션 RPG 방식: 엄지 자리는 조이스틱·행동 버튼, 모서리는 상태, 나머지는 메뉴 안으로) — 왕도·대전: 아래 하단 버튼 줄 대신 '☰ 메뉴' 하나(누르면 큰 메뉴판), 길잡이 패널 대신 '지금 할 일' 한 줄, 목표 문장·화면 이름·소식 줄 숨김, 왕 정보는 막대만, 아직 못 쓰는 기술 버튼(자물쇠)은 숨김, '장군' 버튼은 전장에서만 · 잠입: 오른쪽 큰 창 대신 왼쪽 위 발각 막대와 철수 버튼 · 지도 아래 버튼 조금 크게 · 휴대폰 안내 문구의 'E'·'WASD'를 '버튼'으로 · 요새·왕좌에서 망자가 바닥 구조물 속에 박혀 보이던 것 고침"],
+ ["0.9.123","휴대폰 화면 대정리(모바일 액션 RPG 방식: 엄지 자리는 조이스틱·행동 버튼, 모서리는 상태, 나머지는 메뉴 안으로) — 왕도·대전: 아래 하단 버튼 줄 대신 '☰ 메뉴' 하나(누르면 큰 메뉴판), 길잡이 패널 대신 '지금 할 일' 한 줄, 목표 문장·화면 이름·소식 줄 숨김, 왕 정보는 막대만, 아직 못 쓰는 기술 버튼(자물쇠)은 숨김, '장군' 버튼은 전장에서만 · 잠입: 오른쪽 큰 창 대신 왼쪽 위 발각 막대와 철수 버튼 · 지도 아래 버튼 조금 크게 · 휴대폰 안내 문구의 'E'·'WASD'를 '버튼'으로 · 요새·왕좌에서 망자가 바닥 구조물 속에 박혀 보이던 것 고침 · 잠입은 망자 무리 바로 바깥에서 시작(빈 들판을 한참 걷지 않게) · 장군 상태 '대기'를 '출정 가능'으로 · 왼쪽 위 장 목표 줄에서 대습격 중복 표시 제거(위 막대가 보여 줌) · '새로 알게 된 것' 카드를 작게 · 창이 열릴 때 잠깐 흐리게 보이던 것 없앰"],
  ["0.9.122","앱: 싱글플레이를 눌러 Claude 연결(API 키) 창을 거치면, 연결되자마자 누른 그대로 게임에 들어간다(다시 누를 필요 없다) · 휴대폰 전장: 아래 지휘판·중대 카드를 조이스틱과 오른쪽 키 사이 가운데로 모아 키와 겹치지 않게, 전장 미니맵은 위 가운데로 · 휴대폰: 목표 막대는 위에 작게, '지금 할 일'은 아래 가운데에 작게 · 휴대폰 전장 정리: 지휘판·중대 카드는 아래 가운데 '지휘판 ▲'로 펼칠 때만 · 왕 정보는 체력·기력 막대만 · 아군/망자 막대는 위에 작게 · 미니맵·설명 줄 숨김 · 장군 기술 버튼과 웅크리기가 겹치지 않게 · 전투·잠입 화면에 목표 막대·지금 할 일이 남던 것 고침"],
  ["0.9.121","처음 하는 사람이 '무슨 게임인지' 바로 알게: START는 프롤로그 '선왕의 마지막 밤' 왕궁 방어전부터(건너뛰기 가능, '프롤로그 없이 시작'도 있다) → 즉위 · 화면 위 가운데 목표 막대: 대습격까지 D-n · 오는 망자 수 · 우리 병력과 비율·한마디 · 길잡이 없이 하면 기능이 날마다 열린다(1일째: 내정 건설·징병·원정·군대·지도 / 2일째 연대기·주둔군·첩자 / 3일째 장군·금고·마을 관리 / 4일째 옷장·외교 / 5일째 전황 / 6일째 개량) · 설명을 짧게: 새로 알게 된 것은 두 문장, 처음 보는 창·길잡이 미션은 한 문장, 길잡이 패널은 '어떻게'만"],
  ["0.9.120","첩자가 쉬워지고 자세해졌다 — 잠입 화면 바닥에 망자마다 시선 부채꼴(나를 보면 붉게), 들킬수록 화면 가장자리가 붉어지고 '보인다' 경고, 가장 가까운 ? 지점 방향 화살표·거리, 옆 창에 요새 대장·병력·밤낮·요령. 발각 속도 절반 이하·숨으면 빨리 식는다·걸음이 빨라지고 ? 지점을 밟는 범위가 넓어졌다. 들켜도 붙잡힐 확률 50%→25%. 첩보 성공률 요새 68→82%, 왕좌 50→62%, 실패해도 절반은 빈손으로 돌아온다(첩자를 잃지 않는다) · 채집·고기잡이·벌목: 지도 위에 무리가 왕도에서 일터로 걸어가고, 일하고, 짐을 지고 돌아오는 모습과 남은 시간"],
