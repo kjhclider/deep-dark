@@ -466,7 +466,7 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 
 .kres{display:flex;gap:18px;align-items:center;padding:7px 16px;border-bottom:1px solid rgba(226,192,122,.18);background:rgba(0,0,0,.25);font-size:14px;color:#efe4cc}.kres span{display:flex;align-items:center;gap:5px}.kres svg{width:16px;height:16px}.kres b{font-variant-numeric:tabular-nums}.kres small{opacity:.75;font-size:11.5px}.kres small.up{color:#9fd08a;opacity:1}.kres small.dn{color:#e8a79a;opacity:1}
 #tutNow{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);z-index:8;max-width:min(640px,calc(100vw - 32px));display:flex;gap:10px;align-items:center;padding:8px 14px;background:rgba(14,10,6,.88);border:1px solid rgba(242,196,106,.75);border-radius:3px;box-shadow:0 0 18px rgba(242,196,106,.25);font-size:15px;color:#f3e7cc;pointer-events:none;animation:notein .3s ease-out}#tutNow .tn-h{flex:none;font-size:11px;letter-spacing:.12em;color:#1a120a;background:#f2c46a;padding:2px 6px;border-radius:2px}#tutNow b{color:#ffe08a}
-@media (pointer:coarse){#tutNow{bottom:58px;top:auto;font-size:13px;zoom:.72;max-width:60vw}}
+@media (pointer:coarse){#tutNow{bottom:58px;top:auto;font-size:11px;padding:5px 9px;gap:6px;max-width:min(430px,52vw)}#tutNow .tn-h{font-size:9px}}
 #infHud{position:fixed;inset:0;pointer-events:none;z-index:6}#infHud .vig{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 140px 40px rgba(200,30,20,.75);transition:opacity .2s}#infHud .dir{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(10,8,6,.8);border:1px solid rgba(242,196,106,.6);color:#f3e7cc;font-size:13.5px;border-radius:3px}#infHud .dir i{font-style:normal;color:#ffd76a;display:inline-block;font-size:18px}#infHud .eye{position:absolute;left:50%;top:112px;transform:translateX(-50%);font-size:14px;color:#efe4cc;text-shadow:0 1px 3px #000}#infHud .eye.on{color:#ff8a7a;font-weight:700;font-size:17px}
 #jobMarks{position:fixed;inset:0;pointer-events:none;z-index:4}#jobMarks .jm{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:1px}#jobMarks .jm span{font-size:20px;filter:drop-shadow(0 1px 2px #000);animation:jmb .6s ease-in-out infinite alternate}#jobMarks .jm.work span{animation:jmw .35s ease-in-out infinite alternate}#jobMarks .jm small{font-size:10.5px;color:#f3e7cc;background:rgba(10,8,6,.75);padding:1px 5px;border-radius:2px;white-space:nowrap}#jobMarks .jt{position:absolute;transform:translate(-50%,-50%);font-size:13px;opacity:.45}@keyframes jmb{to{transform:translateY(-3px)}}@keyframes jmw{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
 #goalBar{position:absolute;left:50%;top:98px;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:12px;padding:6px 14px;background:rgba(12,9,6,.86);border:1px solid rgba(226,192,122,.55);border-radius:3px;font-size:14px;color:#efe4cc;white-space:nowrap;pointer-events:none}#goalBar b{color:#ffe2a0;font-variant-numeric:tabular-nums}#goalBar .gb-k{font-size:15px;letter-spacing:.04em}#goalBar .gb-bar{width:90px;height:7px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}#goalBar .gb-bar i{display:block;height:100%}#goalBar .gb-tip{font-size:12px;opacity:.75}#goalBar.urgent{border-color:#d0533f;box-shadow:0 0 16px rgba(208,83,63,.45)}#goalBar.urgent .gb-k b{color:#ff8a7a}
@@ -481,6 +481,32 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
   body.tpBattle .gk,body.tpBattle .bbottom .note{display:none}
 }
 #bcmdBtn{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:31;padding:7px 16px;font:700 13px/1 var(--f-body,sans-serif);color:#ffe2a0;background:rgba(40,28,12,.88);border:1px solid #f2c46a;border-radius:18px;touch-action:manipulation}#bcmdBtn[hidden]{display:none}
+/* 휴대폰: 왕도·지도 화면 정리 — 목표 문장은 위 막대가 대신하고, 왕 정보는 막대만 */
+@media (pointer:coarse){
+  #objL{display:none!important}
+  #khud .kh-note{display:none!important}
+  #feed{display:none!important}
+}
+/* ── 휴대폰 정리 ── */
+@media (pointer:coarse){
+  #modeL{display:none!important}
+  #guide{display:none!important}
+  body.tpWalk #dock{display:none!important}
+  body.tpWalk.dockOpen #dock{display:grid!important;grid-template-columns:repeat(4,auto);gap:8px;left:50%!important;right:auto!important;bottom:52px!important;transform:translateX(-50%);zoom:.8;padding:10px;background:rgba(10,8,6,.92);border:1px solid rgba(226,192,122,.5);border-radius:6px;z-index:40}
+  #menuBtn{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:41;padding:8px 18px;font:700 13px/1 var(--f-body,sans-serif);color:#ffe2a0;background:rgba(40,28,12,.9);border:1px solid #f2c46a;border-radius:18px;touch-action:manipulation}
+  #menuBtn[hidden]{display:none}
+  body.tpWalk .prompt{bottom:52px}
+  body.tpWalk #tutNow{bottom:96px}
+  body.dockOpen #tutNow{display:none!important}
+  #hint{width:min(360px,60vw)!important;top:56px!important}
+  body.tpSpy #side{display:none!important}
+  body.tpSpy #resbar{display:none!important}
+  body.tpSpy #infHud .dir{top:8px;zoom:.8}body.tpSpy #infHud .eye{top:46px;zoom:.8}
+  #banner{zoom:.68}
+  body:not(.tpWalk) #dock{zoom:.68!important}
+  #pend{zoom:.55!important}
+}
+#infHud .mtr{display:none}@media (pointer:coarse){#infHud .mtr{display:flex;position:absolute;left:12px;top:80px;zoom:.85;align-items:center;gap:6px;padding:4px 8px;background:rgba(10,8,6,.8);border:1px solid rgba(226,192,122,.5);font-size:12px;color:#efe4cc;border-radius:3px}#infHud .mtr b{display:block;width:110px;height:8px;background:rgba(255,255,255,.12)}#infHud .mtr i{display:block;height:100%}#infHud .mtr button{pointer-events:auto;margin-left:6px;padding:4px 10px;font-size:12px;background:rgba(40,28,12,.9);color:#ffe2a0;border:1px solid #f2c46a;border-radius:3px}}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -2219,7 +2245,7 @@ function tpadTick(){if(!COARSE)return;tpadBuild();const el=TPAD.el;if(!el)return
   el.hidden=!show;document.body.classList.toggle("tpOn",!!show);if(!show){if(TPAD.hold.size){E.keys.delete("b");E.keys.delete("shift");TPAD.hold.clear();}return;}
   el.querySelector('[data-tp="e"]').hidden=!inCap;el.querySelector('[data-tp="mount"]').hidden=!inBattle;{const cr=el.querySelector('[data-tp="crouch"]');if(cr)cr.hidden=inBattle&&!!(BT&&BT.gen);}el.querySelector('[data-tp="q"]').hidden=!inBattle||!(BT&&BT.gen);
   /* 재사용 대기: 버튼에 남은 초를 크게 띄운다 */
-  const setCd=(id,v,lock)=>{const b=el.querySelector(`[data-tp="${id}"]`);if(!b)return;const t=lock?"🔒":v>0?String(Math.ceil(v)):"";if(b.dataset.cd!==t){b.dataset.cd=t;b.classList.toggle("cool",!!t);}};
+  const setCd=(id,v,lock)=>{const b=el.querySelector(`[data-tp="${id}"]`);if(!b)return;const t=lock?"🔒":v>0?String(Math.ceil(v)):"";if(b.dataset.cd!==t){b.dataset.cd=t;b.classList.toggle("cool",!!t);}if(/^s[123]$/.test(id))b.hidden=!!lock;};   /* 아직 못 쓰는 기술 버튼은 숨긴다 — 자물쇠가 화면을 어지럽히지 않게 */
   for(const [id,sk] of [["s1","spin"],["s2","cry"],["s3","dash"]])setCd(id,(KC.kcd&&KC.kcd[sk])||0,typeof kSkillOpen==="function"&&!kSkillOpen(sk));
   setCd("q",typeof BT!=="undefined"&&BT?(BT.abCd||0):0,false);setCd("stab",KC.ab&&KC.ab.spear||0,false);
   const mu=el.querySelector('[data-tp="s4"]');mu.hidden=!inBattle;mu.classList.toggle("ready",(KC.musou||0)>=100);
@@ -3521,7 +3547,7 @@ function enterSiteView(id,o={}){
   // 망자 무리: 실제 주둔·포위 병력에 비례
   const foes=(site.kind==="village"&&st.state==="besieged")?(S.armies.find(a=>a.side===1&&a.mission==="siege"&&a.target===id)||{comps:[]}).comps:((site.kind==="fortress"||site.kind==="throne")&&st.state==="active"?st.garrison:[]);
   if(foes.length){const cnt=countBy(foes);let k=0;for(const [t,n] of Object.entries(cnt)){const num=Math.min(o.spy?50:90,Math.round(n*U[t].figs*(o.spy?0.7:0.9)));
-    if(site.kind==="village")addCrowd(sc,[t],num,0,0,46+k*4,1,true,33);else addCrowd(sc,[t],num,0,0,46+k*6,1,true,22);k++;}}
+    if(site.kind==="village")addCrowd(sc,[t],num,0,0,46+k*4,1,true,33);else addCrowd(sc,[t],num,0,0,46+k*6,1,true,(typeof infRadius==="function"?infRadius(site):22)+4);   /* 요새·왕좌 바닥 구조물 속에 망자가 박혀 보이지 않게 */k++;}}
   // 전장 연기·불
   if(bl>0.5&&st.state!=="razed")for(let i=0;i<4;i++){const a=rng()*6.28,r=30+rng()*30;addFire(sc,Math.cos(a)*r,svH(Math.cos(a)*r,Math.sin(a)*r)+2,Math.sin(a)*r,5,"#8cff6a");}
   E.scene=sc;setCamMode("rts");E.ctrl.bounds={x0:-90,x1:90,z0:-90,z1:90};E.ctrl.min=20;E.ctrl.max=160;E.ctrl.heightFn=svH;
@@ -4388,7 +4414,7 @@ function enterInfiltration(id){
   INF.spy=meshOf(MODELS.spy);SV.scene.add(INF.spy);INF.cones=null;
   setCamMode("tp");E.tp.clampFn=null;E.tp.ceil=null;E.tp.target=()=>({x:INF.pos.x,y:svH(INF.pos.x,INF.pos.z),z:INF.pos.z});E.tp.heightFn=svH;E.tp.yaw=0;E.tp.pitch=0.3;E.tp.dd=6.5;E.tp.snap=true;
   E.onTap=null;E.onFrame=dt=>{svTick(dt);infTick(dt);uiTick(dt);};
-  UI.mode="spy";UI.sel=null;if($("#tutArrow"))$("#tutArrow").hidden=true;showInfHUD();
+  UI.mode="spy";UI.sel=null;try{hideKingHud();$("#cmini").hidden=true;}catch(e){}if($("#tutArrow"))$("#tutArrow").hidden=true;showInfHUD();
   UI.bannerSay(COARSE?"바닥의 부채꼴이 망자의 시선 — 그 밖으로 돌아 ? 빛기둥 세 곳을 밟아라":"바닥의 부채꼴이 망자의 시선 — 밖으로 돌아 ? 빛기둥 세 곳을 밟아라 · WASD 살금살금 · Shift 달리기(시선이 길어진다)");
 }
 function showInfHUD(){$("#whud").hidden=false;$("#bhud").hidden=true;$("#prompt").hidden=true;$("#title").hidden=true;renderTop();renderInfSide();}
@@ -4459,7 +4485,8 @@ function infCones(R){if(!SV.scene)return;
     q.setFromEuler(e.set(0,g.a,0));m4.compose(v.set(g.x,svH(g.x,g.z)+0.12,g.z),q,sc.set(R,1,R));im.setMatrixAt(i,m4);im.setColorAt(i,INF.seen&&INF.seen.has(g)?cR:cY);}
   im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
 /* 화면: 들킬수록 가장자리가 붉어지고, 가장 가까운 미확인 지점 쪽 화살표와 거리 */
-function infHudTick(){let el=$("#infHud");if(!el){el=document.createElement("div");el.id="infHud";el.innerHTML='<div class="vig"></div><div class="dir"><i>➤</i><span></span></div><div class="eye"></div>';document.body.appendChild(el);}
+function infHudTick(){let el=$("#infHud");if(!el){el=document.createElement("div");el.id="infHud";el.innerHTML='<div class="vig"></div><div class="dir"><i>➤</i><span></span></div><div class="eye"></div><div class="mtr"><span>발각</span><b><i></i></b><button data-a="infOut">철수</button></div>';document.body.appendChild(el);}
+  {const mi=el.querySelector(".mtr i");if(mi){mi.style.width=INF.meter+"%";mi.style.background=INF.meter>70?"#d0533f":"#e2b04a";}}
   el.hidden=!INF.on;if(!INF.on)return;const mtr=INF.meter/100;el.querySelector(".vig").style.opacity=Math.min(1,mtr*1.2);
   const eye=el.querySelector(".eye");eye.textContent=INF.seen&&INF.seen.size?"👁 보인다 — 시선 밖으로!":INF.meter>5?"숨는 중… 위험이 줄고 있다":"";eye.className="eye"+(INF.seen&&INF.seen.size?" on":"");
   const left=INF.pois.filter(p=>!p.found);const dir=el.querySelector(".dir");if(!left.length){dir.hidden=true;return;}
@@ -5549,6 +5576,14 @@ setInterval(()=>{try{if(!S||BT||S.title||UI.mode==="battle"||UI.mode==="spy"){co
 setInterval(()=>{try{let b=$("#bcmdBtn");const on=!!BT&&document.body.classList.contains("tpOn")&&UI.mode==="battle";
   if(!b){b=document.createElement("button");b.id="bcmdBtn";b.addEventListener("click",()=>{document.body.classList.toggle("cmdOpen");b.textContent=document.body.classList.contains("cmdOpen")?"지휘판 닫기 ▼":"지휘판 ▲";});b.textContent="지휘판 ▲";document.body.appendChild(b);}
   b.hidden=!on;document.body.classList.toggle("tpBattle",on);if(!on&&document.body.classList.contains("cmdOpen")){document.body.classList.remove("cmdOpen");b.textContent="지휘판 ▲";}}catch(e){}},300);
+/* ── 휴대폰 화면 정리 (다른 모바일 액션 RPG처럼: 엄지 자리 = 조이스틱·행동 버튼, 모서리 = 상태, 나머지는 '메뉴' 안으로) ──
+   왕도·대전: 아래 메뉴 버튼 하나 → 누르면 큰 메뉴판(지도·내정·원정…)  /  길잡이 패널 대신 '지금 할 일' 한 줄  /  잠입: 옆 창 대신 위의 작은 표시 */
+setInterval(()=>{try{const coarse=document.body.classList.contains("tpOn")||matchMedia("(pointer:coarse)").matches;if(!coarse)return;
+  let b=$("#menuBtn");if(!b){b=document.createElement("button");b.id="menuBtn";b.innerHTML="☰ 메뉴";b.addEventListener("click",()=>{document.body.classList.toggle("dockOpen");});document.body.appendChild(b);
+    const d=$("#dock");if(d)d.addEventListener("click",e=>{if(e.target.closest("button"))document.body.classList.remove("dockOpen");});}
+  const walk=!!S&&!S.title&&!BT&&(UI.mode==="capital"||UI.mode==="palace");b.hidden=!walk||!!UI.modalOpen;document.body.classList.toggle("tpWalk",walk);
+  if(!walk||UI.modalOpen)document.body.classList.remove("dockOpen");b.innerHTML=document.body.classList.contains("dockOpen")?"✕ 닫기":"☰ 메뉴";
+  document.body.classList.toggle("tpSpy",UI.mode==="spy");}catch(e){}},250);
 
 /* ════════ 3D 전술전 ════════ */
 const BF={W:240,D:170,DEPLOY:38};   // 전장: x -120~120, z -85~85, 아군은 남쪽(+z)
@@ -7194,7 +7229,7 @@ try{const b=parseFloat(localStorage.getItem("ashen-bright"));if(b>0){UI.bright=b
 function notice(t,k){let box=$("#notes");if(!box){box=document.createElement("div");box.id="notes";document.body.appendChild(box);}const el=document.createElement("div");el.className="note-it "+(k||"");el.textContent=t.length>90?t.slice(0,88)+"…":t;box.appendChild(el);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>{el.classList.add("out");setTimeout(()=>el.remove(),400);},4200);}
 UI.aiStatus=()=>{const el=$("#aiL");if(el)el.textContent=AI.ok()?"망자의 군주: 당신의 Claude가 지휘한다":(window.__TEST?"":"이 게임은 당신의 Claude와 연결해야 시작된다");};
 let bannerT=null;
-UI.bannerSay=t=>{const b=$("#banner");b.textContent=t;b.className="";b.hidden=false;clearTimeout(bannerT);bannerT=setTimeout(()=>{b.hidden=true;},3600);};
+UI.bannerSay=t=>{if(typeof COARSE!=="undefined"&&COARSE)t=String(t).replace(/WASD ?/g,"").replace(/(^|[^A-Za-z])E([^A-Za-z]|$)/g,"$1버튼$2");const b=$("#banner");b.textContent=t;b.className="";b.hidden=false;clearTimeout(bannerT);bannerT=setTimeout(()=>{b.hidden=true;},3600);};
 
 /* ── 창 ── */
 UI.openModal=(html,o={})=>{if(document.pointerLockElement)document.exitPointerLock();$("#win").className="window panel"+(o.narrow?" narrow":"");$("#win").innerHTML=fixJosa(html);$("#modal").hidden=false;UI.modalOpen=true;if(o.blocking)UI.modalBlocking=true;fitModal();};
@@ -7880,6 +7915,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.123","휴대폰 화면 대정리(모바일 액션 RPG 방식: 엄지 자리는 조이스틱·행동 버튼, 모서리는 상태, 나머지는 메뉴 안으로) — 왕도·대전: 아래 하단 버튼 줄 대신 '☰ 메뉴' 하나(누르면 큰 메뉴판), 길잡이 패널 대신 '지금 할 일' 한 줄, 목표 문장·화면 이름·소식 줄 숨김, 왕 정보는 막대만, 아직 못 쓰는 기술 버튼(자물쇠)은 숨김, '장군' 버튼은 전장에서만 · 잠입: 오른쪽 큰 창 대신 왼쪽 위 발각 막대와 철수 버튼 · 지도 아래 버튼 조금 크게 · 휴대폰 안내 문구의 'E'·'WASD'를 '버튼'으로 · 요새·왕좌에서 망자가 바닥 구조물 속에 박혀 보이던 것 고침"],
  ["0.9.122","앱: 싱글플레이를 눌러 Claude 연결(API 키) 창을 거치면, 연결되자마자 누른 그대로 게임에 들어간다(다시 누를 필요 없다) · 휴대폰 전장: 아래 지휘판·중대 카드를 조이스틱과 오른쪽 키 사이 가운데로 모아 키와 겹치지 않게, 전장 미니맵은 위 가운데로 · 휴대폰: 목표 막대는 위에 작게, '지금 할 일'은 아래 가운데에 작게 · 휴대폰 전장 정리: 지휘판·중대 카드는 아래 가운데 '지휘판 ▲'로 펼칠 때만 · 왕 정보는 체력·기력 막대만 · 아군/망자 막대는 위에 작게 · 미니맵·설명 줄 숨김 · 장군 기술 버튼과 웅크리기가 겹치지 않게 · 전투·잠입 화면에 목표 막대·지금 할 일이 남던 것 고침"],
  ["0.9.121","처음 하는 사람이 '무슨 게임인지' 바로 알게: START는 프롤로그 '선왕의 마지막 밤' 왕궁 방어전부터(건너뛰기 가능, '프롤로그 없이 시작'도 있다) → 즉위 · 화면 위 가운데 목표 막대: 대습격까지 D-n · 오는 망자 수 · 우리 병력과 비율·한마디 · 길잡이 없이 하면 기능이 날마다 열린다(1일째: 내정 건설·징병·원정·군대·지도 / 2일째 연대기·주둔군·첩자 / 3일째 장군·금고·마을 관리 / 4일째 옷장·외교 / 5일째 전황 / 6일째 개량) · 설명을 짧게: 새로 알게 된 것은 두 문장, 처음 보는 창·길잡이 미션은 한 문장, 길잡이 패널은 '어떻게'만"],
  ["0.9.120","첩자가 쉬워지고 자세해졌다 — 잠입 화면 바닥에 망자마다 시선 부채꼴(나를 보면 붉게), 들킬수록 화면 가장자리가 붉어지고 '보인다' 경고, 가장 가까운 ? 지점 방향 화살표·거리, 옆 창에 요새 대장·병력·밤낮·요령. 발각 속도 절반 이하·숨으면 빨리 식는다·걸음이 빨라지고 ? 지점을 밟는 범위가 넓어졌다. 들켜도 붙잡힐 확률 50%→25%. 첩보 성공률 요새 68→82%, 왕좌 50→62%, 실패해도 절반은 빈손으로 돌아온다(첩자를 잃지 않는다) · 채집·고기잡이·벌목: 지도 위에 무리가 왕도에서 일터로 걸어가고, 일하고, 짐을 지고 돌아오는 모습과 남은 시간"],
@@ -8202,7 +8238,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.122 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.123 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
