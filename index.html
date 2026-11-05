@@ -8186,13 +8186,13 @@ function renderLoginChip(){}
 function loginGo(){if(!FB_CFG)return;fbLoad().then(()=>{
   if(window.deskApi){loginCode();return;}   // PC 앱 안에서는 구글 팝업이 막힌다 → 코드 방식
   const p=new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(p).then(()=>{toast("로그인했다 — 저장이 클라우드에 올라간다");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{if(e&&e.code==="auth/popup-closed-by-user")return;toast("구글 창을 열 수 없다 — 코드로 로그인한다");loginCode();});
-}).catch(()=>toast("로그인 서버에 닿지 않는다 — 인터넷 연결을 확인하라"));}
+  firebase.auth().signInWithPopup(p).then(()=>{toast("로그인했다 — 저장이 클라우드에 올라간다");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{const c=(e&&e.code)||String(e);console.warn("login",e);if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;LOGIN.lastErr=c;toast("구글 로그인 실패 ("+c+") — 코드로 로그인한다");loginCode();});
+}).catch(e=>{LOGIN.lastErr="load";toast("로그인 서버(구글)에 닿지 않는다 — 인터넷 연결을 확인하라");});}
 function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";const r=crypto.getRandomValues(new Uint8Array(8));for(const x of r)c+=A[x%A.length];LOGIN.code=c;
   const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?c=${c}`;
   UI.openModal(`${winHead("코드로 로그인")}<div class="wbody"><p>아래 주소를 <b>평소 쓰는 브라우저</b>(크롬 등)에서 열고 구글로 로그인하라. 로그인이 끝나면 이 화면이 저절로 넘어간다.</p>
     <div class="tile" style="text-align:center"><div class="note">주소</div><div style="font-size:15px;user-select:text;-webkit-user-select:text;word-break:break-all">${esc(url)}</div><div class="note" style="margin-top:8px">코드</div><div style="font:800 28px/1.2 var(--f-num,monospace);letter-spacing:.18em;color:#ffe2a0">${c.slice(0,4)}-${c.slice(4)}</div></div>
-    <p class="note" id="lgWait">기다리는 중…</p></div><div class="wfoot"><button class="b ghost" data-a="loginCancel">취소</button><button class="b" data-a="loginCopy" data-u="${esc(url)}">주소 복사</button><button class="b gold" data-a="loginOpen" data-u="${esc(url)}">브라우저로 열기</button></div>`,{narrow:true});
+    <p class="note" id="lgWait">기다리는 중…</p>${LOGIN.lastErr?`<p class="note" style="color:#e8a79a">앞의 구글 창 오류: ${esc(LOGIN.lastErr)}</p>`:""}</div><div class="wfoot"><button class="b ghost" data-a="loginCancel">취소</button><button class="b" data-a="loginCopy" data-u="${esc(url)}">주소 복사</button><button class="b gold" data-a="loginOpen" data-u="${esc(url)}">브라우저로 열기</button></div>`,{narrow:true});
   clearInterval(LOGIN.poll);const t0=Date.now();
   LOGIN.poll=setInterval(async()=>{if(Date.now()-t0>10*60e3||LOGIN.code!==c){clearInterval(LOGIN.poll);return;}
     try{const ref=firebase.firestore().doc(`linkSessions/${c}`);const d=await ref.get();if(!d.exists)return;const tok=d.data().idToken;if(!tok)return;clearInterval(LOGIN.poll);
