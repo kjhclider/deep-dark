@@ -466,11 +466,21 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 
 .kres{display:flex;gap:18px;align-items:center;padding:7px 16px;border-bottom:1px solid rgba(226,192,122,.18);background:rgba(0,0,0,.25);font-size:14px;color:#efe4cc}.kres span{display:flex;align-items:center;gap:5px}.kres svg{width:16px;height:16px}.kres b{font-variant-numeric:tabular-nums}.kres small{opacity:.75;font-size:11.5px}.kres small.up{color:#9fd08a;opacity:1}.kres small.dn{color:#e8a79a;opacity:1}
 #tutNow{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);z-index:8;max-width:min(640px,calc(100vw - 32px));display:flex;gap:10px;align-items:center;padding:8px 14px;background:rgba(14,10,6,.88);border:1px solid rgba(242,196,106,.75);border-radius:3px;box-shadow:0 0 18px rgba(242,196,106,.25);font-size:15px;color:#f3e7cc;pointer-events:none;animation:notein .3s ease-out}#tutNow .tn-h{flex:none;font-size:11px;letter-spacing:.12em;color:#1a120a;background:#f2c46a;padding:2px 6px;border-radius:2px}#tutNow b{color:#ffe08a}
-@media (pointer:coarse){#tutNow{bottom:auto;top:96px;font-size:13px;zoom:.9}}
+@media (pointer:coarse){#tutNow{bottom:58px;top:auto;font-size:13px;zoom:.72;max-width:60vw}}
 #infHud{position:fixed;inset:0;pointer-events:none;z-index:6}#infHud .vig{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 140px 40px rgba(200,30,20,.75);transition:opacity .2s}#infHud .dir{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(10,8,6,.8);border:1px solid rgba(242,196,106,.6);color:#f3e7cc;font-size:13.5px;border-radius:3px}#infHud .dir i{font-style:normal;color:#ffd76a;display:inline-block;font-size:18px}#infHud .eye{position:absolute;left:50%;top:112px;transform:translateX(-50%);font-size:14px;color:#efe4cc;text-shadow:0 1px 3px #000}#infHud .eye.on{color:#ff8a7a;font-weight:700;font-size:17px}
 #jobMarks{position:fixed;inset:0;pointer-events:none;z-index:4}#jobMarks .jm{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:1px}#jobMarks .jm span{font-size:20px;filter:drop-shadow(0 1px 2px #000);animation:jmb .6s ease-in-out infinite alternate}#jobMarks .jm.work span{animation:jmw .35s ease-in-out infinite alternate}#jobMarks .jm small{font-size:10.5px;color:#f3e7cc;background:rgba(10,8,6,.75);padding:1px 5px;border-radius:2px;white-space:nowrap}#jobMarks .jt{position:absolute;transform:translate(-50%,-50%);font-size:13px;opacity:.45}@keyframes jmb{to{transform:translateY(-3px)}}@keyframes jmw{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
 #goalBar{position:absolute;left:50%;top:98px;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:12px;padding:6px 14px;background:rgba(12,9,6,.86);border:1px solid rgba(226,192,122,.55);border-radius:3px;font-size:14px;color:#efe4cc;white-space:nowrap;pointer-events:none}#goalBar b{color:#ffe2a0;font-variant-numeric:tabular-nums}#goalBar .gb-k{font-size:15px;letter-spacing:.04em}#goalBar .gb-bar{width:90px;height:7px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}#goalBar .gb-bar i{display:block;height:100%}#goalBar .gb-tip{font-size:12px;opacity:.75}#goalBar.urgent{border-color:#d0533f;box-shadow:0 0 16px rgba(208,83,63,.45)}#goalBar.urgent .gb-k b{color:#ff8a7a}
-@media (max-width:1100px){#goalBar .gb-tip{display:none}}@media (pointer:coarse){#goalBar{top:auto;bottom:6px;zoom:.72}}
+@media (max-width:1100px){#goalBar .gb-tip{display:none}}@media (pointer:coarse){#goalBar{top:4px;zoom:.62}#goalBar .gb-tip{display:none}}
+/* 휴대폰 전장: 아래 지휘판·중대 카드는 조이스틱과 오른쪽 키 사이 가운데에만 — 키와 겹치지 않는다 (키 위치는 그대로) */
+@media (pointer:coarse){
+  body.tpBattle .bbottom{display:none}
+  body.tpBattle.cmdOpen .bbottom{display:flex;left:calc(140px + env(safe-area-inset-left));right:calc(250px + env(safe-area-inset-right));bottom:44px;max-height:62vh;overflow-y:auto;background:rgba(8,6,5,.82);padding:6px;border:1px solid rgba(226,192,122,.35);z-index:30}
+  body.tpBattle #bmini{display:none!important}
+  body.tpBattle #btug{top:4px!important;bottom:auto!important;zoom:.55}
+  body.tpBattle #khud .kh-note,body.tpBattle #khud .kh-ko,body.tpBattle #khud .kh-duel{display:none!important}
+  body.tpBattle .gk,body.tpBattle .bbottom .note{display:none}
+}
+#bcmdBtn{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:31;padding:7px 16px;font:700 13px/1 var(--f-body,sans-serif);color:#ffe2a0;background:rgba(40,28,12,.88);border:1px solid #f2c46a;border-radius:18px;touch-action:manipulation}#bcmdBtn[hidden]{display:none}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -2206,8 +2216,8 @@ function tpadTick(){if(!COARSE)return;tpadBuild();const el=TPAD.el;if(!el)return
   const inBattle=typeof BT!=="undefined"&&BT&&BT.phase==="battle"&&E.camMode==="tp"&&BT.king&&!BT.kingDown;
   const inCap=typeof UI!=="undefined"&&(UI.mode==="capital"||UI.mode==="palace")&&E.camMode==="tp";
   const show=(inBattle||inCap)&&!(UI&&UI.modalOpen)&&!(typeof DUEL!=="undefined"&&false);
-  el.hidden=!show;if(!show){if(TPAD.hold.size){E.keys.delete("b");E.keys.delete("shift");TPAD.hold.clear();}return;}
-  el.querySelector('[data-tp="e"]').hidden=!inCap;el.querySelector('[data-tp="mount"]').hidden=!inBattle;el.querySelector('[data-tp="q"]').hidden=!inBattle||!(BT&&BT.gen);
+  el.hidden=!show;document.body.classList.toggle("tpOn",!!show);if(!show){if(TPAD.hold.size){E.keys.delete("b");E.keys.delete("shift");TPAD.hold.clear();}return;}
+  el.querySelector('[data-tp="e"]').hidden=!inCap;el.querySelector('[data-tp="mount"]').hidden=!inBattle;{const cr=el.querySelector('[data-tp="crouch"]');if(cr)cr.hidden=inBattle&&!!(BT&&BT.gen);}el.querySelector('[data-tp="q"]').hidden=!inBattle||!(BT&&BT.gen);
   /* 재사용 대기: 버튼에 남은 초를 크게 띄운다 */
   const setCd=(id,v,lock)=>{const b=el.querySelector(`[data-tp="${id}"]`);if(!b)return;const t=lock?"🔒":v>0?String(Math.ceil(v)):"";if(b.dataset.cd!==t){b.dataset.cd=t;b.classList.toggle("cool",!!t);}};
   for(const [id,sk] of [["s1","spin"],["s2","cry"],["s3","dash"]])setCd(id,(KC.kcd&&KC.kcd[sk])||0,typeof kSkillOpen==="function"&&!kSkillOpen(sk));
@@ -5533,6 +5543,12 @@ function startPrologue(){if(S&&!S.title&&!S.practice)saveGame();
   setTimeout(()=>UI.bannerSay("망자가 아스테라 성벽을 두드린다 — 성문을 지켜라. 당신이 왕이다."),1500);
   setTimeout(()=>UI.bannerSay(COARSE?"왼쪽 조이스틱으로 왕을 움직이고, 오른쪽 버튼으로 벤다. 아래 지휘판으로 병종에 명령한다.":"WASD 이동 · 클릭 베기 · 아래 지휘판으로 병종에 명령 — 망자가 성문에 붙으면 그리로"),7000);}
 function prologueEnd(){UI.closeModal();UI.modalBlocking=false;BT=null;S=null;startNewGame(true);}
+/* 전투·잠입 화면으로 넘어가도 목표 막대·지금 할 일이 남아 있지 않게 */
+setInterval(()=>{try{if(!S||BT||S.title||UI.mode==="battle"||UI.mode==="spy"){const g=$("#goalBar"),t=$("#tutNow");if(g)g.hidden=true;if(t)t.hidden=true;}}catch(e){}},300);
+/* 휴대폰 전장 정리: 지휘판·중대 카드는 '지휘' 버튼으로 펼칠 때만, 왕 정보는 막대만, 미니맵·설명 줄은 숨긴다 */
+setInterval(()=>{try{let b=$("#bcmdBtn");const on=!!BT&&document.body.classList.contains("tpOn")&&UI.mode==="battle";
+  if(!b){b=document.createElement("button");b.id="bcmdBtn";b.addEventListener("click",()=>{document.body.classList.toggle("cmdOpen");b.textContent=document.body.classList.contains("cmdOpen")?"지휘판 닫기 ▼":"지휘판 ▲";});b.textContent="지휘판 ▲";document.body.appendChild(b);}
+  b.hidden=!on;document.body.classList.toggle("tpBattle",on);if(!on&&document.body.classList.contains("cmdOpen")){document.body.classList.remove("cmdOpen");b.textContent="지휘판 ▲";}}catch(e){}},300);
 
 /* ════════ 3D 전술전 ════════ */
 const BF={W:240,D:170,DEPLOY:38};   // 전장: x -120~120, z -85~85, 아군은 남쪽(+z)
@@ -7666,10 +7682,10 @@ document.addEventListener("click",e=>{
     case"multi":toast("멀티플레이는 준비 중이다 — 2~4명이 각자 왕국을 맡는 협동으로 만든다");break;
     case"practice":gateThen(()=>UI.openModal(practiceModal()));break;
     case"mouseMode":E.soft=b.dataset.v==="soft";try{localStorage.setItem("dd-mouse",E.soft?"soft":"lock");}catch(e){}E.wantLock=!E.soft&&(UI.mode==="capital"||UI.mode==="palace");if(E.soft&&document.pointerLockElement)document.exitPointerLock();UI.openModal(settingsModal());break;
-    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("sk-ant- 로 시작하는 API 키를 넣어라.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok)toast(S&&S.title?"Claude와 연결됐다 — START를 누르세요":"Claude와 연결됐다 — 망자의 군주가 이제 Claude로 움직인다");});break;}
+    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("sk-ant- 로 시작하는 API 키를 넣어라.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok&&!gateGo())toast(S&&S.title?"Claude와 연결됐다":"Claude와 연결됐다 — 망자의 군주가 이제 Claude로 움직인다");});break;}
     case"apiKeyDel":try{localStorage.removeItem("dd-apikey");}catch(e){}AI.sample=null;AI.checked=false;UI.closeModal();UI.aiStatus();toast(S&&S.title?"저장된 키를 지웠다.":"키를 지웠다 — 다시 넣기 전까지 망자는 기본 규칙으로 움직인다.");break;
-    case"gateSkip":UI.gateSkip=true;UI.closeModal();toast("임시: 망자의 군주가 기본 규칙으로 움직인다. 다시 START를 누르세요");break;
-    case"gateRetry":AI.off=false;AI.checked=false;if(!AI.sample&&deskKey())AI.sample=deskSample(deskKey());UI.closeModal();claudeGate().then(ok=>{if(ok)toast(S&&S.title?"Claude와 연결됐다 — START를 누르세요":"Claude와 연결됐다");});break;
+    case"gateSkip":UI.gateSkip=true;UI.closeModal();if(!gateGo())toast("임시: 망자의 군주가 기본 규칙으로 움직인다.");break;
+    case"gateRetry":AI.off=false;AI.checked=false;if(!AI.sample&&deskKey())AI.sample=deskSample(deskKey());UI.closeModal();claudeGate().then(ok=>{if(ok&&!gateGo())toast("Claude와 연결됐다");});break;
     case"practiceGo":practiceStart(b.dataset.k);break;
     case"helpTab":UI.openModal(helpModal(b.dataset.k));break;
     case"guideOn":S.guideOff=false;S.guide2Off=false;S.tut=S.tut||{};S.tut.curI=undefined;UI.closeModal();renderGuide();toast(S.day>16?"길잡이는 16일째까지만 패널로 뜬다 — 목록은 도움말에서 언제든 본다.":"길잡이 패널을 다시 켰다.");break;
@@ -7864,6 +7880,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.122","앱: 싱글플레이를 눌러 Claude 연결(API 키) 창을 거치면, 연결되자마자 누른 그대로 게임에 들어간다(다시 누를 필요 없다) · 휴대폰 전장: 아래 지휘판·중대 카드를 조이스틱과 오른쪽 키 사이 가운데로 모아 키와 겹치지 않게, 전장 미니맵은 위 가운데로 · 휴대폰: 목표 막대는 위에 작게, '지금 할 일'은 아래 가운데에 작게 · 휴대폰 전장 정리: 지휘판·중대 카드는 아래 가운데 '지휘판 ▲'로 펼칠 때만 · 왕 정보는 체력·기력 막대만 · 아군/망자 막대는 위에 작게 · 미니맵·설명 줄 숨김 · 장군 기술 버튼과 웅크리기가 겹치지 않게 · 전투·잠입 화면에 목표 막대·지금 할 일이 남던 것 고침"],
  ["0.9.121","처음 하는 사람이 '무슨 게임인지' 바로 알게: START는 프롤로그 '선왕의 마지막 밤' 왕궁 방어전부터(건너뛰기 가능, '프롤로그 없이 시작'도 있다) → 즉위 · 화면 위 가운데 목표 막대: 대습격까지 D-n · 오는 망자 수 · 우리 병력과 비율·한마디 · 길잡이 없이 하면 기능이 날마다 열린다(1일째: 내정 건설·징병·원정·군대·지도 / 2일째 연대기·주둔군·첩자 / 3일째 장군·금고·마을 관리 / 4일째 옷장·외교 / 5일째 전황 / 6일째 개량) · 설명을 짧게: 새로 알게 된 것은 두 문장, 처음 보는 창·길잡이 미션은 한 문장, 길잡이 패널은 '어떻게'만"],
  ["0.9.120","첩자가 쉬워지고 자세해졌다 — 잠입 화면 바닥에 망자마다 시선 부채꼴(나를 보면 붉게), 들킬수록 화면 가장자리가 붉어지고 '보인다' 경고, 가장 가까운 ? 지점 방향 화살표·거리, 옆 창에 요새 대장·병력·밤낮·요령. 발각 속도 절반 이하·숨으면 빨리 식는다·걸음이 빨라지고 ? 지점을 밟는 범위가 넓어졌다. 들켜도 붙잡힐 확률 50%→25%. 첩보 성공률 요새 68→82%, 왕좌 50→62%, 실패해도 절반은 빈손으로 돌아온다(첩자를 잃지 않는다) · 채집·고기잡이·벌목: 지도 위에 무리가 왕도에서 일터로 걸어가고, 일하고, 짐을 지고 돌아오는 모습과 남은 시간"],
  ["0.9.119","길잡이 미션이 뜨면 화면 아래 가운데에 '지금 할 일' 한 줄: 어느 건물로 몇 m 걸어가라 / 앞에 서면 E(버튼)를 눌러라 / 지도에서 어느 거점을 눌러라 / 어느 버튼을 눌러라 — 왕이 움직이는 대로 바뀐다 · 섭정: 왕이 출정해도 왕도·왕궁에 들어갈 수 있다 — 그동안 움직이는 인물은 섭정(재상 등)이고, 내정·징병·사건·옷장 등은 그대로 본다. 결투장 결투와 '왕의 발걸음' 특혜는 왕이 돌아와야 한다. 왕이 떠나고 돌아올 때 그 자리에서 인물이 바뀌고 알려 준다"],
@@ -8044,7 +8061,9 @@ async function claudeGate(){
     ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?`<div class="tile" style="margin-top:10px"><div class="hd"><span class="nm">앱: 내 Claude API 키로 연결</span></div><div class="ds">앱은 claude.ai 화면 밖이라, 내 Anthropic API 키로 Claude를 부른다. 키는 이 컴퓨터에만 저장되고 망자의 군주가 결정할 때마다 API 사용료가 조금 든다(console.anthropic.com에서 발급).</div><input id="apiKeyIn" type="password" placeholder="sk-ant-…" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">키 저장하고 연결</button>${deskKey()?`<button class="b ghost" data-a="apiKeyDel">저장된 키 지우기</button>`:""}</div></div>`:""}
     <div class="acts" style="margin-top:12px"><button class="b gold" data-a="gateRetry">다시 연결</button><button class="b ghost" data-a="gateSkip" title="출시 전까지만 있는 임시 버튼">Claude 없이 시작 (출시 전 임시)</button></div></div>`,{blocking:false});
   return false;}
-function gateThen(fn){if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){fn();return;}claudeGate().then(ok=>{if(ok)fn();});}
+/* 연결 창(API 키 등)을 거쳐 연결되면, 처음 누른 것(싱글플레이·START·이어 하기)으로 바로 들어간다 — 다시 누를 필요 없다 */
+function gateThen(fn){if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){UI.gateNext=null;fn();return;}UI.gateNext=fn;claudeGate().then(ok=>{if(ok)gateGo();});}
+function gateGo(){const f=UI.gateNext;UI.gateNext=null;if(f&&(!S||S.title)){f();return true;}return false;}
 
 // 길잡이가 지금 단계에서 눌러야 할 곳을 금빛으로 깜빡이게 한다 (버튼·지도의 거점·왕궁의 문)
 /* 눌러 본 버튼은 같은 단계에서 다시 빛나지 않는다 (창을 닫으면 다시 알려 준다) */
@@ -8183,7 +8202,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.121 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.122 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
