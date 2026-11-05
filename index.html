@@ -7935,6 +7935,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.126","구글 로그인: 버튼을 누르면 브라우저에 구글 로그인 페이지가 바로 열리고, 계정을 고르면 게임이 저절로 로그인된다(코드 입력 없음) · 로그인 정보를 넘기다 'idToken' 오류가 나던 것 고침 · 아이디·비밀번호 회원가입·로그인도 함께 · PC 앱이 같은 버전 번호로 올린 고침을 받지 못하던 것 고침"],
  ["0.9.125","앱: 아이디·비밀번호 로그인 — 처음 화면에서 회원가입·로그인 또는 '게스트로 시작'. 로그인하면 저장이 클라우드에 올라가 폰·PC 어디서든 같은 왕국을 이어 한다(이 기기에만 있던 더 최근 저장은 로그인할 때 올라간다)"],
  ["0.9.124","전투: 난전 속에서 왕의 체력 막대가 줄지 않다가 한 번에 쓰러지던 것 고침 — 원인은 적이 왕을 둘러싼 친위대만 베고 왕 체력은 깎지 않다가, 친위대가 전멸하는 순간 왕이 쓰러지던 것. 이제 왕은 자기 몸에 실제로 붙은 망자(한 번에 넷까지)에게만 맞고, 체력 막대가 0이 될 때만 쓰러진다. 친위대가 전멸해도 왕은 혼자 싸운다 · (준비) 구글 로그인·클라우드 저장"],
  ["0.9.123","휴대폰 화면 대정리(모바일 액션 RPG 방식: 엄지 자리는 조이스틱·행동 버튼, 모서리는 상태, 나머지는 메뉴 안으로) — 왕도·대전: 아래 하단 버튼 줄 대신 '☰ 메뉴' 하나(누르면 큰 메뉴판), 길잡이 패널 대신 '지금 할 일' 한 줄, 목표 문장·화면 이름·소식 줄 숨김, 왕 정보는 막대만, 아직 못 쓰는 기술 버튼(자물쇠)은 숨김, '장군' 버튼은 전장에서만 · 잠입: 오른쪽 큰 창 대신 왼쪽 위 발각 막대와 철수 버튼 · 지도 아래 버튼 조금 크게 · 휴대폰 안내 문구의 'E'·'WASD'를 '버튼'으로 · 요새·왕좌에서 망자가 바닥 구조물 속에 박혀 보이던 것 고침 · 잠입은 망자 무리 바로 바깥에서 시작(빈 들판을 한참 걷지 않게) · 장군 상태 '대기'를 '출정 가능'으로 · 왼쪽 위 장 목표 줄에서 대습격 중복 표시 제거(위 막대가 보여 줌) · '새로 알게 된 것' 카드를 작게 · 창이 열릴 때 잠깐 흐리게 보이던 것 없앰"],
@@ -8328,7 +8329,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.125 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.126 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
