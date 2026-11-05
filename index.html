@@ -398,7 +398,7 @@ body :where(*:not(button):not([data-a]):not(a):not(.tile):not(summary):not(selec
 #pend .pdrop{width:auto;font-size:11px;padding:2px 8px;margin:-2px 0 4px auto;display:block;opacity:.8}
 .lbl .vbadge{display:inline-block;margin-left:6px;padding:1px 5px;font-style:normal;font-size:10px;line-height:1.3;color:#1a1208;background:#e2c07a;border-radius:2px;vertical-align:middle;letter-spacing:.02em}
 /* 새로 알게 된 것: 화면 위 가운데, 크게 */
-#hint{right:auto;bottom:auto;left:50%;top:84px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));padding:16px 20px 14px;border-width:2px;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 34px rgba(242,196,106,.35),0 12px 40px rgba(0,0,0,.7);z-index:39;animation:hintIn .45s cubic-bezier(.2,1.3,.4,1)}
+#hint{right:auto;bottom:auto;left:50%;top:140px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));padding:16px 20px 14px;border-width:2px;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 34px rgba(242,196,106,.35),0 12px 40px rgba(0,0,0,.7);z-index:39;animation:hintIn .45s cubic-bezier(.2,1.3,.4,1)}
 #hint .ht{font-size:12.5px}#hint b{display:block;font-size:20px;margin:6px 0 6px;color:#ffe2a0}#hint p{font-size:15px;line-height:1.55;margin:0 0 10px;color:#efe4cc}
 #hint{cursor:pointer}#hint .hbar{display:block;height:2px;background:var(--gold);transform-origin:left;animation:hbar linear forwards;opacity:.7}@keyframes hbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @keyframes hintIn{from{opacity:0;transform:translate(-50%,-14px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
@@ -469,6 +469,8 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 @media (pointer:coarse){#tutNow{bottom:auto;top:96px;font-size:13px;zoom:.9}}
 #infHud{position:fixed;inset:0;pointer-events:none;z-index:6}#infHud .vig{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 140px 40px rgba(200,30,20,.75);transition:opacity .2s}#infHud .dir{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(10,8,6,.8);border:1px solid rgba(242,196,106,.6);color:#f3e7cc;font-size:13.5px;border-radius:3px}#infHud .dir i{font-style:normal;color:#ffd76a;display:inline-block;font-size:18px}#infHud .eye{position:absolute;left:50%;top:112px;transform:translateX(-50%);font-size:14px;color:#efe4cc;text-shadow:0 1px 3px #000}#infHud .eye.on{color:#ff8a7a;font-weight:700;font-size:17px}
 #jobMarks{position:fixed;inset:0;pointer-events:none;z-index:4}#jobMarks .jm{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:1px}#jobMarks .jm span{font-size:20px;filter:drop-shadow(0 1px 2px #000);animation:jmb .6s ease-in-out infinite alternate}#jobMarks .jm.work span{animation:jmw .35s ease-in-out infinite alternate}#jobMarks .jm small{font-size:10.5px;color:#f3e7cc;background:rgba(10,8,6,.75);padding:1px 5px;border-radius:2px;white-space:nowrap}#jobMarks .jt{position:absolute;transform:translate(-50%,-50%);font-size:13px;opacity:.45}@keyframes jmb{to{transform:translateY(-3px)}}@keyframes jmw{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
+#goalBar{position:absolute;left:50%;top:98px;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:12px;padding:6px 14px;background:rgba(12,9,6,.86);border:1px solid rgba(226,192,122,.55);border-radius:3px;font-size:14px;color:#efe4cc;white-space:nowrap;pointer-events:none}#goalBar b{color:#ffe2a0;font-variant-numeric:tabular-nums}#goalBar .gb-k{font-size:15px;letter-spacing:.04em}#goalBar .gb-bar{width:90px;height:7px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}#goalBar .gb-bar i{display:block;height:100%}#goalBar .gb-tip{font-size:12px;opacity:.75}#goalBar.urgent{border-color:#d0533f;box-shadow:0 0 16px rgba(208,83,63,.45)}#goalBar.urgent .gb-k b{color:#ff8a7a}
+@media (max-width:1100px){#goalBar .gb-tip{display:none}}@media (pointer:coarse){#goalBar{top:auto;bottom:6px;zoom:.72}}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -593,6 +595,9 @@ function fixJosa(str){
 
 /* 출시 앱(PC판·홈 화면 앱·게임 주소로 직접 연 경우): claude.ai 안이 아니다 — 첫 화면을 싱글/멀티로, Claude는 내 API 키로 */
 const APP_MODE=!!window.deskApi||(typeof matchMedia==="function"&&matchMedia("(display-mode: standalone)").matches)||/github\.io$|deepdark/i.test(location.hostname)||new URLSearchParams(location.search).has("app");
+
+/* 설명은 짧게: 앞의 n문장만 (한국어 문장 끝 "다." "요." 기준) */
+function firstSent(t,n=1){t=String(t||"");const re=/[다요]\.(\s|$)/g;let m,c=0,end=-1;while((m=re.exec(t))){c++;if(c===n){end=m.index+2;break;}}return end>0?t.slice(0,end):t;}
 
 /* ════════ 사실적 렌더링: 색 관리, 재질, 절차 텍스처, 부드러운 병합, 후처리 ════════ */
 const LIN=hex=>new THREE.Color(hex).convertSRGBToLinear();
@@ -4343,7 +4348,7 @@ function foeViewHtml(s){const ft=typeof FORT_TRAIT!=="undefined"&&FORT_TRAIT[s.i
 function _foeViewHtml(s,v){
   if(v.rumor)return `<div class="tile"><div class="eyebrow">주둔 병력 · 소문</div><p class="desc" style="margin:4px 0">약 ${fmtN(v.rumor.lo)} ~ ${fmtN(v.rumor.hi)}명이라는 소문. 병종 구성은 알 수 없다.</p><p class="note">첩자를 보내면 정확한 수와 적장, 약점을 알 수 있다.</p></div>`;
   return forceHtml(v.label,v.comps,v.est)+(v.old?`<p class="note" style="color:var(--blood)">지금은 더 늘었을 수 있다.</p>`:"");}
-function spyButtons(s){
+function spyButtons(s){if(typeof unl==="function"&&!unl("spy"))return lockedNote("spy");
   ensureSpy();if(!spyable(s))return "";const op=opAt(s.id);let h="";
   if(S.intel[s.id]&&S.intel[s.id].comps)h+=`<button class="b" data-a="report" data-id="${s.id}">보고서</button>`;
   if(op){if(op.phase==="in")h+=`<button class="b gold" data-a="infil" data-id="${s.id}">${ICON.eye}잠입 정찰</button>`;else h+=`<button class="b" disabled>첩자 ${op.phase==="go"?`이동 중 · ${Math.max(0.1,Math.round(op.d*10)/10)}일`:"귀환 중"}</button>`;}
@@ -5227,7 +5232,7 @@ function showHint(t,d,head){showHint.q=showHint.q||[];showHint.q.push([t,d,head]
 function hintNext(){let el=$("#hint");if(!el){el=document.createElement("div");el.id="hint";document.body.appendChild(el);el.addEventListener("click",()=>{clearTimeout(hintOnce._t);hintNext();});}
   const it=(showHint.q||[]).shift();if(!it){el.hidden=true;showHint.on=false;return;}showHint.on=true;const [t,d,head]=it;
   const ms=clamp(5000+(String(t).length+String(d).length)*55,7000,15000);
-  el.innerHTML=`<div class="ht"><span>${head||"새로 알게 된 것"}</span><small style="margin-left:auto;opacity:.6;letter-spacing:0">눌러서 넘기기${showHint.q.length?` · ${showHint.q.length}개 더`:""}</small></div><b>${t}</b><p>${d}</p><i class="hbar" style="animation-duration:${ms}ms"></i>`;el.hidden=false;el.style.animation="none";void el.offsetWidth;el.style.animation="";
+  el.innerHTML=`<div class="ht"><span>${head||"새로 알게 된 것"}</span><small style="margin-left:auto;opacity:.6;letter-spacing:0">눌러서 넘기기${showHint.q.length?` · ${showHint.q.length}개 더`:""}</small></div><b>${t}</b><p>${/<br>/.test(d)?d:firstSent(d,2)}</p><i class="hbar" style="animation-duration:${ms}ms"></i>`;el.hidden=false;el.style.animation="none";void el.offsetWidth;el.style.animation="";
   clearTimeout(hintOnce._t);hintOnce._t=setTimeout(hintNext,ms);}
 // 도움말: 조작법·수치 설명·길잡이 목록을 한 창에
 function helpModal(tab){tab=tab||UI.helpTab||"keys";UI.helpTab=tab;
@@ -5282,7 +5287,7 @@ const BATTLE_INTRO={
   throne:["망자의 왕좌","마지막 싸움이다. 망자의 왕은 체력이 줄면 졸개를 깨우고, 더 줄면 광폭해진다. 왕을 쓰러뜨리면 남은 망자 전체가 흔들린다 — 가장 강한 부대로 왕을 노려라."],
 };
 function battleIntro(){if(!BT||!S||BT.phase!=="deploy")return;const c=BT.ctx||{};const k=c.kind==="siege"?"siege":c.kind==="vsiege"?"vsiege":BT.wall&&BT.wallAtk===0?"fort":c.site==="f_throne"?"throne":"field";
-  S.hints=S.hints||{};if(S.hints["bt_"+k])return false;S.hints["bt_"+k]=1;const [t,d]=BATTLE_INTRO[k];
+  S.hints=S.hints||{};if(S.hints["bt_"+k])return false;S.hints["bt_"+k]=1;let [t,d]=BATTLE_INTRO[k];if(S.prologue){t="선왕의 마지막 밤";d="망자가 사다리를 걸고 아스테라 성벽을 넘으려 한다.<br><br><b>궁병</b>은 성벽 위에서 쏜다 · <b>보병·창병</b>은 넘어온 적을 막는다 · <b>당신(왕)</b>은 직접 칼을 들고 성문을 지킨다.<br><br>이 밤을 버티면 이야기가 시작된다.";}
   UI.openModal(`${winHead("처음 하는 싸움 — "+t)}<div class="wbody"><p class="story" style="font-size:15px;line-height:1.7">${d}</p><p class="note">배치 중에는 시간이 멈춰 있다. 준비되면 '전투 개시'.</p></div><div class="wfoot"><button class="b gold" data-a="close">알았다</button></div>`,{narrow:true});return true;}
 
 /* ════════ 처음 여는 창마다 '이 창은 무엇인가'를 위에 한 줄로 — '알겠다'를 누르기 전까지 남는다 ════════ */
@@ -5310,7 +5315,7 @@ const FIRST_WIN={
 /* 누를 필요 없다: 처음 연 순간 '본 것'으로 치고, 그 뒤 1분 동안만(다시 그려져도) 보여 준다. ✕로 바로 치울 수 있다 */
 function firstNote(k){if(!S||S.practice||!FIRST_WIN[k])return "";S.hints=S.hints||{};UI.fnT=UI.fnT||{};
   if(S.hints["w_"+k]){if(!(UI.fnT[k]&&Date.now()-UI.fnT[k]<60000))return "";}else{S.hints["w_"+k]=1;UI.fnT[k]=Date.now();}
-  return `<div class="firstnote"><span class="fn-h">처음 보는 창</span><span class="fn-t">${FIRST_WIN[k]}</span><button class="b sm ghost" data-a="fnOk" data-k="${k}" title="치우기" style="min-width:0;padding:4px 9px">✕</button></div>`;}
+  return `<div class="firstnote"><span class="fn-h">처음 보는 창</span><span class="fn-t">${firstSent(FIRST_WIN[k],1)}</span><button class="b sm ghost" data-a="fnOk" data-k="${k}" title="치우기" style="min-width:0;padding:4px 9px">✕</button></div>`;}
 (function(){const wrap=(name,key)=>{const f=window[name];if(typeof f!=="function")return;window[name]=function(...a){const h=f.apply(this,a);try{const k=typeof key==="function"?key(a):key;const n=firstNote(k);if(!n||typeof h!=="string")return h;const i=h.indexOf('<div class="wbody">');return i<0?h:h.slice(0,i+19)+n+h.slice(i+19);}catch(e){return h;}};};
   wrap("kingdomModal",()=>"k_"+(UI.kTab||"build"));
   for(const [n,k] of [["composeModal","compose"],["armiesModal","armies"],["gensModal","gens"],["chronModal","chron"],["warBoardModal","warboard"],["wardrobeModal","wardrobe"],["forgeModal","forge"],["treasuryModal","treasury"],["spyNetModal","spynet"],["priestModal","priest"],["councilModal","council"],["villageModal","village"],["diploModal","diplo"],["buildingModal","building"]])wrap(n,k);})();
@@ -5491,6 +5496,43 @@ function lordRemember(B,res){try{
   lordMemAdd({day:S.day|0,what:String(what).slice(0,30),tac:B.tac?TACTICS[B.tac].n:"-",win:!!res.win,lost:res.ourLost|0,kills:Object.values(res.kills||{}).reduce((a,b)=>a+b,0),
     note:Object.entries(countBy((c.ourComps||[]))).map(([t,n])=>`${U[t]?U[t].n:t}${n}`).join("")});
 }catch(e){}}
+
+/* ════════ 처음 하는 사람을 위한 정리: '이게 무슨 게임인가'를 한눈에 ════════
+   1) 화면 위 목표 한 줄 — 대습격까지 며칠, 얼마가 오나, 우리는 얼마인가
+   2) 길잡이 없이 하면 기능이 날마다 하나씩 열린다 (처음엔 내정·원정·군대·지도만)
+   3) 프롤로그 — 첫 판은 선왕의 마지막 밤 방어전으로 시작한다 */
+
+/* 1) 목표 한 줄 */
+function ourMen(){if(!S)return 0;let m=compMen(S.garrison||[]);for(const a of S.armies||[])if(a.side===0)m+=compMen(a.comps);return m;}
+function goalBarTick(){let el=$("#goalBar");if(!el){el=document.createElement("div");el.id="goalBar";document.body.appendChild(el);}
+  const show=S&&!S.title&&!S.practice&&!BT&&(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")&&typeof nextSurgeDay==="function";
+  if(!show){el.hidden=true;return;}
+  const nd=nextSurgeDay(),d=nd-S.day,wv=(S.camp&&S.camp.surges||0)+1,foe=surgeMen(wv),us=ourMen(),k=Math.min(1,us/Math.max(1,foe));
+  const urgent=d<=3;const h=`<span class="gb-k">${d<=0?"대습격이 왔다":`대습격까지 <b>D-${d}</b>`}</span><span class="gb-v">망자 약 <b>${fmtN(foe)}</b></span><span class="gb-bar" title="우리 병력 ÷ 오는 망자"><i style="width:${Math.round(k*100)}%;background:${k>=0.6?"#8fc06a":k>=0.35?"#e2b04a":"#d0533f"}"></i></span><span class="gb-v">우리 <b>${fmtN(us)}</b></span><span class="gb-tip">${k>=0.6?"버틸 만하다 — 요새를 칠 때":k>=0.35?"성벽을 올리고 더 뽑아라":"병력이 모자라다 — 징병하라"}</span>`;
+  if(el._h!==h){el._h=h;el.innerHTML=h;}el.className=urgent?"urgent":"";el.hidden=false;}
+
+/* 2) 기능이 열리는 날 (길잡이를 켠 사람은 길잡이가 차례로 보여 주므로 처음부터 다 열려 있다) */
+const UNL={warboard:[5,"전황","망자 군세가 어디서 무엇을 하는지 한눈에"],gens:[3,"장군","장군에게 군대를 맡겨 왕 없이도 출정"],wardrobe:[4,"옷장","왕의 차림을 바꾼다"],chron:[2,"연대기","지난 날들의 기록"],
+  k_garrison:[2,"주둔군 탭","중대를 단련해 ★을 단다"],k_bank:[3,"금고 탭","대출·곡식 거래"],k_tech:[6,"개량 탭","모든 병사의 무구·갑주를 영원히 개량"],
+  spy:[2,"첩자","지도에서 요새를 눌러 첩자를 보낸다 — 적의 수와 약점"],diplo:[4,"이웃 왕국","사절·교역·원군"],village:[3,"마을 관리","마을 투자·성벽·수비대"]};
+function unl(k){if(!S||S.practice||!UNL[k])return true;if(!S.guideOff)return true;S.unl=S.unl||{};if(S.unl[k])return true;return S.day>=UNL[k][0];}
+function unlTick(){if(!S||S.practice||S.title||!S.guideOff)return;S.unl=S.unl||{};const fresh=[];
+  for(const k in UNL)if(!S.unl[k]&&S.day>=UNL[k][0]){S.unl[k]=1;if(S.day>1)fresh.push(k);}
+  if(fresh.length){UI.dirty=true;showHint(`새로 열림: ${fresh.map(k=>UNL[k][1]).join(" · ")}`,fresh.map(k=>`${UNL[k][1]} — ${UNL[k][2]}`).join("<br>"),"왕국이 자란다");}}
+function lockedNote(k){return `<p class="note" style="opacity:.7">${UNL[k][1]}은(는) ${UNL[k][0]}일째에 열린다.</p>`;}
+
+/* 3) 프롤로그 */
+function startPrologue(){if(S&&!S.title&&!S.practice)saveGame();
+  newState();S.practice=true;S.prologue=true;S.title=false;S.ruler=KING_NAME;S.skin="ashen";S.day=1;S.paused=true;S.guideOff=true;S.guide2Off=true;S.kingSkill=10;S.hints=Object.fromEntries(Object.keys(HINTS).map(k=>[k,1]));UI.sel=null;
+  $("#title").hidden=true;UI.closeModal();UI.modalBlocking=false;
+  const comps=(o)=>{const out=[];for(const [t,n] of o)for(let i=0;i<n;i++)out.push({t,men:U[t].men,vet:1});return out;};
+  S.bld.walls=2;S.garrison=comps([["inf",3],["spear",3],["archer",5],["cav",1]]);
+  const foe=spawnArmy(1,comps([["ghoul",11],["goblin",6],["orc",2],["troll",1]]),0,0,{mission:"raid",target:"capital"});
+  startBattle({kind:"siege",foeArmy:foe,foes:foe.comps,title:"프롤로그 — 선왕의 마지막 밤"});
+  setTimeout(()=>{if(WAR)beginBattle(true);},60);
+  setTimeout(()=>UI.bannerSay("망자가 아스테라 성벽을 두드린다 — 성문을 지켜라. 당신이 왕이다."),1500);
+  setTimeout(()=>UI.bannerSay(COARSE?"왼쪽 조이스틱으로 왕을 움직이고, 오른쪽 버튼으로 벤다. 아래 지휘판으로 병종에 명령한다.":"WASD 이동 · 클릭 베기 · 아래 지휘판으로 병종에 명령 — 망자가 성문에 붙으면 그리로"),7000);}
+function prologueEnd(){UI.closeModal();UI.modalBlocking=false;BT=null;S=null;startNewGame(true);}
 
 /* ════════ 3D 전술전 ════════ */
 const BF={W:240,D:170,DEPLOY:38};   // 전장: x -120~120, z -85~85, 아군은 남쪽(+z)
@@ -7152,7 +7194,7 @@ function winHead(title,closable=true){return `<div class="ph"><span>${title}</sp
 
 /* ── 상단 바 ── */
 function renderTop(){
-  if(!S)return;const e=econ();
+  if(!S)return;const e=econ();try{goalBarTick();unlTick();}catch(e){}
   $("#dateL").innerHTML=`${S.day}일째 · 1막 망자의 군단`;const ol=$("#objL");if(ol&&typeof campaignLine==="function"){const h=campaignLine();if(ol._h!==h){ol._h=h;ol.innerHTML=h;}}
   const TIP={food:"식량: 백성과 병사가 매일 먹는다. 바닥나면 백성이 굶어 죽고 민심이 떨어진다. 농장·마을·민심이 올린다. 창고 한도(농장마다 +650)를 넘으면 썩으니 금고 탭에서 판다. /일은 마을 공물까지 합친 하루 평균(식량은 대부분 마을에서 난다) — 마을 몫은 사흘마다 공물로 한꺼번에 들어온다",gold:"금화: 징병·건설·선물·용병에 쓴다. 시장·마을·교역·전리품으로 번다. /일은 왕궁에서 버는 몫만(병사 급료를 뺀 값) — 마을 몫은 사흘마다 공물로 한꺼번에 들어온다. 바닥나면 급료가 밀려 민심이 떨어진다",pop:"백성: 주거 구역 단계만큼 늘어난다. 징병의 바탕이고 많을수록 세금이 는다. 한도의 60% 아래로 줄면 일손이 모자라 농장·시장이 덜 돌고, 병사가 백성의 60%를 넘으면 민심이 매일 깎인다",sword:"병력: 왕궁 주둔군 + 원정군 + 마을 수비대. 중대 하나 = 100명",heart:"민심: 식량·금화 생산 배율(60%~100%), 백성 증가 속도, 병사의 시작 사기. 30 아래면 밤마다 탈영, 20 아래면 소요(금화·백성 손실), 0이면 왕국이 무너진다. 80 이상이면 닷새마다 의용군이 온다. 승리·축제·성당·수녀원·대련 승리·축복으로 오르고 굶주림·패배·급료 체불·빚으로 내린다"};
   const rc=(ic,v,d,k)=>`<div class="rc" title="${TIP[ic]||""}"><span class="ic">${ICON[ic]}</span><div><div class="v">${v}</div>${d!==null?`<div class="d ${d>0?"up":d<0?"dn":""}">${d>0?"+":""}${d}/일</div>`:`<div class="k">${k}</div>`}</div></div>`;
@@ -7164,7 +7206,7 @@ function renderTop(){
   const q=S.queue.length,bq=q?`<span class="badge">${q}</span>`:"";
   const inCap=UI.mode==="capital"||UI.mode==="palace";
   const first=inCap?`<button data-a="map">${ICON.map}지도</button>`:`<button data-a="home" ${kingHome()?"":"title=\"왕은 원정 중 — 섭정이 왕궁을 맡고 있다\""}>${ICON.castle}왕궁으로</button>`;
-  $("#dock").innerHTML=first+`<button data-a="kingdom">${ICON.hammer}내정${bq}</button><button data-a="compose">${ICON.flag}원정</button><button data-a="warboard">${ICON.eye}전황</button><button data-a="armies">${ICON.sword}군대${S.armies.filter(a=>a.side===0).length?`<span class="badge">${S.armies.filter(a=>a.side===0).length}</span>`:""}</button><button data-a="gens">${ICON.shield}장군</button>${inCap?`<button data-a="wardrobe">${ICON.crown}옷장</button>`:""}<button data-a="chron">${ICON.scroll}연대기</button>`;
+  $("#dock").innerHTML=first+`<button data-a="kingdom">${ICON.hammer}내정${bq}</button><button data-a="compose">${ICON.flag}원정</button>${unl("warboard")?`<button data-a="warboard">${ICON.eye}전황</button>`:""}<button data-a="armies">${ICON.sword}군대${S.armies.filter(a=>a.side===0).length?`<span class="badge">${S.armies.filter(a=>a.side===0).length}</span>`:""}</button>${unl("gens")?`<button data-a="gens">${ICON.shield}장군</button>`:""}${inCap&&unl("wardrobe")?`<button data-a="wardrobe">${ICON.crown}옷장</button>`:""}${unl("chron")?`<button data-a="chron">${ICON.scroll}연대기</button>`:""}`;
   $("#dock").hidden=UI.mode==="spy";
   // 미룬 요청: 사라지지 않고 오른쪽 아래에 남는다
   {let pb=$("#pend");if(!pb){pb=document.createElement("div");pb.id="pend";document.body.appendChild(pb);}const dq=(S.ev&&S.ev.deferred)||[];
@@ -7190,11 +7232,11 @@ function renderSide(){
       if(st.state==="ruined"){const w=canRebuild(s.id);info+=`<p class="note">${st.rebuild?`복구 중 — ${st.rebuild}일 남음`:"무너진 마을. 금화 400과 식량 150으로 다시 세울 수 있다."}</p>`;acts=st.rebuild?"":`<button class="b gold" data-a="rebuild" data-id="${s.id}" ${w?"disabled":""} title="${w||""}">복구 (금화 400 · 식량 150)</button>`;}
       else if(st.state==="besieged"){info+=S.intel&&S.intel[s.id]&&intelFresh(s.id)?forceHtml(`포위군 · 첩보 ${intelAge(s.id)}일 전`,S.intel[s.id].comps):foeViewHtml(s);acts=`<button class="b gold" data-a="compose" data-t="site:${s.id}">구출 원정</button>`+spyButtons(s);}
       else if(st.state==="ok"){const v=vil(s.id);const tr=siteTrait(s.id);if(tr)info+=`<p class="note"><b>${tr.n}</b> — ${tr.d}</p>`;info+=`<dl class="kv"><dt>성벽</dt><dd>${v.walls?`돌 성벽 ${v.walls}단계`:"없음"}</dd><dt>수비대</dt><dd>${v.vgar.length?compsText(v.vgar):"없음"}${v.vq.length?` (훈련 중 ${v.vq.length})`:""}</dd></dl>`;
-        acts=`<button class="b gold" data-a="village" data-id="${s.id}">마을 관리 (징병·성벽·투자)</button><button class="b" data-a="compose" data-t="site:${s.id}">수비군 파견</button>`;}}
+        acts=`${unl("village")?`<button class="b gold" data-a="village" data-id="${s.id}">마을 관리 (징병·성벽·투자)</button>`:lockedNote("village")}<button class="b" data-a="compose" data-t="site:${s.id}">수비군 파견</button>`;}}
     else if(s.kind==="rcapital"||s.kind==="rvillage"){const r=realmOf(s);ensureRealms();const R=S.realms[r.id];
       if(!R.alive)info=`<p class="note">무너진 왕국의 땅. 망자가 차지했다.</p>`;
       else{info=`<dl class="kv"><dt>왕국</dt><dd>${esc(r.name)} · ${esc(r.ruler)}</dd><dt>관계</dt><dd>${REL_NAME(R.rel)} (${Math.round(R.rel)})</dd><dt>인구</dt><dd>${st.state==="ok"?fmtN(st.pop):"폐허"}</dd>${s.kind==="rcapital"?`<dt>군대</dt><dd>${R.army.length}개 중대 · ${fmtN(R.army.reduce((a,c)=>a+c.men,0))}명</dd>`:""}</dl><p class="desc">${esc(r.desc)}</p>`;
-        acts=`<button class="b gold" data-a="diplo" data-id="${r.id}">외교</button>`;}}
+        acts=unl("diplo")?`<button class="b gold" data-a="diplo" data-id="${r.id}">외교</button>`:lockedNote("diplo");}}
     else if(s.kind==="neutral"){
       info=`<p class="desc"><b style="color:var(--gold)">조건</b> · ${esc(s.pitch)}</p>`+(st.state==="joined"?`<p class="note">이미 왕국의 편이다.</p>`:"");
       if(st.state==="neutral")acts=`<button class="b gold" data-a="compose" data-t="site:${s.id}">사절단 겸 원정</button>`;}
@@ -7256,7 +7298,7 @@ ${visitList(["market","farm","homes"])}<p class="note">빚은 금화 3,000까지
   if(t==="tech"){ensureTech();body=`<p class="note" style="margin:0">재상이 장인과 학자를 모아 왕국을 개량한다. 한 번에 하나씩.</p>${S.tech.q?`<div class="tile"><div class="hd"><span class="nm">${TECH[S.tech.q.k].n} 진행 중</span><span class="note" style="margin-left:auto">${S.tech.q.days}일 남음</span><button class="b sm ghost" data-a="cancel" data-k="tech" title="취소하면 80%를 돌려받는다">취소</button></div></div>`:""}
     <div class="grid2">${Object.keys(TECH).map(k=>{const t2=TECH[k],w=canTech(k);return `<div class="tile"><div class="hd"><span class="nm">${t2.n}</span><span class="pips">${[0,1,2].map(i=>`<i class="${i<S.tech[k]?"f":""}"></i>`).join("")}</span></div><div class="ds">${t2.d}</div>${S.tech[k]>=3?'<div class="note">완성</div>':`<div class="cost">금화 ${techCost(k)} · ${5+S.tech[k]*2}일</div><button class="b sm" data-a="tech" data-k="${k}" ${w?"disabled":""} title="${w||""}">${S.tech[k]?"다음 단계":"시작"}</button>`}</div>`;}).join("")}</div>
     <div><div class="eyebrow" style="margin:8px 0 4px">우리 마을의 땅</div>${villagesOwned().map(v=>{const tr=siteTrait(v.id);return tr?`<div class="qrow"><span class="ic">${ICON[tr.icon]||""}</span>${v.name} — <b>${tr.n}</b> <span class="note">${tr.d}</span></div>`:"";}).join("")||'<p class="note">마을이 없다.</p>'}</div>`;}
-  return `${winHead("내정 — 아스테라 왕궁")}<div class="tabs">${[["build","건설"],["recruit","징병"],["garrison","주둔군"],["tech","개량"],["bank","금고"]].map(([k,n])=>`<button data-a="ktab" data-k="${k}" aria-selected="${t===k}">${n}</button>`).join("")}</div>${(()=>{const e=econ(),f=e.food+e.vf,sg=v=>`<small class="${v>0?"up":v<0?"dn":""}">${v>0?"+":""}${v}/일</small>`;return `<div class="kres" id="kres"><span>${ICON.gold}<b>${fmtN(Math.floor(S.res.gold))}</b>${sg(e.gold)}</span><span>${ICON.food}<b>${fmtN(Math.floor(S.res.food))}</b>${sg(f)}</span><span>${ICON.pop}<b>${fmtN(S.civ)}</b><small>백성</small></span>${S.debt?`<span style="color:#e8a79a">빚 <b>${fmtN(Math.round(S.debt))}</b></span>`:""}</div>`;})()}<div class="wbody">${body}</div>`;
+  return `${winHead("내정 — 아스테라 왕궁")}<div class="tabs">${[["build","건설"],["recruit","징병"],["garrison","주둔군"],["tech","개량"],["bank","금고"]].filter(([k])=>unl("k_"+k)).map(([k,n])=>`<button data-a="ktab" data-k="${k}" aria-selected="${t===k}">${n}</button>`).join("")}</div>${(()=>{const e=econ(),f=e.food+e.vf,sg=v=>`<small class="${v>0?"up":v<0?"dn":""}">${v>0?"+":""}${v}/일</small>`;return `<div class="kres" id="kres"><span>${ICON.gold}<b>${fmtN(Math.floor(S.res.gold))}</b>${sg(e.gold)}</span><span>${ICON.food}<b>${fmtN(Math.floor(S.res.food))}</b>${sg(f)}</span><span>${ICON.pop}<b>${fmtN(S.civ)}</b><small>백성</small></span>${S.debt?`<span style="color:#e8a79a">빚 <b>${fmtN(Math.round(S.debt))}</b></span>`:""}</div>`;})()}<div class="wbody">${body}</div>`;
 }
 
 /* ── 원정 편성 ── */
@@ -7378,7 +7420,7 @@ const BEST_VS={ghoul:["archer","inf"],goblin:["archer","cav"],orc:["inf","priest
 function matchupHtml(foes){const ts=[...new Set(foes.filter(c=>c.men>0).map(c=>c.t))];if(!ts.length)return "";
   return `<div class="tile"><div class="eyebrow" style="margin-bottom:4px">상성 — 맞는 병종을 붙여라</div>${ts.map(t=>`<div class="frow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span>${U[t].n} <span class="note" style="margin-left:auto">← ${BEST_VS[t].map(o=>U[o].n).join(" · ")} (최대 ${Math.max(...BEST_VS[t].map(o=>counter(o,t))).toFixed(1)}배)</span></div>`).join("")}
     <p class="note" style="margin:6px 0 0">측면 ×1.35 · 후방 ×2 · 기병 돌격 ×2.8 (창벽을 세운 창병에는 막힌다) · 언덕 위 궁병 ×1.25</p></div>`;}
-function battleResultModal(res,c,after,genNote){
+function battleResultModal(res,c,after,genNote){if(S&&S.prologue)UI.proWin=!!res.win;
   return `${winHead("전투 결과",false)}<div class="wbody"><div><div class="eyebrow">${esc(c.title)} · ${Math.floor(res.time/60)}분 ${Math.round(res.time%60)}초</div><h2>${res.win?"승리":res.retreat?"퇴각":"패배"}</h2></div>
     <p class="story" id="chron">${AI.ok()?'<span class="spin"></span><span class="note">연대기 기록관이 이 날을 적는 중</span>':""}</p>
     <hr class="orn">
@@ -7386,7 +7428,7 @@ function battleResultModal(res,c,after,genNote){
     <p class="note">처치한 망자: ${Object.entries(res.kills).map(([k,v])=>`${U[k].n} ${v}`).join(" · ")||"없음"}</p>
     ${res.raidWhy||res.lordWhy?`<div class="tile" style="border-color:rgba(160,60,200,.45)"><div class="eyebrow" style="color:#c9a0e8;margin-bottom:4px">사로잡은 망자 전령이 털어놓은 군주의 속셈</div>${res.raidWhy?`<div class="ds">이 군세를 보낸 까닭: ${esc(res.raidWhy)}</div>`:""}${res.lordWhy?`<div class="ds">이 싸움의 계략: ${esc(res.lordWhy)}</div>`:""}</div>`:""}
     <p>${esc(after)} ${esc(genNote)}</p>
-  </div><div class="wfoot"><button class="b gold" data-a="toWorld">${S&&S.practice?"연습 끝내기":"지도로 돌아간다"}</button></div>`;
+  </div><div class="wfoot"><button class="b gold" data-a="toWorld">${S&&S.prologue?"그 밤이 지나고 — 즉위한다 →":S&&S.practice?"연습 끝내기":"지도로 돌아간다"}</button></div>`;
 }
 function recruitPayModal(a,s){
   return `${winHead(esc(s.name),false)}<div class="wbody"><h2>${esc(s.name)}</h2><p class="story">${esc(s.desc)} 용병대장이 손을 내민다. "금화 ${s.demand.amount}. 그럼 우리 칼은 당신 거요."</p>
@@ -7425,7 +7467,7 @@ function renderBattleHUD(){
   const wallHtml=B.wall?(()=>{const segs=B.wall.segs;const gate=segs.filter(s=>s.gate),walls=segs.filter(s=>!s.gate);const pct=a=>Math.round(a.reduce((x,s)=>x+s.hp,0)/a.reduce((x,s)=>x+s.max,0)*100);const gp=pct(gate),wp=pct(walls);const worst=Math.min(...walls.map(s=>Math.round(s.hp/s.max*100)));
     return `<div class="rc" title="구간별: ${segs.map(s=>`${s.gate?"문":"벽"} ${Math.round(s.hp/s.max*100)}%`).join(" · ")}"><span class="ic" style="color:var(--gold)">${ICON.castle||ICON.shield}</span><div><div class="v" style="color:${gp<30?"var(--blood)":"inherit"}">${gp}%</div><div class="k">성문</div></div></div><div class="rc"><span class="ic" style="color:var(--gold)">${ICON.shield}</span><div><div class="v" style="color:${worst<30?"var(--blood)":"inherit"}">${wp}%</div><div class="k">성벽${worst<wp-15?` · 약한 곳 ${worst}%`:""}</div></div></div>`;})():"";
   $("#bstat").innerHTML=`<div class="rc"><span class="ic" style="color:var(--steel)">${ICON.shield}</span><div><div class="v">${fmtN(o)}</div><div class="k">아군</div></div></div><div class="rc"><span class="ic" style="color:var(--blight)">${ICON.skull}</span><div><div class="v">${fmtN(z)}</div><div class="k">망자</div></div></div>${wallHtml}`;
-  $("#btime").innerHTML=(B.phase==="deploy"?"":`<button data-a="bpause" class="${B.paused?"on":""}" title="일시정지 (P)">${B.paused?ICON.play:ICON.pause}</button>`)+`<button data-a="help" title="도움말 (F1)" style="font-family:var(--f-display);font-size:18px;font-weight:700">?</button><button data-a="settings" title="설정">${ICON.gear}</button>`+(S&&S.practice?`<button data-a="practiceQuit" title="연습을 그만두고 처음 화면으로" style="font-family:var(--f-body);font-size:13px;color:var(--bone)">연습 끝내기</button>`:"");
+  $("#btime").innerHTML=(B.phase==="deploy"?"":`<button data-a="bpause" class="${B.paused?"on":""}" title="일시정지 (P)">${B.paused?ICON.play:ICON.pause}</button>`)+`<button data-a="help" title="도움말 (F1)" style="font-family:var(--f-display);font-size:18px;font-weight:700">?</button><button data-a="settings" title="설정">${ICON.gear}</button>`+(S&&S.practice?`<button data-a="practiceQuit" title="${S.prologue?"프롤로그를 건너뛰고 1일째로":"연습을 그만두고 처음 화면으로"}" style="font-family:var(--f-body);font-size:13px;color:var(--bone)">${S.prologue?"건너뛰기 →":"연습 끝내기"}</button>`:"");
   const sel=bSelected(),hold=sel.length&&sel.every(s=>s.hold);
   $("#bcmds").innerHTML=B.phase==="deploy"
     ?`<button class="b gold" data-a="bbegin">전투 개시</button><button class="b sm" data-a="ball">전체 선택</button><span class="note" style="background:rgba(10,12,15,.75);padding:4px 10px;border-radius:3px">부대를 끌어 푸른 구역 안에 배치한다 · 성 공방전이면 궁병은 성벽 위로, 나머지는 성 안 어디든</span>`
@@ -7527,7 +7569,7 @@ document.addEventListener("click",e=>{
     case"approach":WAR.approach=b.dataset.v;UI.openModal(battlePromptModal(WAR),{blocking:true});break;
     case"bauto":beginBattle(false);break;
     case"bdirect":beginBattle(true);break;
-    case"toWorld":if(S&&S.practice){location.reload();break;}UI.closeModal();setTimeout(()=>hintOnce("practice"),4000);UI.modalBlocking=false;BT=null;backToWorld();if(UI.endAfter){const m=UI.endAfter;UI.endAfter=null;UI.openModal(m==="act"?actEndModal():gameOverModal(),{blocking:true});break;}S.paused=false;flushHerald();break;
+    case"toWorld":if(S&&S.prologue){prologueEnd();break;}if(S&&S.practice){location.reload();break;}UI.closeModal();setTimeout(()=>hintOnce("practice"),4000);UI.modalBlocking=false;BT=null;backToWorld();if(UI.endAfter){const m=UI.endAfter;UI.endAfter=null;UI.openModal(m==="act"?actEndModal():gameOverModal(),{blocking:true});break;}S.paused=false;flushHerald();break;
     case"bbegin":BT.phase="battle";setTimeout(()=>{if(!BT)return;hintOnce("groups");setTimeout(()=>{if(BT)hintOnce(BT.heroGen?"hero":"skills");},26000);setTimeout(()=>{if(BT&&!BT.over)hintOnce("warmap");},60000);},2500);if(BT.cmd)toggleBattleView(true);sfx("horn",1);E.shake=Math.max(E.shake||0,0.15);UI.bannerSay(`${BT.ctx.title||"전투"} — 개전!${BT.heroGen?` ${(genById(BT.heroGen)||{}).name}이(가) 앞장선다`:BT.king?` 왕이 앞장선다`:""}`);
       UI.bannerSay(BT.weak&&BT.weak.length?`첩자가 찾은 약점이 효과를 낸다: ${BT.weak.map(k=>WEAK[k].n).join(", ")}`:BT.gen?`${BT.gen.name}: "대열을 지켜라. 망자에게 한 뼘도 내주지 마라."`:"전투 개시!");renderBattleHUD();break;
     case"bpause":BT.paused=!BT.paused;renderBattleHUD();if(BT.paused)UI.bannerSay("일시정지 — 명령은 계속 내릴 수 있다");break;
@@ -7572,7 +7614,7 @@ document.addEventListener("click",e=>{
     case"wardrobe":UI.openModal(wardrobeModal());break;
     case"skin":{const sk=SKINS.find(x=>x.id===b.dataset.id);if(sk&&skinUnlocked(sk)){S.skin=sk.id;saveGame();if(UI.mode==="capital"&&typeof rebuildCapital==="function"){try{rebuildCapital(true);}catch(e){}}if(UI.mode==="palace"){try{palReskin();}catch(e){}}UI.openModal(wardrobeModal());toast(`${sk.name}의 차림으로 갈아입었다.`);}break;}
     case"settings":if(BT&&!BT.over&&!BT.paused){BT.paused=true;BT.pauseBySet=true;renderBattleHUD();}UI.openModal(settingsModal());break;
-    case"practiceQuit":if(S&&S.practice){if(UI.pqArm&&performance.now()-UI.pqArm<3000){location.reload();}else{UI.pqArm=performance.now();toast("한 번 더 누르면 연습을 끝내고 처음 화면으로 돌아간다");}}break;
+    case"practiceQuit":if(S&&S.prologue){prologueEnd();break;}if(S&&S.practice){if(UI.pqArm&&performance.now()-UI.pqArm<3000){location.reload();}else{UI.pqArm=performance.now();toast("한 번 더 누르면 연습을 끝내고 처음 화면으로 돌아간다");}}break;
     case"music":musUnlock();musSet(!MUS.on);renderTop();if($("#musOn"))UI.openModal(settingsModal());break;
     case"sfxtoggle":musUnlock();sfxSet(!MUS.sfxOn);UI.openModal(settingsModal());break;
     case"quality":setQuality(b.dataset.v);break;
@@ -7582,7 +7624,8 @@ document.addEventListener("click",e=>{
     case"bld":{const k=b.dataset.k;if(build(k)){UI.openModal(buildingModal(UI.bldOpen));renderTop();saveGame();}break;}
     case"brec":if(recruit(b.dataset.k)){toast(`${U[b.dataset.k].n} 1개 중대 징병 시작`);UI.openModal(buildingModal(UI.bldOpen));renderTop();}break;
     case"newGame":UI.closeModal();UI.modalBlocking=false;showTitle(true);break;
-    case"start":gateThen(startNewGame);break;
+    case"start":gateThen(startPrologue);break;
+    case"startSkip":gateThen(()=>startNewGame(false));break;
     case"continue":gateThen(continueGame);break;
     case"resetGame":UI.openModal(`${winHead("게임 초기화")}<div class="wbody"><p class="story" style="font-size:17px;text-align:center">진짜 초기화하시겠습니까?</p><p class="note" style="text-align:center">지금 진행(${S.day}일째)이 사라지고 1일째부터 다시 시작한다. 되돌릴 수 없다.</p></div><div class="wfoot"><button class="b ghost" data-a="settings">아니요</button><button class="b" data-a="resetGo" style="border-color:rgba(201,71,59,.7);color:#f0b0a4">예</button></div>`,{narrow:true});break;
     case"resetGo":UI.closeModal();UI.modalBlocking=false;LOADED=null;try{localStorage.removeItem("ashen-crown-v3");localStorage.removeItem(bakKey(S&&S.slot||1));if(S&&S.slot&&S.slot!==1)localStorage.removeItem(slotKey(S.slot));}catch(e){}BT=null;startNewGame();break;
@@ -7634,7 +7677,7 @@ document.addEventListener("click",e=>{
   }
 });
 function tutHerald(i,it,n,prevDone){S.paused=true;
-  UI.openModal(`<div class="wbody"><div class="herald tut"><div class="eyebrow" style="color:#6b5530">${guidePhase()===2?"둘째 주":"첫 주"} 길잡이 · ${i+1} / ${n}${prevDone?` · <span style="color:#7fa66a">✓ ${esc(prevDone)}</span>`:""}</div><h3>${esc(it[0])}</h3><p>${esc(it[1])}</p><p class="how"><b>어떻게</b>${esc(it[2])}</p>${S.day<7?`<p class="note" style="margin-top:10px">망자가 움직이기까지 ${7-S.day}일. 왼쪽 아래 길잡이 패널에 이 단계가 남아 있다.</p>`:""}</div></div>
+  UI.openModal(`<div class="wbody"><div class="herald tut"><div class="eyebrow" style="color:#6b5530">${guidePhase()===2?"둘째 주":"첫 주"} 길잡이 · ${i+1} / ${n}${prevDone?` · <span style="color:#7fa66a">✓ ${esc(prevDone)}</span>`:""}</div><h3>${esc(it[0])}</h3><p>${esc(firstSent(it[1],1))}</p><p class="how"><b>어떻게</b>${esc(it[2])}</p>${S.day<7?`<p class="note" style="margin-top:10px">망자가 움직이기까지 ${7-S.day}일. 왼쪽 아래 길잡이 패널에 이 단계가 남아 있다.</p>`:""}</div></div>
     <div class="wfoot"><button class="b ghost" data-a="guideOffResume">길잡이 끄기</button><button class="b" data-a="guideSkip">이 단계 건너뛴다</button><button class="b gold" data-a="closeResume">알았다</button></div>`,{narrow:true});}
 function flushHerald(){if(S&&S.pendPay&&!BT){const p=S.pendPay;S.pendPay=null;const a=armyById(p.a),s=siteById(p.s);if(a&&s&&S.sites[s.id].state==="neutral"){tryRecruit(a,s);return;}}if(S&&S.pendingHerald&&S.pendingHerald.length){const h=S.pendingHerald.shift();herald(...h);}}
 addEventListener("keydown",e=>{
@@ -7815,12 +7858,13 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
     if(S.tut.calm>=2&&(S.tut.pend===0||Date.now()-(S.tut.pendT||0)>12000)){S.tut.calm=0;const i=S.tut.pend;S.tut.pend=undefined;tutHerald(i,items[i],items.length,i>0&&items[i-1][3]?items[i-1][0]:null);}}
   const html=`<div class="gh"><span>${guidePhase()===2?"둘째 주 길잡이":"첫 주 길잡이"}</span><em>${done}/${items.length}</em><button data-a="guideSkip" title="이 단계 건너뛰기">건너뛰기</button><button data-a="guideFold" title="접기/펴기">${S.tut.open?"▾":"▸"}</button><button data-a="guideOff" title="숨기기">✕</button></div>
     <div class="gcur"><b>${ci+1}</b><span>${cur[0]}</span></div>
-    ${S.tut.open?`<div class="gwhy">${cur[1]}</div><div class="ghow">${cur[2]}</div>`:""}
+    ${S.tut.open?`<div class="ghow">${cur[2]}</div>`:""}
     <div class="gdots">${items.map((it,i)=>`<i class="${it[3]?"on":""}${i===ci?" cur":""}" title="${it[0]}"></i>`).join("")}</div>
     ${S.day<7?`<div class="gday">망자가 오기까지 ${7-S.day}일 — 지금은 준비할 때</div>`:S.day<20?`<div class="gday">첫 대습격까지 ${20-S.day}일</div>`:""}`;
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.121","처음 하는 사람이 '무슨 게임인지' 바로 알게: START는 프롤로그 '선왕의 마지막 밤' 왕궁 방어전부터(건너뛰기 가능, '프롤로그 없이 시작'도 있다) → 즉위 · 화면 위 가운데 목표 막대: 대습격까지 D-n · 오는 망자 수 · 우리 병력과 비율·한마디 · 길잡이 없이 하면 기능이 날마다 열린다(1일째: 내정 건설·징병·원정·군대·지도 / 2일째 연대기·주둔군·첩자 / 3일째 장군·금고·마을 관리 / 4일째 옷장·외교 / 5일째 전황 / 6일째 개량) · 설명을 짧게: 새로 알게 된 것은 두 문장, 처음 보는 창·길잡이 미션은 한 문장, 길잡이 패널은 '어떻게'만"],
  ["0.9.120","첩자가 쉬워지고 자세해졌다 — 잠입 화면 바닥에 망자마다 시선 부채꼴(나를 보면 붉게), 들킬수록 화면 가장자리가 붉어지고 '보인다' 경고, 가장 가까운 ? 지점 방향 화살표·거리, 옆 창에 요새 대장·병력·밤낮·요령. 발각 속도 절반 이하·숨으면 빨리 식는다·걸음이 빨라지고 ? 지점을 밟는 범위가 넓어졌다. 들켜도 붙잡힐 확률 50%→25%. 첩보 성공률 요새 68→82%, 왕좌 50→62%, 실패해도 절반은 빈손으로 돌아온다(첩자를 잃지 않는다) · 채집·고기잡이·벌목: 지도 위에 무리가 왕도에서 일터로 걸어가고, 일하고, 짐을 지고 돌아오는 모습과 남은 시간"],
  ["0.9.119","길잡이 미션이 뜨면 화면 아래 가운데에 '지금 할 일' 한 줄: 어느 건물로 몇 m 걸어가라 / 앞에 서면 E(버튼)를 눌러라 / 지도에서 어느 거점을 눌러라 / 어느 버튼을 눌러라 — 왕이 움직이는 대로 바뀐다 · 섭정: 왕이 출정해도 왕도·왕궁에 들어갈 수 있다 — 그동안 움직이는 인물은 섭정(재상 등)이고, 내정·징병·사건·옷장 등은 그대로 본다. 결투장 결투와 '왕의 발걸음' 특혜는 왕이 돌아와야 한다. 왕이 떠나고 돌아올 때 그 자리에서 인물이 바뀌고 알려 준다"],
  ["0.9.118","'새로 알게 된 것'은 누를 필요 없이 잠깐 떴다 저절로 사라진다(글 길이만큼, 여럿이면 차례로, 눌러서 넘기기) · 길잡이가 빛내던 버튼은 한 번 누르면 그 단계에서 더 빛나지 않는다(창을 닫으면 다시 알려 줌) · 내정 창 위에 금화·식량(하루 증감)·백성·빚 표시 · '처음 보는 창' 설명도 '알겠다' 없이: 처음 연 뒤 1분만 보이고 사라진다(✕로 바로 치우기) · 화면 회전에 관성이 없다: 끄는 만큼만 돌고 바로 멈춘다(왕 시점·지도 모두)"],
@@ -8135,19 +8179,19 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
   $("#title").innerHTML=`<div class="tlogo"><span class="tline"></span><h1 class="ttl">Deep Dark</h1><span class="tline"></span><p class="tsub">망자의 군단</p></div>
     ${APP_MODE?`<div class="tmenu"><button class="tb main" data-a="${has?"continue":"start"}">싱글플레이<small>${has?`${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕 — 이어 하기`:"새 왕국을 세운다"}</small></button><button class="tb" data-a="multi">멀티플레이<small>준비 중 — 2~4명 협동</small></button></div>`:""}
     <div class="tmenu" ${APP_MODE?"hidden":""}>
-      ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕</small></button>`:`<button class="tb main" data-a="start">START</button>`}
+      ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕</small></button>`:`<button class="tb main" data-a="start">START<small>선왕의 마지막 밤부터</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">프롤로그 없이 시작<small>바로 1일째 왕궁에서</small></button>`}
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.120 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.121 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
-function startNewGame(){
+function startNewGame(fromPro){
   const name=KING_NAME;
   newState();S.slot=UI.nextSlot||1;S.ruler=name;S.skin="ashen";S.kingWound=0;S.paused=true;UI.sel=null;UI.camSaved=null;CAP.pos={x:0,z:34};CAP.face=Math.PI;CAP.camInit=false;
   S.guideOff=true;S.guide2Off=true;S.guideAsk=true;tutAsk(15000);   /* 길잡이는 15초쯤 둘러본 뒤 할지 묻는다 */
   buildCapital();rebuildCapital(true);enterCapital();
-  herald("즉위",`${name}이(가) 아스테라의 왕관을 썼다. 강 건너 마을들은 망자의 땅과 맞닿아 있고, 북쪽 요새들은 날마다 병력을 불리고 있다. 여울목을 지키고 마을에 수비군을 두라. 성 안을 걸으며 병영과 궁술장을 둘러보고, 성채의 전쟁 탁자에서 지도를 펼쳐 원정을 보내라. 직접 칼을 들고 나갈 수도 있다.`);
+  herald("즉위",`${fromPro?(UI.proWin===false?"성문이 부서지던 순간, 선왕이 홀로 막아서다 쓰러졌다. 그 희생에 망자는 물러갔다. ":"성벽은 지켰다. 그러나 선왕은 그 밤의 상처로 숨을 거뒀다. "):""}${name}이(가) 아스테라의 왕관을 쓴다. 20일째, 망자의 대군이 온다 — 그때까지 병사를 뽑고 성벽을 올려 막아내라. 그리고 북쪽 망자의 요새를 하나씩 무너뜨려라. (화면 위 막대: 대습격까지 남은 날과 병력)`);
   saveGame();
 }
 function continueGame(){S=LOADED;migrateState(S);if(S.guideAsk)tutAsk(8000);ensureRealms();ensureFog();S.paused=true;S.title=false;UI.sel=null;UI.camSaved=null;CAP.camInit=false;buildCapital();rebuildCapital(true);if(kingHome())enterCapital();else openMap();toast(`${S.day}일째에서 이어간다.`);}
