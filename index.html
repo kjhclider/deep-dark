@@ -400,7 +400,7 @@ body :where(*:not(button):not([data-a]):not(a):not(.tile):not(summary):not(selec
 /* 새로 알게 된 것: 화면 위 가운데, 크게 */
 #hint{right:auto;bottom:auto;left:50%;top:84px;transform:translateX(-50%);width:min(520px,calc(100vw - 32px));padding:16px 20px 14px;border-width:2px;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 34px rgba(242,196,106,.35),0 12px 40px rgba(0,0,0,.7);z-index:39;animation:hintIn .45s cubic-bezier(.2,1.3,.4,1)}
 #hint .ht{font-size:12.5px}#hint b{display:block;font-size:20px;margin:6px 0 6px;color:#ffe2a0}#hint p{font-size:15px;line-height:1.55;margin:0 0 10px;color:#efe4cc}
-#hint .hok{display:block;margin-left:auto}
+#hint{cursor:pointer}#hint .hbar{display:block;height:2px;background:var(--gold);transform-origin:left;animation:hbar linear forwards;opacity:.7}@keyframes hbar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @keyframes hintIn{from{opacity:0;transform:translate(-50%,-14px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
 /* 게임 안에서는 글자가 파랗게 선택되지 않는다 (드래그·더블클릭·Ctrl+A) */
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overflow:hidden;overscroll-behavior:none}
@@ -463,6 +463,8 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 #tpad .tp.cool::after{content:attr(data-cd);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font:800 20px/1 var(--f-body,sans-serif);text-shadow:0 1px 3px #000}
 #khud .cd{display:inline-block;min-width:22px;padding:0 5px;margin-left:3px;border-radius:9px;background:#5a1a14;color:#ffd7c8;font-weight:800;text-align:center}
 #gcmd button .cdn{display:inline-block;margin-left:4px;padding:0 6px;border-radius:8px;background:#5a1a14;color:#ffd7c8;font-weight:800}
+
+.kres{display:flex;gap:18px;align-items:center;padding:7px 16px;border-bottom:1px solid rgba(226,192,122,.18);background:rgba(0,0,0,.25);font-size:14px;color:#efe4cc}.kres span{display:flex;align-items:center;gap:5px}.kres svg{width:16px;height:16px}.kres b{font-variant-numeric:tabular-nums}.kres small{opacity:.75;font-size:11.5px}.kres small.up{color:#9fd08a;opacity:1}.kres small.dn{color:#e8a79a;opacity:1}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -1990,14 +1992,14 @@ class RTSCamera{
   pan(dx,dz){const c=Math.cos(this.yaw),s=Math.sin(this.yaw),k=this.dist*0.0016;this.tt.x+=(-dx*c-dz*s)*k;this.tt.z+=(dx*s-dz*c)*k;this.clampT();}
   clampT(){const b=this.bounds;this.tt.x=clamp(this.tt.x,b.x0,b.x1);this.tt.z=clamp(this.tt.z,b.z0,b.z1);}
   zoom(f){this.dd=clamp(this.dd*f,this.min,this.max);}
-  rotate(d){this.yy+=d;}
+  rotate(d){this.yy+=d;this.yaw+=d;}   /* 관성 없이: 끄는 만큼만 돈다 */
   tilt(d){this.pp=clamp(this.pp+d,0.4,1.35);}
   update(dt){
     const k=1-Math.pow(0.0008,dt);
     const sp=this.dist*1.1*dt;let kx=0,kz=0;
     if(this.keys.has("w"))kz-=1;if(this.keys.has("s"))kz+=1;if(this.keys.has("a"))kx-=1;if(this.keys.has("d"))kx+=1;
     // 방향키: 화면 회전(좌우)·기울기(상하)
-    if(this.keys.has("arrowleft"))this.yy-=1.6*dt;if(this.keys.has("arrowright"))this.yy+=1.6*dt;
+    if(this.keys.has("arrowleft"))this.rotate(-1.6*dt);if(this.keys.has("arrowright"))this.rotate(1.6*dt);
     if(this.keys.has("arrowup"))this.tilt(-0.9*dt);if(this.keys.has("arrowdown"))this.tilt(0.9*dt);
     if(kx||kz){const c=Math.cos(this.yaw),s=Math.sin(this.yaw);this.tt.x+=(kx*c+kz*s)*sp;this.tt.z+=(-kx*s+kz*c)*sp;this.clampT();}
     this.t.lerp(this.tt,k);this.dist=lerp(this.dist,this.dd,k);this.yaw=lerp(this.yaw,this.yy,k);this.pitch=lerp(this.pitch,this.pp,k);
@@ -2022,13 +2024,15 @@ class TPCamera{
     this.dist=lerp(this.dist,this.dd,1-Math.pow(0.001,dt));
     const r=Math.cos(this.pitch)*this.dist,h=Math.sin(this.pitch)*this.dist;
     const side=0.5;const rx=Math.cos(this.yaw)*side,rz=-Math.sin(this.yaw)*side;
-    const want=new THREE.Vector3(p.x+Math.sin(this.yaw)*r+rx,p.y+1.7+h,p.z+Math.cos(this.yaw)*r+rz);
+    /* 따라가는 중심점만 부드럽게 옮기고, 회전은 그 중심을 바로 돈다 — 화면을 돌릴 때 미끄러지는 관성이 없다 */
+    if(!this.piv||this.snap)this.piv=new THREE.Vector3(p.x,p.y,p.z);else this.piv.lerp(p,1-Math.pow(0.00002,dt));const q=this.piv;
+    const want=new THREE.Vector3(q.x+Math.sin(this.yaw)*r+rx,q.y+1.7+h,q.z+Math.cos(this.yaw)*r+rz);
     if(this.clampFn){const c=this.clampFn(want.x,want.z);want.x=c.x;want.z=c.z;}
     if(this.ceil&&want.y>this.ceil)want.y=this.ceil;
     if(this.heightFn){const gh=this.heightFn(want.x,want.z)+0.6;if(want.y<gh)want.y=gh;}
-    const lk=new THREE.Vector3(p.x+rx,p.y+1.55,p.z+rz);
-    if(this.snap){this.cur.copy(want);this.look.copy(lk);this.snap=false;}
-    const k=1-Math.pow(0.00002,dt);this.cur.lerp(want,k);this.look.lerp(lk,k);
+    const lk=new THREE.Vector3(q.x+rx,q.y+1.55,q.z+rz);
+    if(this.snap){this.cur.copy(want);this.snap=false;}
+    const k=1-Math.pow(0.00002,dt);this.cur.x=want.x;this.cur.z=want.z;this.cur.y=lerp(this.cur.y,want.y,k);this.look.copy(lk);
     this.cam.position.copy(this.cur);if(E.shake>0.001){const a=E.shake;this.cam.position.x+=(Math.random()-0.5)*a;this.cam.position.y+=(Math.random()-0.5)*a;this.cam.position.z+=(Math.random()-0.5)*a;}this.cam.lookAt(this.look);
     if(this.cam.near!==0.15){this.cam.near=0.15;this.cam.updateProjectionMatrix();}
   }
@@ -5111,7 +5115,7 @@ function tutMapTick(dt){const T=tutTarget();const s=T&&T.map;
   if(!TG.map||TG.map.parent!==WR.scene){const g=new THREE.Group();const ring=new THREE.Mesh(new THREE.RingGeometry(12,15,48),new THREE.MeshBasicMaterial({color:LIN("#ffd76a"),transparent:true,opacity:0.8,depthWrite:false,toneMapped:false}));ring.rotation.x=-Math.PI/2;g.add(ring);g.userData.ring=ring;
     const beam=new THREE.Mesh(new THREE.CylinderGeometry(3,7,70,16,1,true),new THREE.MeshBasicMaterial({color:LIN("#ffd76a"),transparent:true,opacity:0.2,depthWrite:false,side:THREE.DoubleSide,toneMapped:false,blending:THREE.AdditiveBlending}));beam.position.y=35;g.add(beam);g.userData.beam=beam;WR.scene.add(g);TG.map=g;}
   const g=TG.map;g.visible=true;TG.t+=dt;const y=worldH(s.x,s.z);g.position.set(s.x,y+0.5,s.z);const rs=1+0.12*Math.sin(TG.t*3);g.userData.ring.scale.set(rs,rs,1);g.userData.beam.material.opacity=0.14+0.08*Math.sin(TG.t*3);}
-function tutDockClass(){const T=tutTarget();const b=document.querySelector('#dock button[data-a="kingdom"]');if(b)b.classList.toggle("tut-glow",!!(T&&T.ui==="kingdom"));}
+function tutDockClass(){const T=tutTarget();const b=document.querySelector('#dock button[data-a="kingdom"]');if(b)b.classList.toggle("tut-glow",!!(T&&T.ui==="kingdom"&&!UI.modalOpen));}
 
 /* ════════ 처음 마주칠 때 한 번 뜨는 안내 카드 (게임을 멈추지 않는다) ════════ */
 const HINTS={
@@ -5142,9 +5146,13 @@ const HINTS={
 // 처음 한 번만: 기술을 처음 썼을 때 무엇이 일어났는지 알려 준다
 function tipOnce(k,t,d){if(!S)return;S.hints=S.hints||{};if(S.hints[k])return;S.hints[k]=1;showHint(t,d,"처음 쓴 기술");}
 function hintOnce(k){if(!S||!HINTS[k])return;S.hints=S.hints||{};if(S.hints[k])return;S.hints[k]=1;const [t,d]=HINTS[k];showHint(t,d);}
-function showHint(t,d,head){
-  let el=$("#hint");if(!el){el=document.createElement("div");el.id="hint";document.body.appendChild(el);el.addEventListener("click",e=>{if(e.target.closest("[data-x]"))el.hidden=true;});}
-  el.innerHTML=`<div class="ht"><span>${head||"새로 알게 된 것"}</span><button data-x title="닫기">✕</button></div><b>${t}</b><p>${d}</p><button class="b sm gold hok" data-x>알겠다</button>`;el.hidden=false;clearTimeout(hintOnce._t);hintOnce._t=setTimeout(()=>{el.hidden=true;},45000);}
+/* 새로 알게 된 것: 누를 필요 없이 잠깐 떴다가 저절로 사라진다(글 길이만큼). 한꺼번에 여럿이면 차례로. 눌러서 바로 넘길 수도 있다 */
+function showHint(t,d,head){showHint.q=showHint.q||[];showHint.q.push([t,d,head]);if(!showHint.on)hintNext();}
+function hintNext(){let el=$("#hint");if(!el){el=document.createElement("div");el.id="hint";document.body.appendChild(el);el.addEventListener("click",()=>{clearTimeout(hintOnce._t);hintNext();});}
+  const it=(showHint.q||[]).shift();if(!it){el.hidden=true;showHint.on=false;return;}showHint.on=true;const [t,d,head]=it;
+  const ms=clamp(5000+(String(t).length+String(d).length)*55,7000,15000);
+  el.innerHTML=`<div class="ht"><span>${head||"새로 알게 된 것"}</span><small style="margin-left:auto;opacity:.6;letter-spacing:0">눌러서 넘기기${showHint.q.length?` · ${showHint.q.length}개 더`:""}</small></div><b>${t}</b><p>${d}</p><i class="hbar" style="animation-duration:${ms}ms"></i>`;el.hidden=false;el.style.animation="none";void el.offsetWidth;el.style.animation="";
+  clearTimeout(hintOnce._t);hintOnce._t=setTimeout(hintNext,ms);}
 // 도움말: 조작법·수치 설명·길잡이 목록을 한 창에
 function helpModal(tab){tab=tab||UI.helpTab||"keys";UI.helpTab=tab;
   const tabs=[["keys","조작법"],["battle","전투 지휘"],["terms","수치 설명"],["guide","길잡이 목록"],["lose","이기고 지는 법"]];
@@ -5223,8 +5231,10 @@ const FIRST_WIN={
   diplo:"이웃 왕국 — 관계 40이면 교역·조약, 70이면 원군을 빌린다. 사절은 무료(5일마다 한 번)로 관계를 올린다.",
   building:"건물 — 증축·징병은 내정 창에서도 되지만, 직접 찾아오면 '왕의 발걸음'(건물마다 하루 한 번 특혜)이 있다.",
 };
-function firstNote(k){if(!S||S.practice||!FIRST_WIN[k])return "";S.hints=S.hints||{};if(S.hints["w_"+k])return "";
-  return `<div class="firstnote"><span class="fn-h">처음 보는 창</span><span class="fn-t">${FIRST_WIN[k]}</span><button class="b sm" data-a="fnOk" data-k="${k}">알겠다</button></div>`;}
+/* 누를 필요 없다: 처음 연 순간 '본 것'으로 치고, 그 뒤 1분 동안만(다시 그려져도) 보여 준다. ✕로 바로 치울 수 있다 */
+function firstNote(k){if(!S||S.practice||!FIRST_WIN[k])return "";S.hints=S.hints||{};UI.fnT=UI.fnT||{};
+  if(S.hints["w_"+k]){if(!(UI.fnT[k]&&Date.now()-UI.fnT[k]<60000))return "";}else{S.hints["w_"+k]=1;UI.fnT[k]=Date.now();}
+  return `<div class="firstnote"><span class="fn-h">처음 보는 창</span><span class="fn-t">${FIRST_WIN[k]}</span><button class="b sm ghost" data-a="fnOk" data-k="${k}" title="치우기" style="min-width:0;padding:4px 9px">✕</button></div>`;}
 (function(){const wrap=(name,key)=>{const f=window[name];if(typeof f!=="function")return;window[name]=function(...a){const h=f.apply(this,a);try{const k=typeof key==="function"?key(a):key;const n=firstNote(k);if(!n||typeof h!=="string")return h;const i=h.indexOf('<div class="wbody">');return i<0?h:h.slice(0,i+19)+n+h.slice(i+19);}catch(e){return h;}};};
   wrap("kingdomModal",()=>"k_"+(UI.kTab||"build"));
   for(const [n,k] of [["composeModal","compose"],["armiesModal","armies"],["gensModal","gens"],["chronModal","chron"],["warBoardModal","warboard"],["wardrobeModal","wardrobe"],["forgeModal","forge"],["treasuryModal","treasury"],["spyNetModal","spynet"],["priestModal","priest"],["councilModal","council"],["villageModal","village"],["diploModal","diplo"],["buildingModal","building"]])wrap(n,k);})();
@@ -7170,7 +7180,7 @@ ${visitList(["market","farm","homes"])}<p class="note">빚은 금화 3,000까지
   if(t==="tech"){ensureTech();body=`<p class="note" style="margin:0">재상이 장인과 학자를 모아 왕국을 개량한다. 한 번에 하나씩.</p>${S.tech.q?`<div class="tile"><div class="hd"><span class="nm">${TECH[S.tech.q.k].n} 진행 중</span><span class="note" style="margin-left:auto">${S.tech.q.days}일 남음</span><button class="b sm ghost" data-a="cancel" data-k="tech" title="취소하면 80%를 돌려받는다">취소</button></div></div>`:""}
     <div class="grid2">${Object.keys(TECH).map(k=>{const t2=TECH[k],w=canTech(k);return `<div class="tile"><div class="hd"><span class="nm">${t2.n}</span><span class="pips">${[0,1,2].map(i=>`<i class="${i<S.tech[k]?"f":""}"></i>`).join("")}</span></div><div class="ds">${t2.d}</div>${S.tech[k]>=3?'<div class="note">완성</div>':`<div class="cost">금화 ${techCost(k)} · ${5+S.tech[k]*2}일</div><button class="b sm" data-a="tech" data-k="${k}" ${w?"disabled":""} title="${w||""}">${S.tech[k]?"다음 단계":"시작"}</button>`}</div>`;}).join("")}</div>
     <div><div class="eyebrow" style="margin:8px 0 4px">우리 마을의 땅</div>${villagesOwned().map(v=>{const tr=siteTrait(v.id);return tr?`<div class="qrow"><span class="ic">${ICON[tr.icon]||""}</span>${v.name} — <b>${tr.n}</b> <span class="note">${tr.d}</span></div>`:"";}).join("")||'<p class="note">마을이 없다.</p>'}</div>`;}
-  return `${winHead("내정 — 아스테라 왕궁")}<div class="tabs">${[["build","건설"],["recruit","징병"],["garrison","주둔군"],["tech","개량"],["bank","금고"]].map(([k,n])=>`<button data-a="ktab" data-k="${k}" aria-selected="${t===k}">${n}</button>`).join("")}</div><div class="wbody">${body}</div>`;
+  return `${winHead("내정 — 아스테라 왕궁")}<div class="tabs">${[["build","건설"],["recruit","징병"],["garrison","주둔군"],["tech","개량"],["bank","금고"]].map(([k,n])=>`<button data-a="ktab" data-k="${k}" aria-selected="${t===k}">${n}</button>`).join("")}</div>${(()=>{const e=econ(),f=e.food+e.vf,sg=v=>`<small class="${v>0?"up":v<0?"dn":""}">${v>0?"+":""}${v}/일</small>`;return `<div class="kres" id="kres"><span>${ICON.gold}<b>${fmtN(Math.floor(S.res.gold))}</b>${sg(e.gold)}</span><span>${ICON.food}<b>${fmtN(Math.floor(S.res.food))}</b>${sg(f)}</span><span>${ICON.pop}<b>${fmtN(S.civ)}</b><small>백성</small></span>${S.debt?`<span style="color:#e8a79a">빚 <b>${fmtN(Math.round(S.debt))}</b></span>`:""}</div>`;})()}<div class="wbody">${body}</div>`;
 }
 
 /* ── 원정 편성 ── */
@@ -7508,7 +7518,7 @@ document.addEventListener("click",e=>{
     case"saveImport":importSave();break;
     case"savePaste":UI.openModal(pasteModal());break;
     case"pasteGo":{const t=($("#pasteSave")||{}).value||"";loadSnap(t.trim(),"붙여 넣은 판");break;}
-    case"fnOk":{S.hints=S.hints||{};S.hints["w_"+b.dataset.k]=1;const fn=b.closest(".firstnote");if(fn)fn.remove();saveGame();break;}
+    case"fnOk":{S.hints=S.hints||{};S.hints["w_"+b.dataset.k]=1;if(UI.fnT)UI.fnT[b.dataset.k]=0;const fn=b.closest(".firstnote");if(fn)fn.remove();saveGame();break;}
     case"evDrop":{const dq=S.ev&&S.ev.deferred;if(!dq)break;const d=dq[+b.dataset.i];if(d){S.ev.deferred=dq.filter(x=>x!==d);logMsg(`미룬 요청을 물리쳤다: ${d.title||d.kind}.`);renderTop();}break;}
     case"evNow":{const dq=S.ev&&S.ev.deferred;if(!dq||UI.modalOpen)break;const d=dq[+b.dataset.i];if(d){S.ev.deferred=dq.filter(x=>x!==d);fireEvent(d.kind);}break;}
     case"gearUp":{const k=b.dataset.k;if(gearWhy(k))break;const c=GEAR[k].cost(kgear()[k]);S.res.gold-=c.gold;if(S.forgeDisc){const back=Math.round(c.gold*(1-S.forgeDisc));S.res.gold+=back;c.gold-=back;S.forgeDisc=null;toast(`떠돌이 대장장이 덕에 금화 ${back}을(를) 아꼈다.`);}S.kgearQ={k,cost:c};logMsg(`${GEAR[k].names[kgear()[k]+1]}을(를) 맡겼다. 하루 걸린다.`);UI.openModal(forgeModal());renderTop();saveGame();break;}
@@ -7735,6 +7745,7 @@ function renderGuide(){const el=$("#guide");if(!el||!S)return;const ph=guidePhas
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.118","'새로 알게 된 것'은 누를 필요 없이 잠깐 떴다 저절로 사라진다(글 길이만큼, 여럿이면 차례로, 눌러서 넘기기) · 길잡이가 빛내던 버튼은 한 번 누르면 그 단계에서 더 빛나지 않는다(창을 닫으면 다시 알려 줌) · 내정 창 위에 금화·식량(하루 증감)·백성·빚 표시 · '처음 보는 창' 설명도 '알겠다' 없이: 처음 연 뒤 1분만 보이고 사라진다(✕로 바로 치우기) · 화면 회전에 관성이 없다: 끄는 만큼만 돌고 바로 멈춘다(왕 시점·지도 모두)"],
  ["0.9.117","바닥의 길 안내가 끊기지 않게: 대전 안 일이면 왕궁에서 대전 입구로, 지도 일이면 전쟁 탁자로, 대전에서 바깥 일이면 문으로 이어 준다 · 대전의 열린 문으로 걸어 나가면 E 없이 마당으로 나간다(콜로세움처럼) · 설정에 Claude 연결 칸: 앱에서 API 키를 언제든 넣고·바꾸고·지우고, 연결을 다시 확인할 수 있다 · 길잡이 없이 시작해도 첫 주가 비지 않게: 2일째쯤 작은 망자 척후대가 꼭 한 번 오고(잡으면 금화), 이후 척후대·늑대 떼가 섞여 나온다"],
  ["0.9.116","지도 펼치기가 빨라졌다(거점 모형을 바뀐 것만 다시 만들고, 지도는 왕궁에 들어온 뒤 미리 지어 둔다) · 길잡이: 시작하고 15초쯤 뒤에 '길잡이와 함께 할지' 묻는다(혼자 해 보기 가능) · 한 단계를 마치면 다음 안내까지 12초 여유 · 건물 앞 상호작용 버튼과 'Esc' 안내가 겹치지 않게(버튼이 뜨면 안내를 숨김)"],
  ["0.9.115","출시 앱 준비: 앱(PC판·홈 화면 앱)의 첫 화면은 싱글플레이(N일째)·멀티플레이(준비 중)만, 전투 연습은 설정으로 · 앱에서도 내 Claude API 키로 연결 · 게임 아이콘"],
@@ -7914,8 +7925,13 @@ async function claudeGate(){
 function gateThen(fn){if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){fn();return;}claudeGate().then(ok=>{if(ok)fn();});}
 
 // 길잡이가 지금 단계에서 눌러야 할 곳을 금빛으로 깜빡이게 한다 (버튼·지도의 거점·왕궁의 문)
-function guideGlow(ph,ci,cur){document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));if(!cur||cur[3])return;
-  const add=sel=>document.querySelectorAll(sel).forEach(e=>{if(e.offsetParent!==null||e.classList.contains("lbl"))e.classList.add("gglow");});
+/* 눌러 본 버튼은 같은 단계에서 다시 빛나지 않는다 (창을 닫으면 다시 알려 준다) */
+const glowSig=e=>e.dataset&&e.dataset.a?[e.dataset.a,e.dataset.k||"",e.dataset.id||"",e.dataset.t||""].join("|"):"";
+document.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest(".gglow:not(.lbl),.tut-glow");if(!g)return;UI.glowHit=UI.glowHit||new Set();const k=glowSig(g);if(k)UI.glowHit.add(k);g.classList.remove("gglow","tut-glow");},true);
+function guideGlow(ph,ci,cur){document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));
+  const gk=ph+":"+ci,mo=!!UI.modalOpen;if(UI.glowKey!==gk||(UI._glowModal&&!mo))UI.glowHit=new Set();UI.glowKey=gk;UI._glowModal=mo;
+  if(!cur||cur[3])return;
+  const add=sel=>document.querySelectorAll(sel).forEach(e=>{if(UI.glowHit.has(glowSig(e)))return;if(e.offsetParent!==null||e.classList.contains("lbl"))e.classList.add("gglow");});
   const spot=id=>{if(UI.mode==="capital"&&CAP.spots){const s=CAP.spots.find(x=>x.id===id);if(s&&s.el)s.el.classList.add("gglow");}};
   const site=fn=>{if(UI.mode!=="map")return;for(const st of SITES){if(fn(st)){const o=WR.siteObjs[st.id];if(o&&o.el)o.el.classList.add("gglow");}}};
   const pspot=id=>{if(UI.mode==="palace"&&PAL.spots){const s=PAL.spots.find(x=>x.id===id);if(s&&s.el)s.el.classList.add("gglow");}};
@@ -8045,7 +8061,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.117 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.118 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(){
