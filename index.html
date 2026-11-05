@@ -3344,7 +3344,7 @@ function palSpots(){
 function enterPalace(){
   buildPalace();placeGenerals();if(S){S.tut=S.tut||{};S.tut.palace=true;}
   E.scene=PAL.scene;clearLabels();
-  PAL.pos={x:0,z:20};PAL.face=Math.PI;PAL.sit=false;
+  PAL.pos={x:0,z:20};PAL.face=Math.PI;PAL.sit=false;PAL.inT=0;
   if(PAL.king)PAL.scene.remove(PAL.king);PAL.king=makeKing(S.skin||"ashen");if(PAL.king.userData.hero)heroSheathe(PAL.king,true);PAL.scene.add(PAL.king);
   PAL.spots=palSpots();
   for(const s of PAL.spots){const el=document.createElement("div");el.className="lbl spot";const isCourt=PAL.court.some(c=>c.id===s.id);el.innerHTML=`<b>${esc(s.name)}</b>${isCourt?`<span>${esc(s.sub)}</span>`:""}`;s.el=el;s.L=addLabel(el,()=>({x:s.x,y:palH(s.x,s.z)+2.6,z:s.z}),{maxD:16});}
@@ -3357,7 +3357,9 @@ function enterPalace(){
 }
 function leavePalace(){E.tp.clampFn=null;E.tp.ceil=null;CAP.pos={x:0,z:KEEP.z+17};CAP.face=0;enterCapital();E.tp.yaw=Math.PI;E.tp.snap=true;}
 function palTick(dt){if(typeof tutPalTick==="function")tutPalTick(dt);
-  if(PAL.door){const D=PAL.door.userData;const want=Math.hypot(PAL.pos.x,PAL.pos.z-24.9)<7?1:0;D.open=lerp(D.open,want,Math.min(1,dt*3));for(const piv of PAL.door.children)piv.rotation.y=-piv.userData.sx*D.open*1.7;}
+  if(PAL.door){const D=PAL.door.userData;const want=Math.hypot(PAL.pos.x,PAL.pos.z-24.9)<7?1:0;D.open=lerp(D.open,want,Math.min(1,dt*3));for(const piv of PAL.door.children)piv.rotation.y=-piv.userData.sx*D.open*1.7;
+    /* 열린 문으로 걸어 나가면 그대로 마당으로 (콜로세움처럼 — 문 앞에서 E를 누르지 않아도) */
+    PAL.inT=(PAL.inT||0)+dt;if(D.open>0.5&&PAL.inT>0.3&&PAL.pos.z>22.9&&Math.abs(PAL.pos.x)<2.4&&!UI.modalOpen&&!PAL.sit){PAL.inT=0;leavePalace();return;}}
   PAL.t+=dt;
   if(UI.modalOpen){PAL.spd=0;}
   else{const inp=moveInput();const sp=inp.mag*(inp.run?5.2:2.3);
@@ -4875,7 +4877,10 @@ function approachEffect(siteId,side){const front=siteFront(siteId);if(!side||sid
 function ensureEvents(){if(!S.ev)S.ev={next:0.8,n:0,seen:{},rumor:null,packs:0};}
 const EV_W=[["scout",3],["merchant",2],["refugee",2],["rumor",1],["mercs",1],["wolves",1],["envoy",1],["spy",1],["festival",1],["hunt",2],["bard",1],["feast",1],["bandits",1],["horses",1],["wallcrack",1],["veteran",1],["sickness",1],["smith",1],["storm",1],["nobles",1],["relic",1],["palisade",1],["truce",1],["oath",1],["arrears",2],["donor",2],["vein",2],["levy",1],["salvage",2]];
 const EV_EARLY=[["forage",3],["fish",2],["granary",2],["woodcut",2],["caravan",2],["wedding",1],["herbs",1]];
-function pickEvent(){ensureEvents();const pool=[];const W=S.day<7?[...EV_W.filter(([k])=>!["scout","wolves","bandits","wallcrack","spy","sickness","storm","nobles","relic","palisade","truce","oath","smith"].includes(k)),...EV_EARLY]:[...EV_W,...EV_EARLY.map(([k,w])=>[k,Math.max(1,w-1)])];const REC=S.day<=(S.ev.recoverUntil||0);   /* 대습격 뒤 열흘: 상인·일감·수확 사건이 잦다 */
+function pickEvent(){ensureEvents();
+  /* 길잡이 없이 하는 왕도 첫 주가 심심하지 않게: 2일째쯤 작은 척후대가 한 번은 꼭 오고, 이후 척후대·늑대 떼가 섞여 나온다 (대군은 여전히 7일째부터) */
+  if(S.day<7&&S.guideOff&&S.day>=2&&!S.ev.firstFight&&villagesOwned().length){S.ev.firstFight=1;return "scout";}
+  const pool=[];const W=S.day<7?[...EV_W.filter(([k])=>!["scout","wolves","bandits","wallcrack","spy","sickness","storm","nobles","relic","palisade","truce","oath","smith"].includes(k)),...EV_EARLY,...(S.guideOff&&S.day>=2?[["scout",2],["wolves",2]]:[])]:[...EV_W,...EV_EARLY.map(([k,w])=>[k,Math.max(1,w-1)])];const REC=S.day<=(S.ev.recoverUntil||0);   /* 대습격 뒤 열흘: 상인·일감·수확 사건이 잦다 */
   for(let [k,w] of W){if(REC&&(EV_EARLY.some(e=>e[0]===k)||k==="merchant"||k==="refugee"))w+=2;if(k==="forage"&&(S.garrison.length<3||(S.ev.jobs||[]).some(j=>j.kind==="forage")))continue;if(k==="woodcut"&&(S.ev.jobs||[]).some(j=>j.kind==="woodcut"))continue;if(k==="envoy"&&!(S.realms&&Object.values(S.realms).some(r=>r.alive)))continue;if(k==="rumor"&&S.ev.rumor)continue;if(k==="hunt"&&S.ev.hunt)continue;if(k==="horses"&&!villagesOwned().some(v=>SITE_TRAIT[v.id]==="horse"))continue;if(k==="wallcrack"&&!(S.bld.walls>0))continue;if((k==="scout"||k==="wolves")&&(S.day<7||S.armies.filter(a=>a.pack).length>=3))continue;for(let i=0;i<w;i++)pool.push(k);}return pick(pool);}
 function eventTick(days){
   if(!S||S.over)return;ensureEvents();
@@ -5095,8 +5100,9 @@ function tutTrailTick(dt,sc,key,from,to,hFn){
   const ty=hFn(to.x,to.z);g.userData.beam.position.set(to.x,ty+7,to.z);g.userData.beam.material.opacity=0.16+0.08*Math.sin(TG.t*3);
   g.userData.ring.position.set(to.x,ty+0.15,to.z);const rs=1+0.15*Math.sin(TG.t*3);g.userData.ring.scale.set(rs,rs,1);
 }
-function tutCapTick(dt){const T=(typeof DUEL!=="undefined"&&DUEL.on)?null:tutTarget();const sp=T&&T.cap&&CAP.spots.find(s=>s.id===T.cap);tutTrailTick(dt,CAP.scene,"cap",CAP.pos,sp?{x:sp.x,z:sp.z}:null,capHm);}
-function tutPalTick(dt){const T=tutTarget();const sp=T&&(T.pal||T.cap==="keep"&&"door")&&PAL.spots&&PAL.spots.find(s=>s.id===(T.pal||"door"));tutTrailTick(dt,PAL.scene,"pal",PAL.pos,sp?{x:sp.x,z:sp.z}:null,()=>0);}
+/* 길 안내가 끊기지 않게: 대전 안에서 할 일이면 대전 입구로, 지도에서 할 일이면 전쟁 탁자로 이어 준다 */
+function tutCapTick(dt){const T=(typeof DUEL!=="undefined"&&DUEL.on)?null:tutTarget();const want=T&&(T.cap||(T.pal?"keep":T.map?"table":null));const sp=want&&CAP.spots&&CAP.spots.find(s=>s.id===want);tutTrailTick(dt,CAP.scene,"cap",CAP.pos,sp?{x:sp.x,z:sp.z}:null,capHm);}
+function tutPalTick(dt){const T=tutTarget();const want=T&&(T.pal||((T.cap&&T.cap!=="keep")||T.map?"door":null));const sp=want&&PAL.spots&&PAL.spots.find(s=>s.id===want);tutTrailTick(dt,PAL.scene,"pal",PAL.pos,sp?{x:sp.x,z:sp.z}:null,()=>0);}
 // 지도: 목표 거점 위에 큰 고리와 빛기둥
 function tutMapTick(dt){const T=tutTarget();const s=T&&T.map;
   let ar=$("#tutArrow");if(!ar){ar=document.createElement("div");ar.id="tutArrow";ar.innerHTML="➤";document.body.appendChild(ar);}
@@ -5226,7 +5232,7 @@ function firstNote(k){if(!S||S.practice||!FIRST_WIN[k])return "";S.hints=S.hints
 /* ════════ 1막의 뼈대: 장(章)과 목표, 정해진 날의 대습격 ════════
    참고한 틀: They Are Billions(정해진 날의 큰 파도와 예고), Total War 캠페인(장별 목표), Mount&Blade(패배의 대가) */
 const CHAPTERS=[
-  {id:"prep",   n:"1장 준비",  goal:()=>"7일째까지 왕국을 준비하라 — 그때까지 망자는 오지 않는다", done:()=>S.day>=7},
+  {id:"prep",   n:"1장 준비",  goal:()=>"7일째까지 왕국을 준비하라 — 그때까지 망자의 대군은 오지 않는다(떠도는 작은 무리는 온다)", done:()=>S.day>=7},
   {id:"border", n:"2장 국경",  goal:()=>`망자 요새 하나를 무너뜨려라 (${razedForts()}/1)`, done:()=>razedForts()>=1},
   {id:"counter",n:"3장 반격",  goal:()=>`요새 셋을 무너뜨려라 (${razedForts()}/3) — 왕좌로 가는 길이 열린다 (50일째엔 억지로 열린다)`, done:()=>razedForts()>=3},
   {id:"throne", n:"4장 왕좌",  goal:()=>"망자의 왕좌를 쳐라 — 1막의 끝", done:()=>SITES.some(s=>s.kind==="throne"&&S.sites[s.id].state==="razed")},
@@ -7531,10 +7537,10 @@ document.addEventListener("click",e=>{
     case"multi":toast("멀티플레이는 준비 중이다 — 2~4명이 각자 왕국을 맡는 협동으로 만든다");break;
     case"practice":gateThen(()=>UI.openModal(practiceModal()));break;
     case"mouseMode":E.soft=b.dataset.v==="soft";try{localStorage.setItem("dd-mouse",E.soft?"soft":"lock");}catch(e){}E.wantLock=!E.soft&&(UI.mode==="capital"||UI.mode==="palace");if(E.soft&&document.pointerLockElement)document.exitPointerLock();UI.openModal(settingsModal());break;
-    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("sk-ant- 로 시작하는 API 키를 넣어라.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok)toast("Claude와 연결됐다 — START를 누르세요");});break;}
-    case"apiKeyDel":try{localStorage.removeItem("dd-apikey");}catch(e){}AI.sample=null;AI.checked=false;UI.closeModal();toast("저장된 키를 지웠다.");break;
+    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("sk-ant- 로 시작하는 API 키를 넣어라.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok)toast(S&&S.title?"Claude와 연결됐다 — START를 누르세요":"Claude와 연결됐다 — 망자의 군주가 이제 Claude로 움직인다");});break;}
+    case"apiKeyDel":try{localStorage.removeItem("dd-apikey");}catch(e){}AI.sample=null;AI.checked=false;UI.closeModal();UI.aiStatus();toast(S&&S.title?"저장된 키를 지웠다.":"키를 지웠다 — 다시 넣기 전까지 망자는 기본 규칙으로 움직인다.");break;
     case"gateSkip":UI.gateSkip=true;UI.closeModal();toast("임시: 망자의 군주가 기본 규칙으로 움직인다. 다시 START를 누르세요");break;
-    case"gateRetry":AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok)toast("Claude와 연결됐다 — START를 누르세요");});break;
+    case"gateRetry":AI.off=false;AI.checked=false;if(!AI.sample&&deskKey())AI.sample=deskSample(deskKey());UI.closeModal();claudeGate().then(ok=>{if(ok)toast(S&&S.title?"Claude와 연결됐다 — START를 누르세요":"Claude와 연결됐다");});break;
     case"practiceGo":practiceStart(b.dataset.k);break;
     case"helpTab":UI.openModal(helpModal(b.dataset.k));break;
     case"guideOn":S.guideOff=false;S.guide2Off=false;S.tut=S.tut||{};S.tut.curI=undefined;UI.closeModal();renderGuide();toast(S.day>16?"길잡이는 16일째까지만 패널로 뜬다 — 목록은 도움말에서 언제든 본다.":"길잡이 패널을 다시 켰다.");break;
@@ -7645,8 +7651,9 @@ function settingsModal(){
     <div><div class="eyebrow" style="margin-bottom:8px">전투 연습</div><div class="acts"><button class="b" data-a="practice">전투 장면만 바로 해 보기</button></div><p class="note">지금 판은 저장해 두고 연습 전투를 연다. 끝나면 처음 화면으로 돌아오고, CONTINUE로 이어 하면 된다.</p></div>
     <div><div class="eyebrow" style="margin-bottom:8px">화면</div><div class="acts"><button class="b" data-a="fullscreen">전체 화면 켜기/끄기${window.deskApi?" (F11)":""}</button>${window.deskApi?`<button class="b" data-a="quitApp" style="border-color:rgba(201,71,59,.6);color:#e8a79a">게임 끄기 (저장하고)</button>`:""}<button class="b" data-a="music">배경음악 켜기/끄기</button></div><div class="acts" style="margin-top:8px"><button class="b ${!E.soft?"gold":""}" data-a="mouseMode" data-v="lock">마우스 잠금 시점</button><button class="b ${E.soft?"gold":""}" data-a="mouseMode" data-v="soft">커서 보이며 시점</button></div><p class="note">잠금: 화면을 클릭하면 커서가 숨고 마우스를 움직이는 대로 시점이 돈다(Esc로 풀림) · 커서 보이기: 커서를 둔 채 움직이면 돌고, 화면 끝에 대면 계속 돈다</p><p class="note">창이 좁으면 오른쪽 위의 음악·전체 화면 버튼이 여기로 들어온다.</p></div>
     <div><div class="eyebrow" style="margin-bottom:8px">망자의 군주 — 당신의 Claude</div>
+    ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?(()=>{const k=deskKey();const st=!k?"연결 안 됨 — 키가 없다":(AI.off?"키 있음 · 연결 끊김":(AI.checked?"연결됨":"키 있음 · 아직 확인 전"));return `<div class="tile" style="margin-bottom:8px"><div class="hd"><span class="nm">Claude 연결 (API 키)</span><span class="tg">${st}</span></div><div class="ds">${k?`저장된 키: ${k.slice(0,10)}…${k.slice(-4)}`:"console.anthropic.com → API Keys에서 발급한 키를 넣는다."} 키는 이 기기에만 저장된다.</div><input id="apiKeyIn" type="password" placeholder="${k?"새 키로 바꾸려면 붙여넣기":"sk-ant-…"}" autocomplete="off" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">키 저장하고 연결</button>${k?`<button class="b" data-a="gateRetry">연결 다시 확인</button><button class="b ghost" data-a="apiKeyDel">키 지우기</button>`:""}</div></div>`;})():`<p class="note" style="margin-bottom:6px">이 화면(claude.ai)에서는 로그인한 Claude 계정으로 자동 연결된다 — 키가 필요 없다. 상태: ${AI.ok()?(AI.checked?"연결됨":"연결 가능"):"연결 안 됨"}</p>`}
     
-    <p class="note">${AI.sample?(AI.off?"Claude 연결이 끊겼다 — 다시 연결될 때까지 망자는 기본 규칙으로 버틴다. 게임을 다시 열면 연결을 다시 묻는다.":"당신의 Claude가 침공 목표·대습격·전투 계략을 직접 정한다. 지난 전투를 기억하고 왕의 병력 구성을 보고 약한 곳을 노린다 — 같은 판이 두 번 나오지 않는다. 결정할 때마다 Claude 사용량이 조금 든다(처음 한 번 허락을 묻는다). 전투가 끝나면 사로잡은 전령이 군주의 속셈을 털어놓는다."):"이 화면에서는 Claude를 부를 수 없다."}</p></div>
+    <p class="note">${AI.sample?(AI.off?"Claude 연결이 끊겼다 — 다시 연결될 때까지 망자는 기본 규칙으로 버틴다. 게임을 다시 열면 연결을 다시 묻는다.":"당신의 Claude가 침공 목표·대습격·전투 계략을 직접 정한다. 지난 전투를 기억하고 왕의 병력 구성을 보고 약한 곳을 노린다 — 같은 판이 두 번 나오지 않는다. 결정할 때마다 Claude 사용량이 조금 든다(처음 한 번 허락을 묻는다). 전투가 끝나면 사로잡은 전령이 군주의 속셈을 털어놓는다."):((window.deskApi||APP_MODE)?"위 칸에 API 키를 넣으면 연결된다.":"이 화면에서는 Claude를 부를 수 없다.")}</p></div>
     <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">배경음악</div>
     <div class="acts" style="align-items:center"><button id="musOn" class="b ${MUS.on?"gold":""}" data-a="music">${MUS.on?"켜짐":"꺼짐"}</button>
     <input type="range" min="0" max="100" value="${Math.round(MUS.vol*100)}" id="musVol" style="flex:1;accent-color:#c9a45a" aria-label="음량"></div>
@@ -7728,6 +7735,7 @@ function renderGuide(){const el=$("#guide");if(!el||!S)return;const ph=guidePhas
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.117","바닥의 길 안내가 끊기지 않게: 대전 안 일이면 왕궁에서 대전 입구로, 지도 일이면 전쟁 탁자로, 대전에서 바깥 일이면 문으로 이어 준다 · 대전의 열린 문으로 걸어 나가면 E 없이 마당으로 나간다(콜로세움처럼) · 설정에 Claude 연결 칸: 앱에서 API 키를 언제든 넣고·바꾸고·지우고, 연결을 다시 확인할 수 있다 · 길잡이 없이 시작해도 첫 주가 비지 않게: 2일째쯤 작은 망자 척후대가 꼭 한 번 오고(잡으면 금화), 이후 척후대·늑대 떼가 섞여 나온다"],
  ["0.9.116","지도 펼치기가 빨라졌다(거점 모형을 바뀐 것만 다시 만들고, 지도는 왕궁에 들어온 뒤 미리 지어 둔다) · 길잡이: 시작하고 15초쯤 뒤에 '길잡이와 함께 할지' 묻는다(혼자 해 보기 가능) · 한 단계를 마치면 다음 안내까지 12초 여유 · 건물 앞 상호작용 버튼과 'Esc' 안내가 겹치지 않게(버튼이 뜨면 안내를 숨김)"],
  ["0.9.115","출시 앱 준비: 앱(PC판·홈 화면 앱)의 첫 화면은 싱글플레이(N일째)·멀티플레이(준비 중)만, 전투 연습은 설정으로 · 앱에서도 내 Claude API 키로 연결 · 게임 아이콘"],
  ["0.9.114","기술 재사용 대기: 남은 초를 버튼에 크게 — 병종 기술 버튼(예: 창벽 12초), 왕의 회오리·함성·돌진(왼쪽 위 상태창), 휴대폰 손가락 버튼(버튼 위에 숫자, 아직 안 열린 기술은 자물쇠)"],
@@ -8037,7 +8045,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.116 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.117 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(){
