@@ -4,7 +4,7 @@
 button{width:100%;margin-top:12px;padding:12px;font:700 16px/1 inherit;border-radius:4px;border:1px solid #f2c46a;background:#3a2810;color:#ffe2a0;cursor:pointer}button:disabled{opacity:.5}
 input{width:100%;box-sizing:border-box;margin-top:8px;padding:10px;font:700 20px/1 monospace;letter-spacing:.2em;text-align:center;text-transform:uppercase;background:#0a0806;color:#ffe2a0;border:1px solid #8a6d3a;border-radius:4px}
 .code{font:800 26px/1.2 monospace;letter-spacing:.2em;color:#ffe2a0}.ok{color:#9fd08a;font-weight:700}.err{color:#ff8a7a}</style></head><body><div class="box">
-<h1>DEEP DARK</h1><p>게임 앱에 로그인을 넘겨준다</p>
+<h1>DEEP DARK</h1>
 <div id="cbox"></div><button id="go">Google로 로그인</button><p id="msg"></p></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -13,13 +13,13 @@ input{width:100%;box-sizing:border-box;margin-top:8px;padding:10px;font:700 20px
 firebase.initializeApp({"apiKey":"AIzaSyBSSv_puC2HNNnJ5X3pqv6Dx1PM3s-6GO8","authDomain":"deep-dark-dfa61.firebaseapp.com","projectId":"deep-dark-dfa61","storageBucket":"deep-dark-dfa61.firebasestorage.app","messagingSenderId":"436605364957","appId":"1:436605364957:web:2870ce5df98e5512a10934"});
 const q=new URLSearchParams(location.search);let code=(q.get("c")||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
 const cb=document.getElementById("cbox"),msg=document.getElementById("msg"),go=document.getElementById("go");
-if(code.length===8)cb.innerHTML='<p>앱에 뜬 코드와 같은지 확인하라</p><div class="code">'+code.slice(0,4)+'-'+code.slice(4)+'</div>';
+if(code.length===8)cb.innerHTML='<p>아래 버튼을 눌러 구글 계정을 고르면 끝 — 게임으로 저절로 로그인된다</p>';
 else cb.innerHTML='<p>앱에 뜬 8자리 코드를 넣어라</p><input id="ci" maxlength="9" placeholder="ABCD-EFGH">';
 go.onclick=async()=>{const ci=document.getElementById("ci");if(ci)code=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,"");
   if(code.length!==8){msg.className="err";msg.textContent="코드는 8자리다";return;}
   go.disabled=true;msg.className="";msg.textContent="구글 창을 여는 중…";
-  try{const res=await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());const cr=firebase.auth.GoogleAuthProvider.credentialFromResult(res);
+  try{const res=await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());const cr=res.credential||(firebase.auth.GoogleAuthProvider.credentialFromResult&&firebase.auth.GoogleAuthProvider.credentialFromResult(res));if(!cr||!cr.idToken)throw {code:"no-token"};
     await firebase.firestore().doc("linkSessions/"+code).set({idToken:cr.idToken,at:Date.now()});
-    msg.className="ok";msg.textContent="완료! 게임 앱으로 돌아가라 — 잠시 뒤 저절로 로그인된다. 이 창은 닫아도 된다.";}
+    msg.className="ok";msg.textContent="완료! 게임으로 돌아가라 — 저절로 로그인된다. 이 창은 닫아도 된다.";go.style.display="none";setTimeout(()=>{try{window.close();}catch(e){}},1500);}
   catch(e){go.disabled=false;msg.className="err";msg.textContent="실패: "+(e&&e.code||e)+" — 다시 눌러라";}};
 </script></body></html>
