@@ -2421,7 +2421,7 @@ const MP_FORT_NAMES={f_mor:["모르가쉬","드라켄골","무르두크","벨사
 let MP_BASE=null;
 function mpSetupWorld(n,me,names){
   if(!MP_BASE)MP_BASE=SITES.map(s=>JSON.parse(JSON.stringify(s)));
-  MPW={n,me,names:names||[],cols:MP_COLS.slice(0,n)};
+  MPW={n,me,names:names||[],cols:MP_COLS.slice(0,n)};MP_W=mpRegionW(n);
   const base=MP_BASE.filter(s=>s.kind!=="rcapital"&&s.kind!=="rvillage"&&!s.realm);
   const W=MP_W*WS,x0=mpX0()*WS,out=[];
   for(let k=0;k<n;k++){const ox=x0+k*W;
@@ -2436,10 +2436,10 @@ function mpSetupWorld(n,me,names){
   const DEEP=[["f_kal","깊은 ",-60],["f_maw","깊은 ",0],["f_gul","깊은 ",60]];
   for(let k=0;k<n;k++){const ox=x0+k*W;
     for(const [bid,pre,dx] of DEEP){const b=base.find(s=>s.id===bid);if(!b)continue;const s=JSON.parse(JSON.stringify(b));
-      s.id=`d_${bid}~${k}`;s.base=bid;s.slot=k;s.x=Math.round(ox+dx*WS*2.2);s.z=Math.round(b.z-(MP_DZ*0.62)*WS);s.name=pre+(MP_FORT_NAMES[bid]?MP_FORT_NAMES[bid][k]:b.name);
+      s.id=`d_${bid}~${k}`;s.base=bid;s.slot=k;s.x=Math.round(ox+dx*WS*2.2);s.z=Math.round(b.z-(MP_DZ*0.6)*WS);s.name=pre+(MP_FORT_NAMES[bid]?MP_FORT_NAMES[bid][k]:b.name);
       s.garrison=s.garrison.map(([t,c])=>[t,Math.round(c*1.5)]);s.desc="망자 땅 깊은 곳의 요새. 앞쪽 요새보다 크고, 왕좌로 가는 길을 지킨다.";out.push(s);}}
   /* 망자의 왕좌: 하나, 가운데 맨 북쪽, 사람 수만큼 크게 */
-  const th=JSON.parse(JSON.stringify(base.find(s=>s.kind==="throne")));th.x=0;th.z=Math.round(th.z-MP_DZ*0.92*WS);th.slot=-1;th.base=th.id;
+  const th=JSON.parse(JSON.stringify(base.find(s=>s.kind==="throne")));th.x=0;th.z=Math.round(th.z-MP_DZ*0.85*WS);th.slot=-1;th.base=th.id;
   th.garrison=th.garrison.map(([t,c])=>[t,Math.round(c*(1+0.75*(n-1)))]);th.desc="역병의 근원. 모든 왕국을 노리는 망자의 군주가 잠들지 않는 곳.";out.push(th);
   SITES.length=0;SITES.push(...out);
   FORDS.length=0;for(let k=0;k<n;k++)for(const fx of FORDS_RAW){const x=(fx+mpX0()+k*MP_W)*WS;FORDS.push({x,z:riverZ(x)});}
@@ -2458,8 +2458,10 @@ const FORDS_RAW=[-82,0,112];const FORDS=FORDS_RAW.map(x=>({x:x*WS,z:riverZ(x*WS)
 const fordAt=(X)=>{const x=mpLocalX(X/WS);let m=1e9;for(const f of FORDS_RAW)m=Math.min(m,Math.abs(x-f));return m;};
 const riverSide=(x,z)=>z<riverZ(x)?-1:1;
 /* 멀티 세계: 왕국 구역이 동서로 나란히(구역 폭 410). 남쪽 구역 사이엔 산맥, 북쪽 망자 땅은 이어진다 */
-const MP_W=615;          /* 왕국 구역 폭: 혼자 할 때(410)의 1.5배 */
-const MP_DZ=400;         /* 망자 땅이 북쪽으로 이만큼 더 깊다 — 둘이면 6배, 넷이면 12배 넓이 */
+/* 넓이: 2명 3배 · 3명 6배 · 4명 9배 (= 3×(사람-1)). 망자 땅을 북쪽으로 1.5배 깊게 하고, 왕국 구역 폭은 410×2(n-1)/n */
+let MP_W=410;
+const MP_DZ=210;
+const mpRegionW=n=>Math.round(410*Math.max(1,2*(n-1)/n));
 const mpX0=()=>MPW?-(MPW.n-1)/2*MP_W:0;
 function mpSlotAt(x){if(!MPW)return 0;return clamp(Math.round((x-mpX0())/MP_W),0,MPW.n-1);}
 function mpLocalX(x){if(!MPW)return x;return x-(mpX0()+mpSlotAt(x)*MP_W);}
@@ -2469,7 +2471,7 @@ function worldHraw(X,Z){
   const x=X/WS,z=Z/WS;
   let h=Noise.fbm(x*0.007,z*0.007,5)*8+6;
   const ridge=1-Math.abs(Noise.fbm(x*0.011+40,z*0.011-30,4));
-  const edge=MPW?Math.max(smooth(200,295,Math.abs(mpLocalX(x)))*smooth(-95,-25,z)*(1-smooth(26,8,Math.abs(z-128))),smooth(WXH()-80,WXH(),Math.abs(x)),smooth(-150-MP_DZ,-210-MP_DZ,z),smooth(178,210,z)):Math.max(smooth(125,205,Math.abs(x)),smooth(-150,-210,z),smooth(178,210,z));
+  const edge=MPW?Math.max(smooth(MP_W*0.32,MP_W*0.48,Math.abs(mpLocalX(x)))*smooth(-95,-25,z)*(1-smooth(26,8,Math.abs(z-128))),smooth(WXH()-80,WXH(),Math.abs(x)),smooth(-150-MP_DZ,-210-MP_DZ,z),smooth(178,210,z)):Math.max(smooth(125,205,Math.abs(x)),smooth(-150,-210,z),smooth(178,210,z));
   const spur=smooth(0.2,0.6,Noise.fbm(x*0.009+300,z*0.009,3))*smooth(70,-60,z);
   h+=Math.pow(ridge,2.2)*(edge*68+spur*32);
   h=Math.max(h,1.4+Noise.n2(x*0.05,z*0.05)*0.4);
@@ -8011,6 +8013,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.134","멀티 세계 넓이: 2명 3배 · 3명 6배 · 4명 9배 (혼자일 때 대비)"],
  ["0.9.133","멀티: 이웃 왕국 사이 산맥에 고갯길 — 왕도끼리 거의 곧장 오갈 수 있다(북쪽 망자 땅으로 돌아가도 된다)"],
  ["0.9.132","멀티플레이 1단계(앱·구글 로그인): 방 만들기·코드로 들어가기·대기실(준비·대화) → 2~4명이 한 세계에서 각자 왕국. 세계는 혼자일 때의 6배(2명)~12배(4명), 구역마다 요새 9곳, 가운데 맨 북쪽에 망자의 왕좌 하나, 이웃 AI 왕국 없음. 시간·망자는 방장 쪽에서 흐르고, 망자가 내 왕국에 다가오면 내 쪽에서 싸운다. 누가 전투 중이면 세계 시간이 멈춘다. 다른 왕국 군대가 지도에 보인다. (아직: 저장, 함께 싸우는 전투, 원조)"],
  ["0.9.131","위 목표 막대: '우리 800 대 망자 6,720'처럼 사람 수를 나란히 놓지 않고 '방어 전망'(넉넉하다·버틸 만하다·팽팽하다·위태롭다·막기 어렵다) — 성벽·숙련까지 따진다. 망자는 수가 많아도 하나하나 약하다는 걸 즉위 때 한 줄로 알려 준다"],
@@ -8357,7 +8360,7 @@ async function mpEnter(){const db=await mpDB();MP.on=true;
   MP.subs.push(db.on(mpR("chat"),v=>{MP.chat=Object.values(v||{}).sort((a,b)=>a.t-b.t).slice(-40);if(!MP.started)mpLobbyRender();else mpChatToast();}));
   mpLobbyRender();}
 function mpLobbyRender(){if(!MP.on||MP.started)return;const ps=Object.entries(MP.players).sort((a,b)=>a[1].t-b[1].t),host=MP.meta&&MP.meta.host;
-  const n=ps.length,area=n<=1?1:n*1.5*2;
+  const n=ps.length,area=n<=1?1:3*(n-1);
   const html=`${winHead("대기실 · 방 "+MP.code)}<div class="wbody">
     <div class="tile" style="text-align:center"><div class="note">방 코드 — 친구에게 알려 줘라</div><div style="font:800 30px/1.2 monospace;letter-spacing:.25em;color:#ffe2a0;user-select:text;-webkit-user-select:text">${MP.code}</div></div>
     <div class="mplist">${[0,1,2,3].map(i=>{const p=ps[i];return p?`<div class="mpp" style="border-color:${MP_COLS[i]}"><b style="color:${MP_COLS[i]}">●</b> ${esc(p[1].name)}${p[0]===host?" <small>방장</small>":""}${p[0]===MP.uid?" <small>(나)</small>":""}<span>${p[0]===host?"":p[1].ready?"준비됨":"준비 중"}</span></div>`:`<div class="mpp empty">빈 자리</div>`;}).join("")}</div>
@@ -8566,7 +8569,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.133 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.134 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
