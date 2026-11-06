@@ -5459,7 +5459,8 @@ const surgeCount=w=>{const all=SITES.filter(s=>s.kind==="fortress").length||1,ac
 const surgeMen=w=>{const live=S.armies&&S.armies.filter(a=>a.side===1&&a.surge===w);if(live&&live.length)return Math.round(live.reduce((m,a)=>m+compMen(a.comps),0)/10)*10;
   if(S.camp&&S.camp.plan&&S.camp.plan.w===w)return S.camp.plan.men;
   const avg=0.55*U.ghoul.men*SURGE_K+0.25*U.goblin.men*SURGE_K+0.13*U.orc.men*SURGE_K+0.035*U.troll.men+0.035*U.necro.men;return Math.round(surgeCount(w)*avg/10)*10;};
-function nextSurgeDay(){if(S.day<=SURGE_FIRST)return SURGE_FIRST;return SURGE_FIRST+Math.ceil((S.day-SURGE_FIRST)/SURGE_EVERY)*SURGE_EVERY;}
+/* 멀티: 왕국마다 대습격 날이 다르다 — 자리마다 4일씩 어긋나서, 남의 대습격에 원군을 보낼 틈이 있다 */
+function nextSurgeDay(slot){const off=S&&S.mp?((slot??(typeof MP!=="undefined"?MP.slot:0))||0)*4:0,first=SURGE_FIRST+off;if(S.day<=first)return first;return first+Math.ceil((S.day-first)/SURGE_EVERY)*SURGE_EVERY;}
 function campaignDay(){
   S.camp=S.camp||{ch:0,warned:0,surges:0};afterDay();try{realmRaidTick();}catch(e){}
   // 장이 바뀌면 전령
@@ -5472,7 +5473,8 @@ function campaignDay(){
   const nd=nextSurgeDay();
   if(S.day===nd-3&&S.camp.warned!==nd){S.camp.warned=nd;S.camp.plan=surgePlanBuild(nd,(S.camp.surges||0)+1,null);const P=S.camp.plan;if(P)herald("망자 왕의 군세가 모인다",`첩자들이 북쪽에서 같은 말을 전한다 — ${nd}일째, 사흘 뒤 왕궁으로 대습격이 온다. ${surgePlanText(P)} 지금 왕궁엔 ${fmtN(compMen(S.garrison))}명이 있다. 성벽을 올리고 마을 수비군을 불러들이고 이웃에 원군을 청하라.`,"너희의 성벽은 내 군대의 계단이 될 것이다.",[{n:`${siteById(P.from).name} 보기`,a:"site:"+P.from}]);}
   if((S.day===nd-3||S.day===nd-2)&&!(typeof mpGuest==="function"&&mpGuest())){try{lordSurgePlan(nd);}catch(e){}}
-  if(S.day===nd-1){if(typeof mpGuest==="function"&&mpGuest()){}else if(S.mp){for(const c of SITES.filter(x=>x.kind==="capital"||(x.kind==="pcapital"&&mpOnline(x.owner))))surge(c.id);}else surge();}   /* 멀티: 방장이 왕국마다 대습격을 보낸다 */   // 전날 하루 거리에서 나타나 대습격 당일에 닿는다
+  if(S.mp){if(!mpGuest())for(const c of SITES.filter(x=>x.kind==="capital"||(x.kind==="pcapital"&&mpOnline(x.owner))))if(S.day===nextSurgeDay(c.kind==="capital"?MP.slot:c.owner)-1)surge(c.id);}
+  else if(S.day===nd-1)surge();   /* 멀티: 방장이 왕국마다 대습격을 보낸다 */   // 전날 하루 거리에서 나타나 대습격 당일에 닿는다
 }
 // 대습격 계획: 사흘 전에 정하고 그대로 온다 (어디서·무엇이·몇 명)
 function surgePlanBuild(nd,w,LS){let forts=SITES.filter(s=>s.kind==="fortress"&&S.sites[s.id].state==="active");if(!forts.length)forts=SITES.filter(s=>s.kind==="throne"&&S.sites[s.id].state==="active");if(!forts.length)return null;
@@ -5485,8 +5487,8 @@ function surgePlanText(P){const by={};for(const t of P.types)by[t]=(by[t]||0)+1;
 function surge(capId){
   const capS=siteById(capId||"capital"),mine=!capId||capId==="capital";
   let forts=SITES.filter(s=>s.kind==="fortress"&&S.sites[s.id].state==="active"&&(!S.mp||s.slot===capS.slot));if(!forts.length)forts=SITES.filter(s=>s.kind==="fortress"&&S.sites[s.id].state==="active");if(!forts.length)forts=SITES.filter(s=>s.kind==="throne"&&S.sites[s.id].state==="active");if(!forts.length)return;
-  if(mine)S.camp.surges=(S.camp.surges||0)+1;const w=(S.camp.surges||0)+(mine?0:1);
-  const ndx=nextSurgeDay?nextSurgeDay():S.day+1;let P=mine&&S.camp.plan&&S.camp.plan.nd===ndx&&S.sites[S.camp.plan.from]&&S.sites[S.camp.plan.from].state==="active"?S.camp.plan:null;if(!P)P=surgePlanBuild(ndx,w,lordSurgePick(ndx));if(!P)return;
+  if(mine)S.camp.surges=(S.camp.surges||0)+1;S.camp.mpw=S.camp.mpw||{};if(!mine)S.camp.mpw[capS.owner]=(S.camp.mpw[capS.owner]||0)+1;const w=mine?S.camp.surges:S.camp.mpw[capS.owner];
+  const ndx=nextSurgeDay(mine?undefined:capS.owner);let P=mine&&S.camp.plan&&S.camp.plan.nd===ndx&&S.sites[S.camp.plan.from]&&S.sites[S.camp.plan.from].state==="active"?S.camp.plan:null;if(!P)P=surgePlanBuild(ndx,w,lordSurgePick(ndx));if(!P)return;
   const LS=P.claude?{why:P.why,taunt:P.taunt}:null;const f=siteById(P.from),st=S.sites[f.id];const out=[];
   // 계획대로: 요새 주둔군에서 먼저 뽑고, 모자라면 요새 밖에서 새로 일어난다
   /* 요새를 비우지 않는다: 수비의 3분의 1까지만 데려가고 나머지는 요새 밖 땅에서 새로 일어난다 (예전엔 대습격 뒤 요새가 텅 비어 거저 먹혔다) */
@@ -8029,6 +8031,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.139","멀티: 왕국마다 대습격 날이 다르다(자리마다 4일씩 어긋남: 20·24·28·32일째…) — 동료의 대습격에 원군을 보낼 틈이 있다 · 수시 출격 빈도는 1인당 혼자일 때와 같게"],
  ["0.9.138","멀티: 방장이 아닌 사람이 나가도 세계는 계속 흐른다 — 망자는 나간 사람의 왕국을 치지 않고, 그 몫이 남은 사람들의 대습격에 얹힌다(빠진 사람당 남은 사람 대습격 +50%÷남은 수). 이미 나간 사람 왕국으로 가던 망자는 돌아가지 않고 그 자리에서 기다린다(나갔다 들어와서 피할 수 없다). 같은 코드로 다시 들어오면 자기 왕국 저장에서 이어 한다(그 사이 날짜는 따라잡는다)"],
  ["0.9.137","멀티 저장: 하루가 넘어가는 같은 순간에 모두의 판이 방(서버)에 함께 저장된다 — 다시 열면 모두 같은 날에서 이어 한다(혹시 누가 늦게 저장됐어도 방장 세계의 날로 맞춰진다)"],
  ["0.9.136","멀티 2단계 — 저장·이어 하기: 날마다 각자 판을 이 기기와 클라우드에 저장, 멀티 창의 '저장된 세계'에서 방장이 같은 코드로 방을 다시 열면 모두 이어 한다 · 원조: 동료 왕도를 눌러 금화·식량을 바로 보내거나, 멈춰 있는 군대를 원군으로 보내면 닿는 대로 그 왕국 주둔군이 된다 · 함께 싸우기: 동료의 왕도·마을 가까이 세워 둔 군대는 그곳 전투에 아군으로 함께 들어가고, 끝나면 남은 병력과 결과가 주인에게 돌아간다"],
@@ -8670,7 +8673,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.138 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.139 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
