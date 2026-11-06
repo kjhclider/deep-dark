@@ -514,6 +514,7 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 .lbl.s-ally b{color:#9cc7ff}.lbl.s-ally span{color:#bcd6f5}
 .mplist{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.mpp{display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid rgba(226,192,122,.4);border-left-width:4px;background:rgba(0,0,0,.25);font-size:14px}.mpp small{opacity:.7;font-size:11px}.mpp span{margin-left:auto;font-size:12px;opacity:.75}.mpp.empty{opacity:.4;border-style:dashed}.mpchat{height:120px;overflow-y:auto;padding:6px 8px;background:rgba(0,0,0,.3);border:1px solid rgba(226,192,122,.2);font-size:13px;margin:6px 0;-webkit-user-select:text;user-select:text}.mpchat b{color:#ffe2a0;margin-right:4px}
 #allyMarks{position:fixed;inset:0;pointer-events:none;z-index:4}#allyMarks .am{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;gap:4px;padding:2px 6px;font-size:11.5px;color:#eef3ff;background:rgba(10,14,22,.8);border:1px solid;border-radius:2px;white-space:nowrap}#allyMarks .am b{display:inline-block;width:8px;height:8px;border-radius:50%}
+#mbAsk{position:fixed;left:50%;top:150px;transform:translateX(-50%);z-index:45;width:min(420px,90vw);padding:12px 14px;background:rgba(12,9,6,.94);border:1px solid #f2c46a;border-radius:4px;color:#efe4cc;font-size:14px;box-shadow:0 0 24px rgba(242,196,106,.3)}#mbAsk span{font-size:13px;opacity:.85}#mbAsk .acts{margin-top:8px}#mbAsk[hidden]{display:none}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -4197,6 +4198,8 @@ function arrive(a){
       const def=S.armies.find(x=>x.side===0&&!x.moving&&Math.hypot(x.x-s.x,x.z-s.z)<ALLY_R);
       // 마을에 수비군이 있으면 성벽 안에서 함께 싸운다 (들판에서 따로 싸우지 않는다)
       if(s.kind==="village"&&st.state==="ok"&&def){startBattle({kind:"vsiege",site:s.id,our:null,foeArmy:a,foes:a.comps,title:`${s.name} 방어전`});return;}
+      /* 이웃 왕국 거점에 원군으로 서 있던 우리 군대: 그 왕국 수비군과 한 전장에서 함께 싸운다 (따로 들판에서 붙지 않는다) */
+      if(def&&(s.kind==="rcapital"||s.kind==="rvillage")){const r=realmOf(s),R=r&&S.realms[r.id];if(R&&R.alive&&st.state==="ok"){startBattle({kind:"field",our:def,foeArmy:a,foes:a.comps,site:null,nearSite:s.id,title:`${s.name} 방어전 — ${r.name}과 함께`,realmAlly:r.id,realmSite:s.id});return;}}
       if(def&&s.kind!=="capital"){encounter(def,a);return;}
       if(s.kind==="capital"){startBattle({kind:"siege",site:"capital",our:null,foeArmy:a,foes:a.comps,title:"아스테라 공방전"});return;}
       if(s.kind==="rcapital"||s.kind==="rvillage"){const r=realmOf(s),R=S.realms[r.id];
@@ -4836,11 +4839,16 @@ function startBattle(o){
     allies=S.armies.filter(a=>a.side===0&&Math.hypot(a.x-s.x,a.z-s.z)<ALLY_R);ourComps.push(...allies.flatMap(a=>a.comps));gens=allies.flatMap(armyGens);if(!gens.length&&lordOf(o.site))gens.push("lord_"+o.site);}
   else {allies=S.armies.filter(a=>a.side===0&&a!==ourArmy&&!(a.safeUntil>nowD())&&Math.hypot(a.x-ourArmy.x,a.z-ourArmy.z)<ALLY_R);
     ourComps=[...ourArmy.comps,...allies.flatMap(a=>a.comps)];gens=[...armyGens(ourArmy),...allies.flatMap(armyGens)];}
+  /* 이웃 왕국과 함께: 그 왕국 수비군이 아군 부대로 같은 전장에 선다 */
+  let realmAlly=null;if(o.realmAlly&&S.realms[o.realmAlly]){const R=S.realms[o.realmAlly];const cs=(R.army||[]).filter(c=>c.men>0).map(c=>({t:c.t,men:Math.min(c.men,U[c.t].men),realmAlly:o.realmAlly}));
+    /* 이웃 병력은 중대 크기로 나눠 세운다 */
+    const all=[];for(const c of R.army||[]){let m=c.men;while(m>0){const k=Math.min(m,U[c.t].men);all.push({t:c.t,men:k,realmAlly:o.realmAlly});m-=k;}}
+    realmAlly={id:o.realmAlly,site:o.realmSite,comps:all.slice(0,24)};realmAlly.orig={};for(const c of realmAlly.comps)realmAlly.orig[c.t]=(realmAlly.orig[c.t]||0)+c.men;ourComps.push(...realmAlly.comps);if(cs.length)logMsg(`${realmById(o.realmAlly).name}의 수비군이 우리와 한 전열에 선다.`,"gold");}
   /* 멀티: 가까이 서 있는 동료 군대도 함께 싸운다 */
   let mpAllies=[];if(typeof MP!=="undefined"&&MP.started){const at=o.kind==="siege"?siteById("capital"):o.site?siteById(o.site):ourArmy;if(at){mpAllies=mpBattleAllies(at.x,at.z);for(const al of mpAllies)ourComps.push(...al.comps);if(mpAllies.length)logMsg(`${mpAllies.map(a=>a.name).join("·")}의 군대가 함께 싸운다!`,"gold");}}
   gens=[...new Set(gens)];
   const gen=gens.includes("king")?"king":gens[0]||null;
-  WAR={mpAllies,kind:o.kind,site:o.site||null,nearSite:o.nearSite||null,title:o.title,ourComps,foeComps:o.foes,gen,gens,ourArmy,allies,foeArmy:o.foeArmy||null,approach:null};
+  WAR={mpAllies,realmAlly,kind:o.kind,site:o.site||null,nearSite:o.nearSite||null,title:o.title,ourComps,foeComps:o.foes,gen,gens,ourArmy,allies,foeArmy:o.foeArmy||null,approach:null};
   // 공략전: 첩보로 적 배치를 알면 들어갈 방향을 고를 수 있다
   if(o.kind==="assault"&&S.intel&&S.intel[o.site]&&S.intel[o.site].comps)WAR.canApproach=true;
   UI.modalBlocking=true;
@@ -4859,6 +4867,10 @@ function battleAftermath(){
   // 정리
   const live=c=>c.men>0;
   try{mpBattleAfter(ctx,res);}catch(e){}
+  if(ctx.realmAlly){const RA=ctx.realmAlly,R=S.realms[RA.id],r=realmById(RA.id);if(R){const by={};for(const c of RA.comps)if(c.men>0)by[c.t]=(by[c.t]||0)+c.men;
+      const tot={};for(const c of R.army||[])tot[c.t]=(tot[c.t]||0)+c.men;const ts=new Set([...Object.keys(tot),...Object.keys(by)]);R.army=[...ts].map(t=>({t,men:Math.max(0,(tot[t]||0)-(RA.orig[t]||0))+(by[t]||0)})).filter(c=>c.men>0);
+      const d=res.win?12:5;R.rel=clamp(R.rel+d,-100,100);logMsg(`${r.name}과 함께 싸웠다 — ${res.win?"막아냈다":"밀렸다"}. 관계 +${d}.`,res.win?"gold":"bad");
+      if(!res.win&&RA.site){const s=siteById(RA.site),st=S.sites[RA.site];if(s&&st){if(s.kind==="rvillage"){st.state="ruined";st.pop=0;refreshSites();}else realmFalls(r);}}}}
   if(ctx.kind==="siege")S.garrison=S.garrison.filter(live);
   if(ctx.kind==="vsiege"){const st=vil(ctx.site);st.vgar=st.vgar.filter(live);}
   const involved=[ctx.ourArmy,...(ctx.allies||[])].filter(Boolean);
@@ -5711,7 +5723,8 @@ const act=s=>!s.dead&&!s.fled;
 const isRng=t=>U[t].rng>20;
 const FORT_TRAIT={f_mor:{n:"끝없는 북소리",d:"망자 사기가 계속 회복된다 — 측면·두목으로 한 번에 무너뜨려라"},f_kal:{n:"강령술사의 첨탑",d:"시체가 두 배 빨리 일어난다 — 강령술사부터 베라"},f_gul:{n:"트롤의 협곡",d:"트롤이 30% 더 질기고 세게 친다 — 창병의 창벽으로 받아라"},f_ash:{n:"검은 연기",d:"연기 때문에 우리 궁병 사거리 -18% — 보병·기병으로 붙어라"},f_crag:{n:"구울 소굴",d:"절벽 굴에서 22초마다 구울이 새로 나온다(최대 6번) — 빨리 끝내라"},f_maw:{n:"쇠이빨 성문",d:"오크 좀비 공격 +25% — 궁병으로 깎고 정예보병으로 받아라"},f_throne:{n:"망자의 왕",d:"왕이 시체를 깨우고 광폭해진다 — 왕을 노려라"}};
 const BASE_T={einf:"inf",espear:"spear",earcher:"archer",ecav:"cav"};const baseT=t=>BASE_T[t]||t;
-const bOurs=()=>BT.sq.filter(s=>s.side===0);
+/* 멀티: 동료 화면에선 내 부대만 "우리" (고르기·명령), 주인 쪽에선 동료 부대는 동료 명령으로만 */
+const bOurs=()=>BT.sq.filter(s=>s.side===0&&(!BT.remote||s.mpOwn===MP.slot));
 const bFoes=()=>BT.sq.filter(s=>s.side===1&&act(s));
 const bById=id=>BT.sq.find(s=>s.id===id&&act(s));
 const dd=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
@@ -5879,8 +5892,8 @@ function breachSeg(sg){if(sg.down)return;sg.down=true;
 function nearestBreach(s){if(!BT.wall)return null;let b=null,bd=1e9;for(const sg of BT.wall.segs)if(sg.hp<=0||(sg.gate&&BT.gateOpen)){const p=wPt(sg.ac,0);const d=Math.hypot(p.x-s.x,p.z-s.z);if(d<bd){bd=d;b={a:sg.ac,x:p.x,z:p.z,d};}}return b;}
 
 /* ── 명령 ── */
-const bSelected=()=>bOurs().filter(s=>BT.sel.has(s.id)&&act(s)&&s.state!=="rout");
-function bMove(x,z){
+const bSelected=()=>bOurs().filter(s=>BT.sel.has(s.id)&&act(s)&&s.state!=="rout"&&(BT.remote||BT.cmdOwner!=null||!(s.ref&&(s.ref.mpSlot!=null||s.ref.realmAlly))));   /* 동료 부대는 동료만 지휘한다 */
+function bMove(x,z){if(BT.remote){mpBatSend({c:"move",ids:[...BT.sel],x:+x.toFixed(1),z:+z.toFixed(1)});return;}
   const sel=bSelected();if(!sel.length)return;
   const cx=sel.reduce((a,s)=>a+s.x,0)/sel.length,cz=sel.reduce((a,s)=>a+s.z,0)/sel.length;
   const spread=Math.max(1,...sel.map(s=>Math.hypot(s.x-cx,s.z-cz))),k=Math.min(1,45/spread);
@@ -5894,7 +5907,7 @@ function bMove(x,z){
       else{const sd=wIn(s.x,s.z)>0?1:-1,q=wPt(wAng(fin.x,fin.z),sd*(sqR(s)+3));s.tx=clamp(q.x,-118,118);s.tz=clamp(q.z,-83,83);if(!BT.wallSaid||BT.t-BT.wallSaid>8){BT.wallSaid=BT.t;bSay(BT.wallAtk===s.side?"성벽이 막고 있다 — 성 안으로는 사다리(돌격 G)나 성문·무너진 틈으로 들어간다.":"성벽이 막고 있다 — 밖으로 나가려면 성문을 연다.");}}}}
   BT.fx.push({k:"ring",x,z,t0:BT.t,dur:0.7,col:"#9fc0ee"});
 }
-function bAttack(t){for(const s of bSelected()){if(s.buff.wall&&!isRng(s.t))continue;s.follow=null;s.orderT=BT.t;s.holdT=0;s.state="attack";s.target=t.id;s.flank=null;}BT.fx.push({k:"ring",x:t.x,z:t.z,t0:BT.t,dur:0.7,col:"#d0503f"});}
+function bAttack(t){if(BT.remote){mpBatSend({c:"atk",ids:[...BT.sel],tg:t.id});for(const s of bSelected()){s.target=t.id;}return;}for(const s of bSelected()){if(s.buff.wall&&!isRng(s.t))continue;s.follow=null;s.orderT=BT.t;s.holdT=0;s.state="attack";s.target=t.id;s.flank=null;}BT.fx.push({k:"ring",x:t.x,z:t.z,t0:BT.t,dur:0.7,col:"#d0503f"});}
 function bFollow(){const c=BT.cmd&&bById(BT.cmd);if(!c){bSay("따를 지휘관이 없다.");return;}let sel=bSelected().filter(s=>s!==c);if(!sel.length)sel=bOurs().filter(s=>act(s)&&s!==c&&s.state!=="rout");
   const fx=Math.sin(c.face),fz=Math.cos(c.face);
   for(const s of sel){const dx=s.x-c.x,dz=s.z-c.z;let ox=dx*fz-dz*fx,oz=dx*fx+dz*fz;const l=Math.hypot(ox,oz);if(l>40){ox*=40/l;oz*=40/l;}s.fo={x:ox,z:oz};s.follow=c.id;s.hold=false;}
@@ -6644,15 +6657,18 @@ function enterBattleScene(){E.wantLock=false;if(document.pointerLockElement)docu
   E.onFrame=dt=>{
     if(BT.cmd)battleKingControl(dt);
     const ts=BT.slowT>0?0.3:1;if(BT.slowT>0)BT.slowT-=dt;document.body.classList.toggle("slowmo",BT.slowT>0);
-    if(BT.phase==="battle"&&!BT.paused&&!BT.over){bAcc+=dt*BT.speed*ts*(BT.warMap?0.25:1);let n=0;while(bAcc>=1/30&&n<8){stepBattle(1/30);bAcc-=1/30;n++;}}
+    if(BT.remote){mpBatApply(dt);}
+    else if(BT.phase==="battle"&&!BT.paused&&!BT.over){bAcc+=dt*BT.speed*ts*(BT.warMap?0.25:1);let n=0;while(bAcc>=1/30&&n<8){stepBattle(1/30);bAcc-=1/30;n++;}}
+    try{mpBatTick(dt);}catch(e){}
     for(const s of BT.sq)if(!s.label&&!s.dead)addSqLabel(s);
     renderBattle(dt*ts);bUiT+=dt;if(bUiT>0.25||UI.battleDirty){bUiT=0;UI.battleDirty=false;renderBattleHUD();}
     bMiniT+=dt;if(bMiniT>0.1){bMiniT=0;drawMini();BT.tugT=(BT.tugT||0)+1;if(BT.tugT%3===0&&typeof tugTick==="function")tugTick();}
   };
-  UI.showBattleHUD();setTimeout(()=>{if(!BT)return;battleIntro();hintOnce("deploy");if(BT.wall)setTimeout(()=>hintOnce("wall"),9000);if(BT.reinf&&BT.reinf.length)setTimeout(()=>hintOnce("reinf"),5000);},1500);
+  UI.showBattleHUD();if(!BT.remote)try{mpBatOpen();}catch(e){}setTimeout(()=>{if(!BT||BT.remote)return;battleIntro();hintOnce("deploy");if(BT.wall)setTimeout(()=>hintOnce("wall"),9000);if(BT.reinf&&BT.reinf.length)setTimeout(()=>hintOnce("reinf"),5000);},1500);
 }
 function addSqLabel(s){
-  const el=document.createElement("div");el.className=`lbl sq ${s.side===0?"s-ours":"s-foe"}`;
+  const ally=s.side===0&&(BT.remote?s.mpOwn!==MP.slot:!!(s.ref&&(s.ref.mpSlot!=null||s.ref.realmAlly)));
+  const el=document.createElement("div");el.className=`lbl sq ${s.side===0?(ally?"s-ally":"s-ours"):"s-foe"}`;if(ally)el.title="동료의 부대";
   s.label=addLabel(el,()=>act(s)?{x:s.x,y:figY(s,s.x,s.z)+(s.t==="troll"?7.5:s.t==="cav"||s.t==="ecav"||s.t==="guard"||s.t==="wolf"?4.6:3.6),z:s.z}:null,{maxD:240});
   s.labelEl=el;
 }
@@ -6739,7 +6755,7 @@ function bPop(s,text,cls=""){if(BT.headless||!s)return;if(s.popT&&BT.t-s.popT<1.
 // 결정적 순간: 잠깐 느려진다
 function bSlow(sec,why){if(BT.headless)return;BT.slowT=Math.max(BT.slowT||0,sec);if(why)bSay(why);}
 
-function finishBattle(win,retreat){
+function finishBattle(win,retreat){if(BT&&BT.remote)return;try{mpBatClose(win);}catch(e){}
   const B=BT;if(B.over)return;B.over=true;B.win=win;B.retreat=!!retreat;
   const ours=bOurs(),res={win,retreat:!!retreat,time:B.t,kills:B.kills,log:B.log,genDead:B.genDead,
     ourRows:[],foeLeft:0,ourLost:0,ourMen0:0};
@@ -7063,8 +7079,8 @@ const GROUPS=[
   {k:"cav",n:"기마병",key:"8",sk:"측면 돌격",skd:"가장 큰 적 무리의 옆구리로 돌아 들이친다 — 8초 동안 속도 +40%, 측면·후방 타격 ×2.2",cd:30,sk2:"돌파",skd2:"가장 가까운 적을 정면으로 꿰뚫는다 — 6초 동안 속도 +50%, 구울·고블린 같은 경보병에 ×2.4, 다른 적 ×1.6",cd2:40,has:t=>baseT(t)==="cav"||t==="ecav"},
   {k:"all",n:"전군",key:"9",sk:"전군 함성",skd:"모든 부대 사기 +20, 8초 동안 공격 +15%",cd:45,sk2:"전열 정비",skd2:"10초 동안 모든 부대가 받는 피해 -40%, 사기 +10 — 무너지는 전선을 다잡는다",cd2:50,has:t=>true},
 ];
-function grpSquads(k){const G=GROUPS.find(g=>g.k===k);return bOurs().filter(s=>act(s)&&s.state!=="rout"&&!s.isKing&&!s.isCmd&&s.t!=="guard"&&s.t!=="royal"&&G.has(s.t));}
-function grpCmd(k,act_){if(!BT||BT.phase!=="battle"||BT.over)return;const G=GROUPS.find(g=>g.k===k);if(!G)return;const sq=grpSquads(k);if(!sq.length){bSay(`${G.n}이(가) 없다.`);return;}
+function grpSquads(k){const G=GROUPS.find(g=>g.k===k);return bOurs().filter(s=>(BT.cmdOwner!=null?(s.ref&&s.ref.mpSlot===BT.cmdOwner):!(s.ref&&(s.ref.mpSlot!=null||s.ref.realmAlly)))&&act(s)&&s.state!=="rout"&&!s.isKing&&!s.isCmd&&s.t!=="guard"&&s.t!=="royal"&&G.has(s.t));}
+function grpCmd(k,act_){if(!BT||BT.phase!=="battle"||BT.over)return;if(BT.remote){mpBatSend({c:"grp",k,a:act_});bSay("명령을 보냈다");return;}const G=GROUPS.find(g=>g.k===k);if(!G)return;const sq=grpSquads(k);if(!sq.length){bSay(`${G.n}이(가) 없다.`);return;}
   BT.gcd=BT.gcd||{};
   if(act_==="charge"){if(k==="all"){BT.sel=new Set();bCharge();for(const s of sq){s.orderT=0;s.holdT=0;s.hold=false;s.buff.brace=0;}}
     else{BT.sel=new Set(sq.map(s=>s.id));bCharge(G.n);BT.sel=new Set();for(const s of sq){s.orderT=0;s.holdT=0;s.hold=false;s.buff.brace=0;}}
@@ -7829,6 +7845,8 @@ document.addEventListener("click",e=>{
     case"mpStart":mpStart();break;
     case"mpLeave":mpLeave();break;
     case"mpReopen":mpReopen(b.dataset.k);break;
+    case"mbJoin":mpBatJoin();break;
+    case"mbNo":{const e=$("#mbAsk");if(e)e.hidden=true;}break;
     case"mpAid":mpAid(+b.dataset.k,b.dataset.v,+b.dataset.n);break;
     case"mpArmyTo":mpSendArmy(+b.dataset.id,+b.dataset.k);break;
     case"practice":gateThen(()=>UI.openModal(practiceModal()));break;
@@ -8031,6 +8049,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.140","함께 싸우기 — 혼자 할 때: 이웃 왕국 마을·왕도에 원군으로 세워 둔 우리 군대는 망자가 오면 그 왕국 수비군과 한 전장에서 함께 싸운다(따로 들판에서 붙지 않는다). 이웃 부대는 파란 이름표, 지휘는 이웃이 스스로. 끝나면 이웃 병력·관계에 반영, 지면 그 거점이 무너진다 · 멀티: 동료 전장에 우리 군대가 있으면 '합류' 알림 — 합류하면 같은 전장이 내 화면에 열리고 내 부대를 직접 지휘한다(고르기·옮기기·공격·5~9 병종 명령). 전투 계산은 전장 주인 쪽"],
  ["0.9.139","멀티: 왕국마다 대습격 날이 다르다(자리마다 4일씩 어긋남: 20·24·28·32일째…) — 동료의 대습격에 원군을 보낼 틈이 있다 · 수시 출격 빈도는 1인당 혼자일 때와 같게"],
  ["0.9.138","멀티: 방장이 아닌 사람이 나가도 세계는 계속 흐른다 — 망자는 나간 사람의 왕국을 치지 않고, 그 몫이 남은 사람들의 대습격에 얹힌다(빠진 사람당 남은 사람 대습격 +50%÷남은 수). 이미 나간 사람 왕국으로 가던 망자는 돌아가지 않고 그 자리에서 기다린다(나갔다 들어와서 피할 수 없다). 같은 코드로 다시 들어오면 자기 왕국 저장에서 이어 한다(그 사이 날짜는 따라잡는다)"],
  ["0.9.137","멀티 저장: 하루가 넘어가는 같은 순간에 모두의 판이 방(서버)에 함께 저장된다 — 다시 열면 모두 같은 날에서 이어 한다(혹시 누가 늦게 저장됐어도 방장 세계의 날로 맞춰진다)"],
@@ -8435,6 +8454,7 @@ function mpSyncStart(){mpDB().then(db=>{
     unsub(db.on(mpR("ai"),v=>{for(const [id,q] of Object.entries(v||{})){if(q.to!==MP.uid||q.r||(MP.aiBusy&&MP.aiBusy[id]))continue;(MP.aiBusy=MP.aiBusy||{})[id]=1;
       if(!AI.ok()){db.update(mpR("ai/"+id),{r:{err:"no-ai"}});continue;}
       AI.json(q.p,q.o||{}).then(r=>{MP.aiN=(MP.aiN||0)+1;db.update(mpR("ai/"+id),{r:{ok:r}});}).catch(e=>db.update(mpR("ai/"+id),{r:{err:String(e&&e.code||e)}}));}}));}
+  mpBatWatch(db);
   clearInterval(MP.iv);MP.iv=setInterval(()=>{try{mpTick(db);}catch(e){console.warn("mp",e);}},1000);
 });}
 /* 1초마다: 내 왕국을 알리고(모두), 세계를 알린다(방장) */
@@ -8570,6 +8590,65 @@ function mpBattleAfter(ctx,res){if(!MP.started||!ctx.mpAllies)return;
   for(const al of ctx.mpAllies){const left=al.comps.filter(c=>c.men>0).map(c=>{const o=Object.assign({},c);delete o.mpSlot;delete o.mpArmy;delete o.allyName;return o;});
     mpSend(al.slot,{t:"allyLoss",army:al.army,comps:cpk(left),win:!!res.win,where:ctx.title});}}
 
+/* ════════ 멀티: 함께 싸우는 전투 ════════
+   전투를 연 사람(주인)이 전투를 계산하고, 그 전장에 군대를 둔 동료는 「합류」로 같은 전장을 자기 화면에 연다.
+   동료는 자기 부대(자기 왕국 병사)를 직접 지휘한다 — 고르고 옮기고 공격시키고, 5~9 병종 명령(돌격·후퇴·기술).
+   rooms/{코드}/bat: {id, owner, ownerName, init{…전장…}, allies[slot…], s{0.1초마다 상태}, in/{key}{명령}} */
+const MB={bat:null,joined:false,last:null,sendQ:[],annT:0};
+function mpBatInit(){const B=BT,ctx=WAR;
+  return {kind:ctx.kind,site:gId(ctx.site),title:ctx.title,seed:B.seed,cw:{...CW},wl:B.wall?B.wall.lvl:null,wf:B.wall?{fort:!!B.wall.fort,village:!!B.wall.village}:null,wallAtk:B.wallAtk,wallDef:B.wallDef,
+    hills:B.hills,forests:B.forests,pools:B.pools||[],terrain:B.terrain||null,fort:B.fort||null,
+    q:B.sq.map(s=>[s.id,s.t,s.side,s.alive,+s.x.toFixed(1),+s.z.toFixed(1),+s.face.toFixed(2),s.onWall?1:0,s.ref&&s.ref.mpSlot!=null?s.ref.mpSlot:-1,s.tier||1])};}
+/* 주인: 전투가 열리면 알린다 */
+function mpBatOpen(){if(!MP.started||!BT||BT.headless||BT.remote)return;const allies=[...new Set((WAR.mpAllies||[]).map(a=>a.slot))];
+  const id=Date.now();MB.bat={id,owner:MP.slot};MB.inDone={};
+  mpDB().then(db=>{db.set(mpR("bat"),{id,owner:MP.slot,ownerName:MP.name,allies,init:mpBatInit(),t:Date.now()});
+    MB.unIn&&MB.unIn();MB.unIn=db.on(mpR("bat/in"),v=>{for(const [k,c] of Object.entries(v||{})){if(MB.inDone[k])continue;MB.inDone[k]=1;try{mpBatExec(c);}catch(e){console.warn(e);}db.set(mpR("bat/in/"+k),null);}});});}
+/* 주인: 0.1초마다 전장 상태 */
+let mbT=0;
+function mpBatTick(dt){if(!MP.started||!BT||BT.remote||!MB.bat)return;mbT+=dt;if(mbT<0.1)return;mbT=0;const B=BT;
+  const q=B.sq.map(s=>[s.id,+s.x.toFixed(1),+s.z.toFixed(1),+s.face.toFixed(2),s.alive,s.dead?1:s.fled?2:0,s.state==="attack"?1:s.state==="rout"?2:0,s.engaged?1:0,s.t,s.side,s.ref&&s.ref.mpSlot!=null?s.ref.mpSlot:-1]);
+  const kp=B.kingPos&&BT.king?[+B.kingPos.x.toFixed(1),+B.kingPos.z.toFixed(1),+(KC.face||0).toFixed(2)]:null;
+  const w=B.wall?B.wall.segs.map(g=>g.down?0:Math.round(g.hp||0)):null;
+  mpDB().then(db=>db.set(mpR("bat/s"),{t:+B.t.toFixed(2),q,kp,w,over:B.over?1:0,win:B.result?(B.result.win?1:0):null}));}
+function mpBatClose(win){if(!MB.bat)return;const id=MB.bat.id;MB.bat=null;MB.unIn&&MB.unIn();MB.unIn=null;
+  mpDB().then(db=>{db.update(mpR("bat/s"),{over:1,win:win?1:0});setTimeout(()=>db.get(mpR("bat")).then(b=>{if(b&&b.id===id)db.set(mpR("bat"),null);}),15000);});}
+/* 주인: 동료 명령을 그 동료의 부대에만 */
+function mpBatExec(c){if(!BT||BT.over)return;const mine=s=>s.ref&&s.ref.mpSlot===c.slot&&act(s);const B=BT;
+  B.cmdOwner=c.slot;
+  try{if(c.c==="grp")grpCmd(c.k,c.a);
+    else if(c.c==="move"||c.c==="atk"){const prev=B.sel;B.sel=new Set((c.ids||[]).filter(id=>{const s=bById(id);return s&&mine(s);}));if(B.sel.size){if(c.c==="move")bMove(c.x,c.z);else{const t=bById(c.tg);if(t)bAttack(t);}}B.sel=prev;}}
+  finally{B.cmdOwner=null;}}
+/* ── 동료 쪽: 전투 알림 → 합류 ── */
+function mpBatWatch(db){MP.subs.push(db.on(mpR("bat"),v=>{const prev=MB.seen;
+  if(!v||!v.init){if(MB.joined&&BT&&BT.remote)mpBatLeave(true);MB.seen=null;return;}
+  if(v.owner===MP.slot)return;
+  if(prev!==v.id){MB.seen=v.id;const mineIn=(v.allies||[]).includes(MP.slot);
+    if(!BT&&mineIn){UI.bannerSay(`${v.ownerName}의 ${v.init.title} — 우리 군대가 그 전장에 있다!`);mpBatAsk(v);}}
+  if(MB.joined&&BT&&BT.remote&&v.s)MB.last=v.s;}));}
+function mpBatAsk(v){let el=$("#mbAsk");if(!el){el=document.createElement("div");el.id="mbAsk";document.body.appendChild(el);}
+  el.innerHTML=`<b>${esc(v.ownerName)}</b>의 <b>${esc(v.init.title)}</b><br><span>우리 군대가 함께 싸운다 — 들어가서 직접 지휘하겠는가?</span><div class="acts"><button class="b gold" data-a="mbJoin">합류</button><button class="b ghost" data-a="mbNo">맡긴다</button></div>`;el.hidden=false;MB.ask=v;}
+function mpBatJoin(){const v=MB.ask;$("#mbAsk").hidden=true;if(!v||BT)return;const I=v.init;
+  WAR={kind:I.kind,site:lId(I.site),title:I.title+` (${v.ownerName}의 전장)`,ourComps:[],foeComps:[],gens:[],gen:null,mpRemote:true};
+  Object.assign(CW,I.cw);
+  const B={ctx:WAR,seed:I.seed,t:0,phase:"battle",sq:[],corpses:[],proj:[],fx:[],pend:[],sel:new Set(),abCd:0,paused:false,speed:1,over:false,log:[],kills:{},hills:I.hills||[],forests:I.forests||[],pools:I.pools||[],terrain:I.terrain,wallBonus:0,auto:false,remote:true,fort:I.fort,wallAtk:I.wallAtk,wallDef:I.wallDef};
+  BT=B;if(I.wl!=null){B.wall=makeWall(I.wl);Object.assign(B.wall,I.wf||{});B.stairs=B.wall.segs.filter(g=>!g.gate&&g.i%3===1).map(g=>g.a0+(g.a1-g.a0)*0.3);}
+  let mx=0;for(const [id,t,side,men,x,z,face,onWall,own,tier] of I.q){if(men<=0)continue;const s=mkSquad(t,side,men,x,z,{t,men,mpSlot:own<0?undefined:own,tier});s.id=id;s.face=face;s.onWall=!!onWall;s.mpOwn=own;B.sq.push(s);mx=Math.max(mx,id);}
+  SQID=mx;MB.joined=true;MB.last=null;
+  enterBattleScene();UI.bannerSay("합류했다 — 금색 이름표가 우리 부대, 파란 이름표는 동료 부대. 우리 부대를 골라 땅을 누르면 옮기고, 적을 누르면 공격한다. 5~9 병종 명령도 된다");}
+/* 동료 화면: 받은 상태를 따라간다 (계산은 주인 쪽) */
+function mpBatApply(dt){const s0=MB.last;if(!s0||!BT)return;const B=BT;B.t=s0.t;
+  const seen=new Set();
+  for(const [id,x,z,face,alive,dead,st,eng,t,side,own] of s0.q){seen.add(id);let s=B.sq.find(q=>q.id===id);
+    if(!s){if(dead||alive<=0)continue;s=mkSquad(t,side,alive,x,z,{t,men:alive,mpSlot:own<0?undefined:own});s.id=id;s.mpOwn=own;B.sq.push(s);try{addSqLabel(s);}catch(e){}}
+    const k=Math.min(1,dt*8);s.x+=(x-s.x)*k;s.z+=(z-s.z)*k;s.face+=angDiff(s.face,face)*k;s.tx=x;s.tz=z;
+    if(alive<s.alive){const want=Math.ceil(alive/s.perFig),live=s.figs.filter(f=>f.alive).length;if(live>want)killFigs(s,live-want,null);}
+    s.alive=alive;s.dead=dead===1;s.fled=dead===2;s.state=st===1?"attack":st===2?"rout":"move";s.engaged=!!eng;}
+  if(s0.w&&B.wall)s0.w.forEach((hp,i)=>{const g=B.wall.segs[i];if(!g)return;if(hp===0&&!g.down){try{breachSeg(g);}catch(e){g.down=true;}}g.hp=hp||g.hp;});
+  if(s0.over&&!B.over){B.over=true;bSay(s0.win?"이겼다! 전장의 주인이 결과를 정리한다":"졌다…");setTimeout(()=>mpBatLeave(),4000);}}
+function mpBatLeave(silent){if(!BT||!BT.remote)return;MB.joined=false;MB.last=null;BT=null;WAR=null;try{UI.hideBattleHUD&&UI.hideBattleHUD();}catch(e){}openMap();if(!silent)toast("전장에서 나왔다 — 결과는 곧 소식으로 온다");}
+function mpBatSend(c){mpDB().then(db=>db.push(mpR("bat/in"),Object.assign({slot:MP.slot,t:Date.now()},c)));}
+
 /* ════════ 부팅 · 저장 · 타이틀 ════════ */
 let DB=null,UID=null,saving=false,saveAgain=false,LOADED=null;
 function snapshotState(){const o={...S};delete o.pendingHerald;return JSON.stringify(o);}
@@ -8673,7 +8752,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.139 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.140 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
