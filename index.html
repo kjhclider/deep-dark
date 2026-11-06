@@ -632,17 +632,15 @@ const ICON={
 /* 한국어 조사: "회색골이(가)" → "회색골이" / "버드내가" */
 /* 휴대폰: 안내 글의 키보드·마우스 말을 터치 말로 (태그 밖 글자만) */
 function touchTxt(str){
-  /* 휴대폰: 키보드·마우스 말은 빼기만 한다 — 버튼은 눈에 보인다 */
+  /* 휴대폰: 어떤 키·버튼을 누르라는 말은 뺀다 — 버튼은 눈에 보이고, 사람은 알아서 누른다 */
   if(typeof COARSE==="undefined"||!COARSE)return str;
   return String(str).replace(/<kbd>[^<]*<\/kbd>\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
-    .replace(/WASD ?(로 )?/g,"").replace(/더블\s?클릭/g,"두 번 눌러")
-    .replace(/우클릭\s?(으로|로)\s?/g,"눌러 ").replace(/우클릭\s?끌기:?\s?회전\s?·?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/(앞에서|에서) 우클릭/g,"$1 베기").replace(/\s?\(우클릭\)/g,"").replace(/우클릭/g,"베기")
-    .replace(/Tab을 누르면 /g,"").replace(/\s?\(Tab\)/g,"")
-    .replace(/\s?\(E\)/g,"").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1").replace(/(^|[\s·(])E (내리기|타기)/g,"$1$2")
+    .replace(/WASD ?(로 )?(이동)?/g,"").replace(/더블\s?클릭(해서|하면)?\s?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/우클릭\s?(끌기:?\s?회전|으로|로)?\s?/g,"").replace(/\s?\((우클릭|Tab|E)\)/g,"")
+    .replace(/Tab을 누르면 /g,"").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1").replace(/(^|[\s·(])E (?=[가-힣])/g,"$1")
     .replace(/[,.]? ?(또는|돌아올 때도) M(?=[.\s,)]|$)/g,"")
     .replace(/(^|[\s·(])(Ctrl|Shift|Space|Alt|[A-Z]) (?=[가-힣])/g,"$1")
-    .replace(/클릭해서/g,"눌러서").replace(/클릭하면/g,"누르면").replace(/클릭하거나/g,"누르거나").replace(/클릭·끌기/g,"누르기·끌기").replace(/클릭/g,"눌러")
-    .replace(/ {2,}/g," ")).join("");
+    .replace(/(을|를) 클릭(?=\s?→)/g,"").replace(/(을|를) 클릭(해서|하면|하거나)?\s?/g,"$1 ").replace(/\s?클릭(해서|하면|하거나)?\s?/g," ")
+    .replace(/ +([·,.→—])/g," $1").replace(/^(\s*)[·—]\s*/,"$1").replace(/ {2,}/g," ")).join("");
 }
 function fixJosa(str){
   str=touchTxt(str);
@@ -5321,11 +5319,11 @@ function tutDockClass(){const T=tutTarget();const b=document.querySelector('#doc
 /* 미션이 뜨면 '지금 어디로 가서 무엇을 누르나'를 화면 아래 가운데에 한 줄로 — 왕의 위치에 따라 바뀐다 */
 function tutNowText(){const T=tutTarget();if(!T&&!(S&&S.tut&&S.tut.curI!==undefined))return "";
   const items=guideItems(),cur=items[S.tut.curI];if(!cur||cur[3])return "";const key=COARSE?"아래 버튼":"E";
-  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?`<b>${esc(sp.name)}</b> 앞이다 — ${extra||key+"를 눌러라"}`:`<b>${esc(sp.name)}</b>(으)로 걸어가라 — 바닥의 노란 길을 따라`;};
+  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?(COARSE?`<b>${esc(sp.name)}</b> 앞이다`:`<b>${esc(sp.name)}</b> 앞이다 — ${extra||key+"를 눌러라"}`):`<b>${esc(sp.name)}</b>(으)로 걸어가라 — 바닥의 노란 길을 따라`;};
   const m=UI.mode;
   if(T&&T.ui==="kingdom")return m==="map"?"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼)":"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼) — 창이 열리면 빛나는 탭";
   if(m==="capital"&&T){const want=T.cap||(T.pal?"keep":T.map?"table":null);const sp=want&&CAP.spots&&CAP.spots.find(x=>x.id===want);
-    if(T.map&&sp){const t=go(CAP.pos,sp,`${key}를 눌러 지도를 편다`);return t+(Math.hypot(sp.x-CAP.pos.x,sp.z-CAP.pos.z)<4.5?"":` · 또는 <b>${COARSE?"지도":"M"}</b>`);}
+    if(T.map&&sp){const t=go(CAP.pos,sp,`${key}를 눌러 지도를 편다`);return t+(COARSE||Math.hypot(sp.x-CAP.pos.x,sp.z-CAP.pos.z)<4.5?"":` · 또는 <b>M</b>`);}
     if(T.pal&&sp)return go(CAP.pos,sp,`${key}를 눌러 대전으로 들어간다`);
     if(sp)return go(CAP.pos,sp);}
   if(m==="palace"&&T){if(T.pal){const sp=PAL.spots&&PAL.spots.find(x=>x.id===T.pal);if(sp)return go(PAL.pos,sp);}
@@ -5683,7 +5681,7 @@ function startPrologue(){if(S&&!S.title&&!S.practice)saveGame();
   startBattle({kind:"siege",foeArmy:foe,foes:foe.comps,title:"프롤로그 — 선왕의 마지막 밤"});
   setTimeout(()=>{if(WAR)beginBattle(true);},60);
   setTimeout(()=>UI.bannerSay("망자가 아스테라 성벽을 두드린다 — 성문을 지켜라. 당신이 왕이다."),1500);
-  setTimeout(()=>UI.bannerSay(COARSE?"왼쪽 조이스틱으로 왕을 움직이고, 오른쪽 버튼으로 벤다. 아래 지휘판으로 병종에 명령한다.":"WASD 이동 · 클릭 베기 · 아래 지휘판으로 병종에 명령 — 망자가 성문에 붙으면 그리로"),7000);}
+  setTimeout(()=>UI.bannerSay(COARSE?"망자가 성문에 붙으면 그리로 가라":"WASD 이동 · 클릭 베기 · 아래 지휘판으로 병종에 명령 — 망자가 성문에 붙으면 그리로"),7000);}
 function prologueEnd(){UI.closeModal();UI.modalBlocking=false;BT=null;S=null;startNewGame(true);}
 /* 전투·잠입 화면으로 넘어가도 목표 막대·지금 할 일이 남아 있지 않게 */
 setInterval(()=>{try{if(!S||BT||S.title||UI.mode==="battle"||UI.mode==="spy"){const g=$("#goalBar"),t=$("#tutNow");if(g)g.hidden=true;if(t)t.hidden=true;}}catch(e){}},300);
@@ -7917,7 +7915,7 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden){if(S&&!BT)
 /* ── 왕궁 HUD · 건물 창 · 옷장 · 설정 ── */
 function showCapitalHUD(){if($("#tutArrow"))$("#tutArrow").hidden=true;if(UI.mode==="palace"){hideKingHud();$("#cmini").hidden=false;drawCapMini();}$("#whud").hidden=false;$("#bhud").hidden=true;$("#title").hidden=true;$("#side").hidden=true;UI.sel=null;$("#targeting").hidden=true;
   $("#prompt").hidden=false;renderTop();renderFeed();renderPrompt();
-  if(!UI.capHint){UI.capHint=true;UI.bannerSay(COARSE?"왼쪽 조이스틱으로 걷고, 화면을 끌어 둘러본다":"WASD 이동 · 방향키 화면 회전 · Shift 달리기 · E 상호작용 · M 지도");}}
+  if(!UI.capHint){UI.capHint=true;if(!COARSE)UI.bannerSay(COARSE?"":"WASD 이동 · 방향키 화면 회전 · Shift 달리기 · E 상호작용 · M 지도");}}
 function showSiteHUD(site){$("#whud").hidden=false;$("#bhud").hidden=true;$("#prompt").hidden=true;$("#title").hidden=true;selectObj({kind:"site",id:site.id});renderTop();renderFeed();}
 function renderPrompt(){const el=$("#prompt");if(UI.mode!=="capital"&&UI.mode!=="palace"){el.hidden=true;return;}const n=CAP.near;
   el.innerHTML=n?`<button class="b gold" data-a="interact">${COARSE?"":"<kbd>E</kbd> "}${esc(n.name)}</button><span>${fixJosa((n.door?"문을 열고 들어간다 · ":"")+esc(n.sub))}</span>`:"";el.hidden=!n;}
@@ -8027,8 +8025,8 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
 ].map((it,i)=>{if((T.skip2||[]).includes(i))it[3]=true;return it;});}
   // [제목, 왜 하는가, 어떻게, 완료 조건]
   return [
-  ["왕궁을 걸어 본다","왕은 직접 움직이는 몸이다. 첫 7일은 망자가 오지 않으니 성 안을 익혀 두자.",(COARSE?"왼쪽 아래 조이스틱으로 걷고, 화면을 끌어 둘러본다 · 건물 앞에 서면 아래에 뜨는 버튼을 눌러 들어간다":"WASD 이동 · Shift 달리기 · Alt로 시점 모드(마우스로 화면 돌리기)·커서 모드를 바꾼다 · 건물 앞에서 E로 문을 연다"),(T.walk||0)>25],
-  ["허수아비를 벤다","무예가 오르면 왕의 체력과 피해가 는다. 전장에서 왕이 오래 버틸수록 병사 사기도 산다.","남서쪽 훈련장 허수아비 앞에서 우클릭 — 바닥의 노란 점선을 따라가라. 연속으로 맞히면 더 많이 오른다",(S.kingSkill||0)>0],
+  ["왕궁을 걸어 본다","왕은 직접 움직이는 몸이다. 첫 7일은 망자가 오지 않으니 성 안을 익혀 두자.",(COARSE?"성 안을 걸어 다니며 건물들을 둘러본다":"WASD 이동 · Shift 달리기 · Alt로 시점 모드(마우스로 화면 돌리기)·커서 모드를 바꾼다 · 건물 앞에서 E로 문을 연다"),(T.walk||0)>25],
+  ["허수아비를 벤다","무예가 오르면 왕의 체력과 피해가 는다. 전장에서 왕이 오래 버틸수록 병사 사기도 산다.","남서쪽 훈련장 허수아비를 벤다(우클릭) — 바닥의 노란 점선을 따라가라. 연속으로 맞히면 더 많이 오른다",(S.kingSkill||0)>0],
   ["전쟁 탁자에서 지도를 편다","왕국 전체는 지도에서 다스린다. 마을·요새·이웃 왕국이 거기 있다.","대전 앞 탁자에서 E, 또는 M. 돌아올 때도 M",!!UI.mapSeen],
   ["왕궁 대전에 들어가 신하를 만난다","대전 안에 왕국을 움직이는 신하들이 있다. 재상(건설·징병), 재무대신(세금), 첩보대장(첩자), 대사제(축복), 시종장(백성의 청원), 작전 탁자, 옷장, 그리고 장군들.","대전 큰 문으로 걸어 들어간다. 신하 앞에서 E. 시종장은 백성의 청원(알현)을 모아 둔다 — 시종장 앞에서 E나 왕좌에 앉아 그 청을 듣는다",!!(T.palace&&T.court)],
   ["재무대신과 세금을 정한다","세금은 금화와 민심 사이의 저울이다. 초반엔 민심을 지키는 쪽이 백성이 빨리 는다.","대전 안 오른쪽 재무대신 벨라 앞에서 E → 세금 정책",!!(T.court&2)],
@@ -8066,6 +8064,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.143","휴대폰: 어떤 버튼을 누르라는 말 자체를 안 한다 — 버튼은 보이니까. 길잡이·알림에서 조이스틱·버튼 설명을 빼고 할 일(어디로 가서 무엇을)만 남긴다"],
  ["0.9.142","휴대폰: 안내 글에서 키보드·마우스 말(우클릭·E·M·Tab 등)은 버튼 이름으로 바꾸지 않고 그냥 뺀다 — 버튼은 눈에 보이니까 · 전투 오른쪽 키(찌르기·막기·구르기·점프·말)가 서로 살짝 겹치던 것 → 크기를 조금 줄이고 자리를 몇 칸 벌려 안 겹친다"],
  ["0.9.141","점검: 조사 '(으)로'가 그대로 보이던 곳(길잡이·힌트·알림·옆 창) 고침 · 휴대폰에서 안내 글의 키보드·마우스 말(우클릭·E·M·Tab·클릭)을 터치 말로 바꿔 보여 준다 · 휴대폰 전투에 키보드 단축키 줄이 뜨던 것 없앰 · 배치 화면의 조작 설명은 부관의 조언 아래로 옮겨 겹치지 않게 · 힌트가 떠 있으면 단축키 줄은 숨는다 · 긴 알림 띠가 잘리던 것 → 줄바꿈하고 글 길이만큼 더 오래 보인다 · 설정·안내의 'Esc' 설명을 Alt로"],
  ["0.9.140","함께 싸우기 — 혼자 할 때: 이웃 왕국 마을·왕도에 원군으로 세워 둔 우리 군대는 망자가 오면 그 왕국 수비군과 한 전장에서 함께 싸운다(따로 들판에서 붙지 않는다). 이웃 부대는 파란 이름표, 지휘는 이웃이 스스로. 끝나면 이웃 병력·관계에 반영, 지면 그 거점이 무너진다 · 멀티: 동료 전장에 우리 군대가 있으면 '합류' 알림 — 합류하면 같은 전장이 내 화면에 열리고 내 부대를 직접 지휘한다(고르기·옮기기·공격·5~9 병종 명령). 전투 계산은 전장 주인 쪽"],
@@ -8771,7 +8770,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.142 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.143 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
