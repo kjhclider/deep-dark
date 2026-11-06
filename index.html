@@ -153,7 +153,7 @@ hr.orn{border:0;height:9px;margin:4px 0;background:radial-gradient(circle,var(--
 .wbody kbd{font-family:var(--f-num);font-size:11px;border:1px solid rgba(226,192,122,.4);border-radius:2px;padding:0 5px;color:var(--gold);margin:0 1px}
 .bhelp kbd{font-family:var(--f-num);font-size:10.5px;border:1px solid var(--edge);border-radius:2px;padding:0 4px}
 #banner{position:absolute;left:50%;top:92px;transform:translateX(-50%);padding:8px 28px;font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.08em;color:#fff1cf;
-  background:linear-gradient(90deg,transparent,rgba(12,10,8,.9) 15%,rgba(12,10,8,.9) 85%,transparent);border-top:1px solid var(--gold-dim);border-bottom:1px solid var(--gold-dim);white-space:nowrap;pointer-events:none;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+  background:linear-gradient(90deg,transparent,rgba(12,10,8,.9) 15%,rgba(12,10,8,.9) 85%,transparent);border-top:1px solid var(--gold-dim);border-bottom:1px solid var(--gold-dim);white-space:normal;text-align:center;line-height:1.5;pointer-events:none;width:max-content;max-width:min(760px,calc(100% - 24px));overflow:hidden}
 #banner.paused{color:var(--gold)}
 
 /* ── 창 (모달) ── */
@@ -502,7 +502,8 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
   body.tpSpy #side{display:none!important}
   body.tpSpy #resbar{display:none!important}
   body.tpSpy #infHud .dir{top:8px;zoom:.8}body.tpSpy #infHud .eye{top:46px;zoom:.8}
-  #banner{zoom:.68}
+  #banner{zoom:.68;max-width:88vw!important}
+  .badvice{max-height:46vh;overflow:hidden}
   body:not(.tpWalk) #dock{zoom:.68!important}
   #pend{zoom:.55!important}
 }
@@ -629,12 +630,25 @@ const ICON={
 };
 
 /* 한국어 조사: "회색골이(가)" → "회색골이" / "버드내가" */
+/* 휴대폰: 안내 글의 키보드·마우스 말을 터치 말로 (태그 밖 글자만) */
+function touchTxt(str){
+  if(typeof COARSE==="undefined"||!COARSE)return str;
+  return String(str).replace(/<kbd>[^<]*<\/kbd>\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
+    .replace(/WASD ?(이동|로 이동)?/g,"조이스틱 이동").replace(/더블\s?클릭/g,"두 번 터치")
+    .replace(/우클릭\s?(으로|로)\s?이동/g,"땅을 눌러 이동").replace(/우클릭\s?끌기/g,"두 손가락 끌기").replace(/우클릭\s?베기/g,"베기").replace(/우클릭/g,"베기 버튼")
+    .replace(/Tab을 누르면/g,"작전도 버튼을 누르면").replace(/\s?\(Tab\)/g,"")
+    .replace(/\(E\)/g,"(들어가기 버튼)").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1 들어가기 버튼").replace(/(^|[\s·,(])M(?=[.\s,)·]|$)/g,"$1지도 버튼").replace(/(^|[\s·(])E (내리기|타기)/g,"$1버튼으로 $2")
+    .replace(/(^|[\s·(])(Ctrl|Shift|Space|Alt|[A-Z]) (?=[가-힣])/g,"$1")
+    .replace(/클릭/g,"터치")).join("");
+}
 function fixJosa(str){
-  return String(str).replace(/([가-힣0-9A-Za-z\)]+?)(이\(가\)|을\(를\)|은\(는\)|와\(과\)|으로\(로\))/g,(m,w,j)=>{
+  str=touchTxt(str);
+  /* "(으)로"도, 이름 뒤에 </b> 같은 꼬리표가 붙은 것도 고친다 */
+  return String(str).replace(/([가-힣0-9A-Za-z\)]+?)((?:<\/[a-z]+>)?)(이\(가\)|을\(를\)|은\(는\)|와\(과\)|으로\(로\)|\(으\)로)/g,(m,w,tg,j)=>{
     const c=w.charCodeAt(w.length-1);let bat=false,rieul=false;
     if(c>=0xAC00&&c<=0xD7A3){const f=(c-0xAC00)%28;bat=f>0;rieul=f===8;}else if(/[0-9]/.test(w.slice(-1)))bat="0136780".includes(w.slice(-1));
-    const pick={"이(가)":["이","가"],"을(를)":["을","를"],"은(는)":["은","는"],"와(과)":["과","와"],"으로(로)":[rieul?"로":"으로","로"]}[j];
-    return w+(bat?pick[0]:pick[1]);});
+    const pick={"이(가)":["이","가"],"을(를)":["을","를"],"은(는)":["은","는"],"와(과)":["과","와"],"으로(로)":[rieul?"로":"으로","로"],"(으)로":[rieul?"로":"으로","로"]}[j];
+    return w+tg+(bat?pick[0]:pick[1]);});
 }
 
 /* 출시 앱(PC판·홈 화면 앱·게임 주소로 직접 연 경우): claude.ai 안이 아니다 — 첫 화면을 싱글/멀티로, Claude는 내 API 키로 */
@@ -5321,7 +5335,7 @@ function tutNowText(){const T=tutTarget();if(!T&&!(S&&S.tut&&S.tut.curI!==undefi
 function tutNowTick(){let el=$("#tutNow");if(!el){el=document.createElement("div");el.id="tutNow";document.body.appendChild(el);}
   const ok=S&&!S.title&&!S.practice&&!UI.modalOpen&&!BT&&!(typeof DUEL!=="undefined"&&DUEL.on)&&(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")&&S.tut&&S.tut.pend===undefined;
   let t="";if(ok){try{t=tutNowText();}catch(e){t="";}}
-  if(!t){el.hidden=true;return;}if(el._t!==t){el._t=t;el.innerHTML=`<span class="tn-h">지금 할 일</span><span class="tn-t">${t}</span>`;}el.hidden=false;}
+  if(!t){el.hidden=true;return;}if(el._t!==t){el._t=t;el.innerHTML=fixJosa(`<span class="tn-h">지금 할 일</span><span class="tn-t">${t}</span>`);}el.hidden=false;}
 
 /* ════════ 처음 마주칠 때 한 번 뜨는 안내 카드 (게임을 멈추지 않는다) ════════ */
 const HINTS={
@@ -5357,7 +5371,7 @@ function showHint(t,d,head){showHint.q=showHint.q||[];showHint.q.push([t,d,head]
 function hintNext(){let el=$("#hint");if(!el){el=document.createElement("div");el.id="hint";document.body.appendChild(el);el.addEventListener("click",()=>{clearTimeout(hintOnce._t);hintNext();});}
   const it=(showHint.q||[]).shift();if(!it){el.hidden=true;showHint.on=false;return;}showHint.on=true;const [t,d,head]=it;
   const ms=clamp(5000+(String(t).length+String(d).length)*55,7000,15000);
-  el.innerHTML=`<div class="ht"><span>${head||"새로 알게 된 것"}</span><small style="margin-left:auto;opacity:.6;letter-spacing:0">눌러서 넘기기${showHint.q.length?` · ${showHint.q.length}개 더`:""}</small></div><b>${t}</b><p>${/<br>/.test(d)?d:firstSent(d,2)}</p><i class="hbar" style="animation-duration:${ms}ms"></i>`;el.hidden=false;el.style.animation="none";void el.offsetWidth;el.style.animation="";
+  el.innerHTML=fixJosa(`<div class="ht"><span>${head||"새로 알게 된 것"}</span><small style="margin-left:auto;opacity:.6;letter-spacing:0">눌러서 넘기기${showHint.q.length?` · ${showHint.q.length}개 더`:""}</small></div><b>${t}</b><p>${/<br>/.test(d)?d:firstSent(d,2)}</p><i class="hbar" style="animation-duration:${ms}ms"></i>`);el.hidden=false;el.style.animation="none";void el.offsetWidth;el.style.animation="";
   clearTimeout(hintOnce._t);hintOnce._t=setTimeout(hintNext,ms);}
 // 도움말: 조작법·수치 설명·길잡이 목록을 한 창에
 function helpModal(tab){tab=tab||UI.helpTab||"keys";UI.helpTab=tab;
@@ -5483,7 +5497,7 @@ function campaignDay(){
     if(text)herald(c.n,text);UI.dirty=true;}
   // 대습격 예고와 실행
   const nd=nextSurgeDay();
-  if(S.day===nd-3&&S.camp.warned!==nd){S.camp.warned=nd;S.camp.plan=surgePlanBuild(nd,(S.camp.surges||0)+1,null);const P=S.camp.plan;if(P)herald("망자 왕의 군세가 모인다",`첩자들이 북쪽에서 같은 말을 전한다 — ${nd}일째, 사흘 뒤 왕궁으로 대습격이 온다. ${surgePlanText(P)} 지금 왕궁엔 ${fmtN(compMen(S.garrison))}명이 있다. 성벽을 올리고 마을 수비군을 불러들이고 이웃에 원군을 청하라.`,"너희의 성벽은 내 군대의 계단이 될 것이다.",[{n:`${siteById(P.from).name} 보기`,a:"site:"+P.from}]);}
+  if(S.day===nd-3&&S.camp.warned!==nd){S.camp.warned=nd;S.camp.plan=surgePlanBuild(nd,(S.camp.surges||0)+1,null);const P=S.camp.plan;if(P)herald("망자 왕의 군세가 모인다",`첩자들이 북쪽에서 같은 말을 전한다 — ${nd}일째, 사흘 뒤 왕궁으로 대습격이 온다. ${surgePlanText(P)} 지금 왕궁엔 ${fmtN(compMen(S.garrison))}명이 있다. 성벽을 올리고 마을 수비군을 불러들이고 ${S.mp?"동료 왕국에 원군을 청하라.":"이웃에 원군을 청하라."}`,"너희의 성벽은 내 군대의 계단이 될 것이다.",[{n:`${siteById(P.from).name} 보기`,a:"site:"+P.from}]);}
   if((S.day===nd-3||S.day===nd-2)&&!(typeof mpGuest==="function"&&mpGuest())){try{lordSurgePlan(nd);}catch(e){}}
   if(S.mp){if(!mpGuest())for(const c of SITES.filter(x=>x.kind==="capital"||(x.kind==="pcapital"&&mpOnline(x.owner))))if(S.day===nextSurgeDay(c.kind==="capital"?MP.slot:c.owner)-1)surge(c.id);}
   else if(S.day===nd-1)surge();   /* 멀티: 방장이 왕국마다 대습격을 보낸다 */   // 전날 하루 거리에서 나타나 대습격 당일에 닿는다
@@ -5514,7 +5528,7 @@ function surge(capId){
   const a=spawnArmy(1,out,cap.x+dx/l*dist,cap.z+dz/l*dist,{mission:"raid",target:cap.id,from:f.id});a.surge=w;if(LS)a.lordWhy=LS.why;setDest(a,cap.x,cap.z);revealAt(a.x,a.z,80);WR.fogDirty=true;
   const eta=etaDays(a,cap.x,cap.z);if(!mine){logMsg(`대습격 — 망자 ${fmtN(compMen(out))}이(가) ${cap.name}로 간다.`,"bad");UI.dirty=true;return;}
   logMsg(`대습격! ${f.name}에서 나온 망자 ${fmtN(compMen(out))}이(가) 왕궁 코앞까지 왔다. 내일 닿는다.`,"bad");
-  herald(`제${w}차 대습격`,`${f.name}의 성문이 활짝 열렸다. ${compsText(out,true)}. 그들은 밤새 행군해 이미 하루 거리까지 왔다 — 내일 왕궁에 닿는다. 마을의 수비군을 불러들이고, 이웃에 원군을 청하고, 성벽 위에 궁병을 세워라.`,LS&&LS.taunt?LS.taunt:pick(["왕관을 내놓아라. 그러면 백성은 살려 두마 — 나의 군대로.","이번엔 사흘을 주었다. 다음엔 주지 않겠다."]));
+  herald(`제${w}차 대습격`,`${f.name}의 성문이 활짝 열렸다. ${compsText(out,true)}. 그들은 밤새 행군해 이미 하루 거리까지 왔다 — 내일 왕궁에 닿는다. 마을의 수비군을 불러들이고, ${S.mp?"동료에게 원군을 청하고":"이웃에 원군을 청하고"}, 성벽 위에 궁병을 세워라.`,LS&&LS.taunt?LS.taunt:pick(["왕관을 내놓아라. 그러면 백성은 살려 두마 — 나의 군대로.","이번엔 사흘을 주었다. 다음엔 주지 않겠다."]));
   UI.dirty=true;
 }
 // 상단 표시용 한 줄
@@ -5524,7 +5538,7 @@ function campaignLine(){const c=chapter();const nd=nextSurgeDay();const d=nd-S.d
 const AFTER_GOALS=[
   {id:"forts",n:"남은 요새를 모두 무너뜨린다",ok:()=>SITES.filter(s=>s.kind==="fortress").every(s=>S.sites[s.id].state!=="active")},
   {id:"vils",n:"모든 마을을 되살린다",ok:()=>SITES.filter(s=>s.kind==="village").every(s=>S.sites[s.id].state==="ok")},
-  {id:"ally",n:"이웃 왕국 둘과 동맹(관계 70)",ok:()=>Object.values(S.realms||{}).filter(r=>r.alive&&r.rel>=70).length>=2},
+  {id:"ally",n:"이웃 왕국 둘과 동맹(관계 70)",ok:()=>S.mp?true:Object.values(S.realms||{}).filter(r=>r.alive&&r.rel>=70).length>=2},
   {id:"pop",n:"백성 6,000",ok:()=>S.civ>=6000},
   {id:"skill",n:"왕의 무예 100",ok:()=>(S.kingSkill||0)>=100},
   {id:"gear",n:"왕의 검과 갑옷 5단계",ok:()=>{const g=S.kgear||{};return g.sword>=5&&g.armor>=5;}},
@@ -7330,14 +7344,14 @@ function ramMesh(){const g=new THREE.Group();const wood=new THREE.MeshStandardMa
 /* ════════ UI ════════ */
 const UI={sel:null,targeting:null,modalBlocking:false,dirty:true,liveDirty:true,logDirty:true,battleDirty:true,hoverG:null,kTab:"build",draft:null};
 
-function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,3000);}
+function toast(t){const el=$("#toast");el.textContent=fixJosa(t);el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,3000);}
 UI.toast=toast;
 try{const b=parseFloat(localStorage.getItem("ashen-bright"));if(b>0){UI.bright=b;document.documentElement.style.setProperty("--bright",b);}}catch(e){}
 // 작은 알림: 아래쪽에 쌓였다가 사라진다 (공사 완료·훈련 완료·군대 도착 등)
 function notice(t,k){let box=$("#notes");if(!box){box=document.createElement("div");box.id="notes";document.body.appendChild(box);}const el=document.createElement("div");el.className="note-it "+(k||"");el.textContent=t.length>90?t.slice(0,88)+"…":t;box.appendChild(el);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>{el.classList.add("out");setTimeout(()=>el.remove(),400);},4200);}
 UI.aiStatus=()=>{const el=$("#aiL");if(el)el.textContent=AI.ok()?"망자의 군주: 당신의 Claude가 지휘한다":(window.__TEST?"":"이 게임은 당신의 Claude와 연결해야 시작된다");};
 let bannerT=null;
-UI.bannerSay=t=>{if(typeof COARSE!=="undefined"&&COARSE)t=String(t).replace(/WASD ?/g,"").replace(/(^|[^A-Za-z])E([^A-Za-z]|$)/g,"$1버튼$2");const b=$("#banner");b.textContent=t;b.className="";b.hidden=false;clearTimeout(bannerT);bannerT=setTimeout(()=>{b.hidden=true;},3600);};
+UI.bannerSay=t=>{t=fixJosa(t);if(typeof COARSE!=="undefined"&&COARSE)t=String(t).replace(/WASD ?/g,"").replace(/(^|[^A-Za-z])E([^A-Za-z]|$)/g,"$1버튼$2");const b=$("#banner");b.textContent=t;b.className="";b.hidden=false;clearTimeout(bannerT);bannerT=setTimeout(()=>{b.hidden=true;},3600+Math.max(0,String(t).length-30)*70);};
 
 /* ── 창 ── */
 UI.openModal=(html,o={})=>{if(document.pointerLockElement)document.exitPointerLock();$("#win").className="window panel"+(o.narrow?" narrow":"");$("#win").innerHTML=fixJosa(html);$("#modal").hidden=false;UI.modalOpen=true;if(o.blocking)UI.modalBlocking=true;fitModal();};
@@ -7423,7 +7437,7 @@ function renderSide(){
     else html=`${winHead("망자의 군세")}<div class="body"><h2>망자의 군세</h2><dl class="kv"><dt>행동</dt><dd>${esc(missionName(a))}</dd>${a.moving?`<dt>도착</dt><dd>약 ${eta}일</dd>`:""}</dl>${forceHtml("병력 (정찰 추정)",a.comps,true)}
       <div class="acts"><button class="b red" data-a="compose" data-t="army:${a.id}">요격 원정</button></div></div>`;
   }
-  el.innerHTML=html;el.hidden=false;el.className="side panel";
+  el.innerHTML=fixJosa(html);el.hidden=false;el.className="side panel";
 }
 function forceHtml(title,cs,foe){
   const o={};for(const c of cs){o[c.t]=o[c.t]||{n:0,men:0};o[c.t].n++;o[c.t].men+=c.men;}
@@ -7652,8 +7666,8 @@ function renderBattleHUD(){
   $("#bhelp").innerHTML=B.phase==="deploy"?"부대를 끌어 위치를 정한다 · 화면을 끌면 시점 이동, 휠·두 손가락으로 확대":E.camMode==="tp"?
     (B.king?`왕의 시점 · <kbd>WASD</kbd> 이동 <kbd>우클릭</kbd> 베기 <kbd>R</kbd> 찌르기 <kbd>T</kbd> 창 <kbd>Ctrl</kbd> 구르기 <kbd>Space</kbd> 점프 <kbd>B</kbd> 막기 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 왕의 기술 · <kbd>F</kbd> 따르라 <kbd>G</kbd> 돌격 <kbd>Q</kbd> 장군 능력 <kbd>V</kbd> 전체 시점 <kbd>P</kbd> 일시정지 <kbd>/</kbd> 도움말`:`지휘관 시점 · <kbd>WASD</kbd> 지휘관 이동 · 화면 끌기: 둘러보기 · 부대 선택(카드·<kbd>1</kbd>–<kbd>9</kbd>) 후 땅·적·미니맵 클릭 · <kbd>F</kbd> 따르라 <kbd>G</kbd> 돌격 <kbd>Q</kbd> 능력 <kbd>V</kbd> 전체 시점`):
     `끌어서 상자 선택 · 부대 두 번 누르기: 같은 병종 전부 · 우클릭: 이동/공격 · <kbd>WASD</kbd> 시점 · 우클릭 끌기: 회전 · <kbd>R</kbd> 부대 능력 <kbd>Q</kbd> 장군 능력 <kbd>G</kbd> 돌격 <kbd>Space</kbd>/<kbd>P</kbd> 일시정지 <kbd>/</kbd> 도움말`;
-  $("#bhelp").hidden=(B.t>16+(B.helpT||0)&&B.phase==="battle")||B.over;
-  {let ad=$("#badvice");if(!ad){ad=document.createElement("div");ad.id="badvice";ad.className="badvice";$("#bhud").appendChild(ad);}const h=B.phase==="deploy"?`<b>${B.gen?esc(B.gen.name):"부관"}의 조언</b>${battleAdvice()}`:"";if(ad._h!==h){ad._h=h;ad.innerHTML=h;}ad.hidden=!h;}
+  {const hv=$("#hint");$("#bhelp").hidden=(B.t>16+(B.helpT||0)&&B.phase==="battle")||B.over||(typeof COARSE!=="undefined"&&COARSE)||B.phase==="deploy"||!!(hv&&!hv.hidden&&hv.offsetParent);}
+  {let ad=$("#badvice");if(!ad){ad=document.createElement("div");ad.id="badvice";ad.className="badvice";$("#bhud").appendChild(ad);}const h=B.phase==="deploy"?`<b>${B.gen?esc(B.gen.name):"부관"}의 조언</b>${battleAdvice()}<div style="margin-top:6px;opacity:.75;font-size:11.5px">${(typeof COARSE!=="undefined"&&COARSE)?"부대를 끌어 위치를 정한다 · 화면을 끌면 시점 이동, 두 손가락으로 확대":"부대를 끌어 위치를 정한다 · 화면을 끌면 시점 이동, 휠로 확대"}</div>`:"";if(ad._h!==h){ad._h=h;ad.innerHTML=h;}ad.hidden=!h;}
 }
 
 /* ── 클릭 처리 ── */
@@ -7903,7 +7917,7 @@ function showCapitalHUD(){if($("#tutArrow"))$("#tutArrow").hidden=true;if(UI.mod
   if(!UI.capHint){UI.capHint=true;UI.bannerSay(COARSE?"왼쪽 조이스틱으로 걷고, 화면을 끌어 둘러본다":"WASD 이동 · 방향키 화면 회전 · Shift 달리기 · E 상호작용 · M 지도");}}
 function showSiteHUD(site){$("#whud").hidden=false;$("#bhud").hidden=true;$("#prompt").hidden=true;$("#title").hidden=true;selectObj({kind:"site",id:site.id});renderTop();renderFeed();}
 function renderPrompt(){const el=$("#prompt");if(UI.mode!=="capital"&&UI.mode!=="palace"){el.hidden=true;return;}const n=CAP.near;
-  el.innerHTML=n?`<button class="b gold" data-a="interact">${COARSE?"":"<kbd>E</kbd> "}${esc(n.name)}</button><span>${n.door?"문을 열고 들어간다 · ":""}${esc(n.sub)}</span>`:"";el.hidden=!n;}
+  el.innerHTML=n?`<button class="b gold" data-a="interact">${COARSE?"":"<kbd>E</kbd> "}${esc(n.name)}</button><span>${fixJosa((n.door?"문을 열고 들어간다 · ":"")+esc(n.sub))}</span>`:"";el.hidden=!n;}
 function openMap(){UI.mapSeen=true;UI.prevCam=null;enterWorld();showWorldHUD();const c=siteById("capital");const V=UI.mapView;   // 지도를 다시 펼치면 마지막으로 보던 자리로 (왕궁·마을 화면의 카메라 값이 남아 땅바닥에 처박히지 않게)
   if(V&&V.d>=120)E.ctrl.set(V.x,V.z,V.d,V.y,V.p,true);else{const first=S&&!(S.hints&&S.hints.map);E.ctrl.set(first?0:c.x,first?c.z-180:c.z-100,first?(E.W<600?820:700):(E.W<600?420:340),0,0.95,true);}UI.mapCam=true;setTimeout(()=>hintOnce("map"),600);}
 const BLD_UNITS={barracks:["inf","spear"],range:["archer"],stable:["cav"],chapel:["priest"],market:[],farm:[],homes:[],walls:[]};
@@ -7963,7 +7977,7 @@ function settingsModal(){
     <div class="acts">${[["high","높음","그림자·빛 번짐·고해상도"],["mid","보통","해상도를 낮춘다"],["low","낮음","그림자·후처리 끔"]].map(([k,n,d])=>`<button class="b ${q===k?"gold":""}" data-a="quality" data-v="${k}" title="${d}">${n}</button>`).join("")}</div>
     <p class="note">버벅이면 보통이나 낮음으로 바꾼다. 진행 상황은 자동 저장된다.</p></div>
     <div><div class="eyebrow" style="margin-bottom:8px">전투 연습</div><div class="acts"><button class="b" data-a="practice">전투 장면만 바로 해 보기</button></div><p class="note">지금 판은 저장해 두고 연습 전투를 연다. 끝나면 처음 화면으로 돌아오고, CONTINUE로 이어 하면 된다.</p></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">화면</div><div class="acts"><button class="b" data-a="fullscreen">전체 화면 켜기/끄기${window.deskApi?" (F11)":""}</button>${window.deskApi?`<button class="b" data-a="quitApp" style="border-color:rgba(201,71,59,.6);color:#e8a79a">게임 끄기 (저장하고)</button>`:""}<button class="b" data-a="music">배경음악 켜기/끄기</button></div><div class="acts" style="margin-top:8px"><button class="b ${!E.soft?"gold":""}" data-a="mouseMode" data-v="lock">마우스 잠금 시점</button><button class="b ${E.soft?"gold":""}" data-a="mouseMode" data-v="soft">커서 보이며 시점</button></div><p class="note">잠금: 화면을 클릭하면 커서가 숨고 마우스를 움직이는 대로 시점이 돈다(Esc로 풀림) · 커서 보이기: 커서를 둔 채 움직이면 돌고, 화면 끝에 대면 계속 돈다</p><p class="note">창이 좁으면 오른쪽 위의 음악·전체 화면 버튼이 여기로 들어온다.</p></div>
+    <div><div class="eyebrow" style="margin-bottom:8px">화면</div><div class="acts"><button class="b" data-a="fullscreen">전체 화면 켜기/끄기${window.deskApi?" (F11)":""}</button>${window.deskApi?`<button class="b" data-a="quitApp" style="border-color:rgba(201,71,59,.6);color:#e8a79a">게임 끄기 (저장하고)</button>`:""}<button class="b" data-a="music">배경음악 켜기/끄기</button></div><div class="acts" style="margin-top:8px"><button class="b ${!E.soft?"gold":""}" data-a="mouseMode" data-v="lock">마우스 잠금 시점</button><button class="b ${E.soft?"gold":""}" data-a="mouseMode" data-v="soft">커서 보이며 시점</button></div><p class="note">잠금: Alt를 누르면 커서가 숨고 마우스를 움직이는 대로 시점이 돈다(Alt를 다시 누르면 커서) · 커서 보이기: 커서를 둔 채 움직이면 돌고, 화면 끝에 대면 계속 돈다</p><p class="note">창이 좁으면 오른쪽 위의 음악·전체 화면 버튼이 여기로 들어온다.</p></div>
     <div><div class="eyebrow" style="margin-bottom:8px">망자의 군주 — 당신의 Claude</div>
     ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?(()=>{const k=deskKey();const st=!k?"연결 안 됨 — 키가 없다":(AI.off?"키 있음 · 연결 끊김":(AI.checked?"연결됨":"키 있음 · 아직 확인 전"));return `<div class="tile" style="margin-bottom:8px"><div class="hd"><span class="nm">Claude 연결 (API 키)</span><span class="tg">${st}</span></div><div class="ds">${k?`저장된 키: ${k.slice(0,10)}…${k.slice(-4)}`:"console.anthropic.com → API Keys에서 발급한 키를 넣는다."} 키는 이 기기에만 저장된다.</div><input id="apiKeyIn" type="password" placeholder="${k?"새 키로 바꾸려면 붙여넣기":"sk-ant-…"}" autocomplete="off" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">키 저장하고 연결</button>${k?`<button class="b" data-a="gateRetry">연결 다시 확인</button><button class="b ghost" data-a="apiKeyDel">키 지우기</button>`:""}</div></div>`;})():`<p class="note" style="margin-bottom:6px">이 화면(claude.ai)에서는 로그인한 Claude 계정으로 자동 연결된다 — 키가 필요 없다. 상태: ${AI.ok()?(AI.checked?"연결됨":"연결 가능"):"연결 안 됨"}</p>`}
     
@@ -8010,7 +8024,7 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
 ].map((it,i)=>{if((T.skip2||[]).includes(i))it[3]=true;return it;});}
   // [제목, 왜 하는가, 어떻게, 완료 조건]
   return [
-  ["왕궁을 걸어 본다","왕은 직접 움직이는 몸이다. 첫 7일은 망자가 오지 않으니 성 안을 익혀 두자.",(COARSE?"왼쪽 아래 조이스틱으로 걷고, 화면을 끌어 둘러본다 · 건물 앞에 서면 아래에 뜨는 버튼을 눌러 들어간다":"WASD 이동 · Shift 달리기 · 화면을 한 번 클릭하면 마우스로 시점이 돈다(Esc를 누르면 커서가 나온다) · 건물 앞에서 E로 문을 연다"),(T.walk||0)>25],
+  ["왕궁을 걸어 본다","왕은 직접 움직이는 몸이다. 첫 7일은 망자가 오지 않으니 성 안을 익혀 두자.",(COARSE?"왼쪽 아래 조이스틱으로 걷고, 화면을 끌어 둘러본다 · 건물 앞에 서면 아래에 뜨는 버튼을 눌러 들어간다":"WASD 이동 · Shift 달리기 · Alt로 시점 모드(마우스로 화면 돌리기)·커서 모드를 바꾼다 · 건물 앞에서 E로 문을 연다"),(T.walk||0)>25],
   ["허수아비를 벤다","무예가 오르면 왕의 체력과 피해가 는다. 전장에서 왕이 오래 버틸수록 병사 사기도 산다.","남서쪽 훈련장 허수아비 앞에서 우클릭 — 바닥의 노란 점선을 따라가라. 연속으로 맞히면 더 많이 오른다",(S.kingSkill||0)>0],
   ["전쟁 탁자에서 지도를 편다","왕국 전체는 지도에서 다스린다. 마을·요새·이웃 왕국이 거기 있다.","대전 앞 탁자에서 E, 또는 M. 돌아올 때도 M",!!UI.mapSeen],
   ["왕궁 대전에 들어가 신하를 만난다","대전 안에 왕국을 움직이는 신하들이 있다. 재상(건설·징병), 재무대신(세금), 첩보대장(첩자), 대사제(축복), 시종장(백성의 청원), 작전 탁자, 옷장, 그리고 장군들.","대전 큰 문으로 걸어 들어간다. 신하 앞에서 E. 시종장은 백성의 청원(알현)을 모아 둔다 — 시종장 앞에서 E나 왕좌에 앉아 그 청을 듣는다",!!(T.palace&&T.court)],
@@ -8046,9 +8060,10 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
     ${S.tut.open?`<div class="ghow">${cur[2]}</div>`:""}
     <div class="gdots">${items.map((it,i)=>`<i class="${it[3]?"on":""}${i===ci?" cur":""}" title="${it[0]}"></i>`).join("")}</div>
     ${S.day<7?`<div class="gday">망자가 오기까지 ${7-S.day}일 — 지금은 준비할 때</div>`:S.day<20?`<div class="gday">첫 대습격까지 ${20-S.day}일</div>`:""}`;
-  if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
+  if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.141","점검: 조사 '(으)로'가 그대로 보이던 곳(길잡이·힌트·알림·옆 창) 고침 · 휴대폰에서 안내 글의 키보드·마우스 말(우클릭·E·M·Tab·클릭)을 터치 말로 바꿔 보여 준다 · 휴대폰 전투에 키보드 단축키 줄이 뜨던 것 없앰 · 배치 화면의 조작 설명은 부관의 조언 아래로 옮겨 겹치지 않게 · 힌트가 떠 있으면 단축키 줄은 숨는다 · 긴 알림 띠가 잘리던 것 → 줄바꿈하고 글 길이만큼 더 오래 보인다 · 설정·안내의 'Esc' 설명을 Alt로"],
  ["0.9.140","함께 싸우기 — 혼자 할 때: 이웃 왕국 마을·왕도에 원군으로 세워 둔 우리 군대는 망자가 오면 그 왕국 수비군과 한 전장에서 함께 싸운다(따로 들판에서 붙지 않는다). 이웃 부대는 파란 이름표, 지휘는 이웃이 스스로. 끝나면 이웃 병력·관계에 반영, 지면 그 거점이 무너진다 · 멀티: 동료 전장에 우리 군대가 있으면 '합류' 알림 — 합류하면 같은 전장이 내 화면에 열리고 내 부대를 직접 지휘한다(고르기·옮기기·공격·5~9 병종 명령). 전투 계산은 전장 주인 쪽"],
  ["0.9.139","멀티: 왕국마다 대습격 날이 다르다(자리마다 4일씩 어긋남: 20·24·28·32일째…) — 동료의 대습격에 원군을 보낼 틈이 있다 · 수시 출격 빈도는 1인당 혼자일 때와 같게"],
  ["0.9.138","멀티: 방장이 아닌 사람이 나가도 세계는 계속 흐른다 — 망자는 나간 사람의 왕국을 치지 않고, 그 몫이 남은 사람들의 대습격에 얹힌다(빠진 사람당 남은 사람 대습격 +50%÷남은 수). 이미 나간 사람 왕국으로 가던 망자는 돌아가지 않고 그 자리에서 기다린다(나갔다 들어와서 피할 수 없다). 같은 코드로 다시 들어오면 자기 왕국 저장에서 이어 한다(그 사이 날짜는 따라잡는다)"],
@@ -8752,7 +8767,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.140 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.141 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
