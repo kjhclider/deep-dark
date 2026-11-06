@@ -447,16 +447,16 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 }
 @media (pointer:coarse) and (max-height:520px){#dock{bottom:14px!important}#cmini{width:90px!important;height:90px!important}}
 #tpad [data-tp="slash"]{right:calc(74px + env(safe-area-inset-right));bottom:74px;width:96px;height:96px}
-#tpad [data-tp="stab"]{right:calc(182px + env(safe-area-inset-right));bottom:74px;width:58px;height:58px}
-#tpad [data-tp="block"]{right:calc(168px + env(safe-area-inset-right));bottom:128px;width:58px;height:58px}
-#tpad [data-tp="roll"]{right:calc(128px + env(safe-area-inset-right));bottom:168px;width:58px;height:58px}
-#tpad [data-tp="jump"]{right:calc(74px + env(safe-area-inset-right));bottom:182px;width:58px;height:58px}
+#tpad [data-tp="stab"]{right:calc(189px + env(safe-area-inset-right));bottom:75px;width:52px;height:52px}
+#tpad [data-tp="block"]{right:calc(176px + env(safe-area-inset-right));bottom:132px;width:52px;height:52px}
+#tpad [data-tp="roll"]{right:calc(133px + env(safe-area-inset-right));bottom:176px;width:52px;height:52px}
+#tpad [data-tp="jump"]{right:calc(73px + env(safe-area-inset-right));bottom:191px;width:52px;height:52px}
 #tpad [data-tp="s1"]{right:calc(266px + env(safe-area-inset-right));bottom:74px;width:52px;height:52px}
 #tpad [data-tp="s2"]{right:calc(249px + env(safe-area-inset-right));bottom:152px;width:52px;height:52px}
 #tpad [data-tp="s3"]{right:calc(202px + env(safe-area-inset-right));bottom:217px;width:52px;height:52px}
 #tpad [data-tp="s4"]{right:calc(133px + env(safe-area-inset-right));bottom:257px;width:52px;height:52px}
 #tpad [data-tp="q"]{right:calc(54px + env(safe-area-inset-right));bottom:265px;width:52px;height:52px}
-#tpad [data-tp="mount"]{right:calc(30px + env(safe-area-inset-right));bottom:169px;width:52px;height:52px}
+#tpad [data-tp="mount"]{right:calc(24px + env(safe-area-inset-right));bottom:163px;width:52px;height:52px}
 #tpad [data-tp="crouch"]{right:calc(46px + env(safe-area-inset-right));bottom:240px;width:52px;height:52px}
 #tpad [data-tp="e"]{display:none!important}   /* 들어가기는 가운데 아래 기존 버튼(이름표)이 맡는다 */
 #tpad .tp.cool{opacity:.55;filter:grayscale(.6)}
@@ -632,14 +632,17 @@ const ICON={
 /* 한국어 조사: "회색골이(가)" → "회색골이" / "버드내가" */
 /* 휴대폰: 안내 글의 키보드·마우스 말을 터치 말로 (태그 밖 글자만) */
 function touchTxt(str){
+  /* 휴대폰: 키보드·마우스 말은 빼기만 한다 — 버튼은 눈에 보인다 */
   if(typeof COARSE==="undefined"||!COARSE)return str;
   return String(str).replace(/<kbd>[^<]*<\/kbd>\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
-    .replace(/WASD ?(이동|로 이동)?/g,"조이스틱 이동").replace(/더블\s?클릭/g,"두 번 터치")
-    .replace(/우클릭\s?(으로|로)\s?이동/g,"땅을 눌러 이동").replace(/우클릭\s?끌기/g,"두 손가락 끌기").replace(/우클릭\s?베기/g,"베기").replace(/우클릭/g,"베기 버튼")
-    .replace(/Tab을 누르면/g,"작전도 버튼을 누르면").replace(/\s?\(Tab\)/g,"")
-    .replace(/\(E\)/g,"(들어가기 버튼)").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1 들어가기 버튼").replace(/(^|[\s·,(])M(?=[.\s,)·]|$)/g,"$1지도 버튼").replace(/(^|[\s·(])E (내리기|타기)/g,"$1버튼으로 $2")
+    .replace(/WASD ?(로 )?/g,"").replace(/더블\s?클릭/g,"두 번 눌러")
+    .replace(/우클릭\s?(으로|로)\s?/g,"눌러 ").replace(/우클릭\s?끌기:?\s?회전\s?·?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/(앞에서|에서) 우클릭/g,"$1 베기").replace(/\s?\(우클릭\)/g,"").replace(/우클릭/g,"베기")
+    .replace(/Tab을 누르면 /g,"").replace(/\s?\(Tab\)/g,"")
+    .replace(/\s?\(E\)/g,"").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1").replace(/(^|[\s·(])E (내리기|타기)/g,"$1$2")
+    .replace(/[,.]? ?(또는|돌아올 때도) M(?=[.\s,)]|$)/g,"")
     .replace(/(^|[\s·(])(Ctrl|Shift|Space|Alt|[A-Z]) (?=[가-힣])/g,"$1")
-    .replace(/클릭/g,"터치")).join("");
+    .replace(/클릭해서/g,"눌러서").replace(/클릭하면/g,"누르면").replace(/클릭하거나/g,"누르거나").replace(/클릭·끌기/g,"누르기·끌기").replace(/클릭/g,"눌러")
+    .replace(/ {2,}/g," ")).join("");
 }
 function fixJosa(str){
   str=touchTxt(str);
@@ -8063,6 +8066,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.142","휴대폰: 안내 글에서 키보드·마우스 말(우클릭·E·M·Tab 등)은 버튼 이름으로 바꾸지 않고 그냥 뺀다 — 버튼은 눈에 보이니까 · 전투 오른쪽 키(찌르기·막기·구르기·점프·말)가 서로 살짝 겹치던 것 → 크기를 조금 줄이고 자리를 몇 칸 벌려 안 겹친다"],
  ["0.9.141","점검: 조사 '(으)로'가 그대로 보이던 곳(길잡이·힌트·알림·옆 창) 고침 · 휴대폰에서 안내 글의 키보드·마우스 말(우클릭·E·M·Tab·클릭)을 터치 말로 바꿔 보여 준다 · 휴대폰 전투에 키보드 단축키 줄이 뜨던 것 없앰 · 배치 화면의 조작 설명은 부관의 조언 아래로 옮겨 겹치지 않게 · 힌트가 떠 있으면 단축키 줄은 숨는다 · 긴 알림 띠가 잘리던 것 → 줄바꿈하고 글 길이만큼 더 오래 보인다 · 설정·안내의 'Esc' 설명을 Alt로"],
  ["0.9.140","함께 싸우기 — 혼자 할 때: 이웃 왕국 마을·왕도에 원군으로 세워 둔 우리 군대는 망자가 오면 그 왕국 수비군과 한 전장에서 함께 싸운다(따로 들판에서 붙지 않는다). 이웃 부대는 파란 이름표, 지휘는 이웃이 스스로. 끝나면 이웃 병력·관계에 반영, 지면 그 거점이 무너진다 · 멀티: 동료 전장에 우리 군대가 있으면 '합류' 알림 — 합류하면 같은 전장이 내 화면에 열리고 내 부대를 직접 지휘한다(고르기·옮기기·공격·5~9 병종 명령). 전투 계산은 전장 주인 쪽"],
  ["0.9.139","멀티: 왕국마다 대습격 날이 다르다(자리마다 4일씩 어긋남: 20·24·28·32일째…) — 동료의 대습격에 원군을 보낼 틈이 있다 · 수시 출격 빈도는 1인당 혼자일 때와 같게"],
@@ -8767,7 +8771,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.141 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.142 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
