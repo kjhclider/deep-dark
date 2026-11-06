@@ -4076,7 +4076,7 @@ function onDay(){
   // 망자의 군주
   if(S.oath&&S.day>S.oath.until)S.oath=null;
   // 망자의 군주: 출격 이틀 전에 계획을 세운다(첩자가 요새에 있으면 엿볼 수 있다) → 그날 출격
-  if(S.day>=7&&!(typeof mpGuest==="function"&&mpGuest())){S.lordT-=(S.mp?Math.max(1,S.mp.n*0.75):1);if(S.lordT===2&&!S.lordNext)lordDecide(true);
+  if(S.day>=7&&!(typeof mpGuest==="function"&&mpGuest())){S.lordT-=(S.mp?Math.max(1,S.mp.n):1);if(S.lordT===2&&!S.lordNext)lordDecide(true);
     if(S.lordT<=0){{const D=diff();S.lordT=Math.max(3,ri(D.raid[0],D.raid[1])-Math.floor((S.day-7)/10));}if(S.lordNext)lordLaunch();else lordDecide(false);}}
   if(S.day%3===0&&!S.mp)saveGame();if(S.mp)try{mpSave();}catch(e){}
   if(!S.over&&(S.civ<300||S.morale<=0))checkEndState();
