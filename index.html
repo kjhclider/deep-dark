@@ -2469,7 +2469,7 @@ function worldHraw(X,Z){
   const x=X/WS,z=Z/WS;
   let h=Noise.fbm(x*0.007,z*0.007,5)*8+6;
   const ridge=1-Math.abs(Noise.fbm(x*0.011+40,z*0.011-30,4));
-  const edge=MPW?Math.max(smooth(200,295,Math.abs(mpLocalX(x)))*smooth(-95,-25,z),smooth(WXH()-80,WXH(),Math.abs(x)),smooth(-150-MP_DZ,-210-MP_DZ,z),smooth(178,210,z)):Math.max(smooth(125,205,Math.abs(x)),smooth(-150,-210,z),smooth(178,210,z));
+  const edge=MPW?Math.max(smooth(200,295,Math.abs(mpLocalX(x)))*smooth(-95,-25,z)*(1-smooth(26,8,Math.abs(z-128))),smooth(WXH()-80,WXH(),Math.abs(x)),smooth(-150-MP_DZ,-210-MP_DZ,z),smooth(178,210,z)):Math.max(smooth(125,205,Math.abs(x)),smooth(-150,-210,z),smooth(178,210,z));
   const spur=smooth(0.2,0.6,Noise.fbm(x*0.009+300,z*0.009,3))*smooth(70,-60,z);
   h+=Math.pow(ridge,2.2)*(edge*68+spur*32);
   h=Math.max(h,1.4+Noise.n2(x*0.05,z*0.05)*0.4);
@@ -8011,6 +8011,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=html;}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.133","멀티: 이웃 왕국 사이 산맥에 고갯길 — 왕도끼리 거의 곧장 오갈 수 있다(북쪽 망자 땅으로 돌아가도 된다)"],
  ["0.9.132","멀티플레이 1단계(앱·구글 로그인): 방 만들기·코드로 들어가기·대기실(준비·대화) → 2~4명이 한 세계에서 각자 왕국. 세계는 혼자일 때의 6배(2명)~12배(4명), 구역마다 요새 9곳, 가운데 맨 북쪽에 망자의 왕좌 하나, 이웃 AI 왕국 없음. 시간·망자는 방장 쪽에서 흐르고, 망자가 내 왕국에 다가오면 내 쪽에서 싸운다. 누가 전투 중이면 세계 시간이 멈춘다. 다른 왕국 군대가 지도에 보인다. (아직: 저장, 함께 싸우는 전투, 원조)"],
  ["0.9.131","위 목표 막대: '우리 800 대 망자 6,720'처럼 사람 수를 나란히 놓지 않고 '방어 전망'(넉넉하다·버틸 만하다·팽팽하다·위태롭다·막기 어렵다) — 성벽·숙련까지 따진다. 망자는 수가 많아도 하나하나 약하다는 걸 즉위 때 한 줄로 알려 준다"],
  ["0.9.130","커서/시점 전환은 Alt만 — Esc는 더 이상 커서를 꺼내지 않는다(창 닫기만 한다)"],
@@ -8565,7 +8566,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.132 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.133 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
