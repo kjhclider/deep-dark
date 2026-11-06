@@ -10,7 +10,7 @@ input{width:100%;box-sizing:border-box;margin-top:8px;padding:10px;font:700 20px
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-firebase.initializeApp({"apiKey":"AIzaSyBSSv_puC2HNNnJ5X3pqv6Dx1PM3s-6GO8","authDomain":"deep-dark-dfa61.firebaseapp.com","projectId":"deep-dark-dfa61","storageBucket":"deep-dark-dfa61.firebasestorage.app","messagingSenderId":"436605364957","appId":"1:436605364957:web:2870ce5df98e5512a10934"});
+firebase.initializeApp({"apiKey":"AIzaSyBSSv_puC2HNNnJ5X3pqv6Dx1PM3s-6GO8","authDomain":"deep-dark-dfa61.firebaseapp.com","projectId":"deep-dark-dfa61","storageBucket":"deep-dark-dfa61.firebasestorage.app","messagingSenderId":"436605364957","appId":"1:436605364957:web:2870ce5df98e5512a10934","databaseURL":"https://deep-dark-dfa61-default-rtdb.asia-southeast1.firebasedatabase.app"});
 const q=new URLSearchParams(location.search);let code=(q.get("c")||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
 const cb=document.getElementById("cbox"),msg=document.getElementById("msg"),go=document.getElementById("go");
 if(code.length===8)cb.innerHTML='<p>아래 버튼을 눌러 구글 계정을 고르면 끝 — 게임으로 저절로 로그인된다</p>';
