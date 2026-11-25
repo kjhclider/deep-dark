@@ -1,0 +1,110 @@
+{
+"이(가) ": [
+{
+"ctx": "moving=false;logMsg(`${armyName(a)}",
+"en": " made camp at "
+},
+{
+"ctx": "${compsText(r)}",
+"en": " joined "
+},
+{
+"ctx": "일 뒤 ${by}",
+"en": " will march on "
+},
+{
+"ctx": "별동대 ${fmtN(compMen(half))}",
+"en": " split off toward "
+},
+{
+"ctx": "armyName(help[0])}",
+"en": " fought alongside "
+},
+{
+"ctx": "조약에 따라 ${r.name}",
+"en": " sent a relief force to "
+},
+{
+"ctx": "genNote=`${gd.name}",
+"en": " reached level "
+},
+{
+"ctx": "after+=` ${r.name}",
+"en": " thanks us for protecting "
+},
+{
+"ctx": "대습격 — 망자 ${fmtN(compMen(out))}",
+"en": " head for "
+},
+{
+"ctx": "의 군대 ${fmtN(compMen(cs))}",
+"en": " comes running "
+},
+{
+"ctx": "toast(fixJosa(`${armyName(a)}",
+"en": " is going to join "
+},
+{
+"ctx": "a.moving=true;logMsg(`${armyName(a)}",
+"en": " is going to join "
+},
+{
+"ctx": "z+10);logMsg(`${armyName(a)}",
+"en": " marches to aid "
+},
+{
+"ctx": "logMsg(`${m.fromName}",
+"en": " sent "
+},
+{
+"ctx": "logMsg(`우리 ${armyName(a)}",
+"en": " fought at "
+}
+],
+"에서 ": [
+{
+"ctx": "일 뒤 ${f.name}",
+"en": " sorties toward "
+}
+],
+"일": [
+{
+"ctx": "title:\"솔숲의 사냥꾼\",seal:",
+"en": "I"
+}
+],
+"왕": [
+{
+"ctx": "n:\"왕의 친위대\",g:",
+"en": "R"
+},
+{
+"ctx": "title:\"아스테라의 왕\",seal:",
+"en": "K"
+}
+],
+"명이 ": [
+{
+"ctx": "logMsg(`왕궁 백성 ${n}",
+"en": " head for "
+},
+{
+"ctx": "logMsg(`원군 ${fmtN(compMen(a.comps))}",
+"en": " reached "
+}
+],
+"왕이 ": [
+{
+"ctx": "\"★\".repeat(c.vet)}`);logMsg(`",
+"en": ""
+},
+{
+"ctx": "S.morale+2,0,100);logMsg(`",
+"en": "Spar vs "
+},
+{
+"ctx": "\"결투\");logMsg(`",
+"en": "Spar vs "
+}
+]
+}
