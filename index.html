@@ -372,7 +372,6 @@ hr.orn{border:0;height:9px;margin:4px 0;background:radial-gradient(circle,var(--
 #gcmd .gc.on{background:linear-gradient(180deg,rgba(60,44,20,.95),rgba(20,14,8,.97));border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 16px rgba(242,196,106,.4)}
 #gcmd .gc.on .gh small{color:var(--gold);font-weight:700}
 #gcmd .gb button kbd{font-size:9px;padding:0 3px;margin-right:3px;opacity:.85}
-#gcmd .gb button[data-v=skill2]{color:#ffd0a0}
 
 /* 게임 커서: 쇠칼 끝 (누를 수 있는 곳에선 금빛) */
 html,body,#stage,canvas{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20stroke%3D%22%23140c06%22%20stroke-width%3D%221.2%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2%202%20L18%207%20L21%2010%20L10%2021%20L7%2018%20Z%22%20fill%3D%22%23d9dde2%22/%3E%3Cpath%20d%3D%22M2%202%20L18%207%20L13%2013%20Z%22%20fill%3D%22%23f4f6f8%22/%3E%3Cpath%20d%3D%22M15%2022%20L22%2015%20L24%2017%20L17%2024%20Z%22%20fill%3D%22%23c9a24a%22/%3E%3Cpath%20d%3D%22M21%2021%20L26%2026%22%20stroke%3D%22%235a3a1c%22%20stroke-width%3D%223.2%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2227.5%22%20cy%3D%2227.5%22%20r%3D%222.4%22%20fill%3D%22%23e2b85a%22/%3E%3C/g%3E%3C/svg%3E") 2 2,auto!important}
@@ -516,6 +515,111 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 .mplist{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.mpp{display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid rgba(226,192,122,.4);border-left-width:4px;background:rgba(0,0,0,.25);font-size:14px}.mpp small{opacity:.7;font-size:11px}.mpp span{margin-left:auto;font-size:12px;opacity:.75}.mpp.empty{opacity:.4;border-style:dashed}.mpchat{height:120px;overflow-y:auto;padding:6px 8px;background:rgba(0,0,0,.3);border:1px solid rgba(226,192,122,.2);font-size:13px;margin:6px 0;-webkit-user-select:text;user-select:text}.mpchat b{color:#ffe2a0;margin-right:4px}
 #allyMarks{position:fixed;inset:0;pointer-events:none;z-index:4}#allyMarks .am{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;gap:4px;padding:2px 6px;font-size:11.5px;color:#eef3ff;background:rgba(10,14,22,.8);border:1px solid;border-radius:2px;white-space:nowrap}#allyMarks .am b{display:inline-block;width:8px;height:8px;border-radius:50%}
 #mbAsk{position:fixed;left:50%;top:150px;transform:translateX(-50%);z-index:45;width:min(420px,90vw);padding:12px 14px;background:rgba(12,9,6,.94);border:1px solid #f2c46a;border-radius:4px;color:#efe4cc;font-size:14px;box-shadow:0 0 24px rgba(242,196,106,.3)}#mbAsk span{font-size:13px;opacity:.85}#mbAsk .acts{margin-top:8px}#mbAsk[hidden]{display:none}
+
+/* ══ 차분한 화면 (v0.9.147) ══
+   금박 그라데이션 글씨, 빛나는 테두리, 마름모 장식, 금속 버튼을 걷어 낸다.
+   어두운 반투명 판 + 가는 테두리 + 강조색 하나(바랜 놋쇠)만 쓴다. */
+:root{--gold:#cdb27a;--gold-dim:#8f7d5a;--edge:#4a4032;--edge-2:#2c261f;--line:rgba(240,228,205,.12);--line-2:rgba(240,228,205,.24);--plate:rgba(13,12,11,.9)}
+.panel{background:var(--plate);border:1px solid var(--line);border-radius:3px;box-shadow:0 12px 32px rgba(0,0,0,.45)}
+.panel::before,.panel::after{display:none!important}
+.ph{color:var(--bone);letter-spacing:.04em;text-shadow:none;background:none;border-bottom:1px solid var(--line)}
+.ph::after{display:none}
+.b{background:rgba(240,228,205,.05);border:1px solid var(--line-2);color:var(--bone);box-shadow:none;text-shadow:none;letter-spacing:.02em;font-weight:600}
+.b:hover:not(:disabled){border-color:rgba(240,228,205,.45);background:rgba(240,228,205,.1);color:#fff;box-shadow:none}
+.b.gold{background:#c4a66a;border-color:#c4a66a;color:#15110a;text-shadow:none;box-shadow:none;font-weight:700}
+.b.gold:hover:not(:disabled){background:#d4b77c;border-color:#d4b77c;color:#15110a}
+.b.red{background:rgba(110,34,28,.6);border-color:rgba(200,90,74,.55);color:#f2d6cf}
+.b.on{border-color:var(--gold);color:var(--gold);background:rgba(205,178,122,.1);box-shadow:none}
+.ab{border-color:var(--line-2)!important;color:var(--bone)}
+.crest b,.side h2,.wbody h2,.herald h3{background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:#eee3cb!important;filter:none!important;text-shadow:none}
+.crest,.res,.time,.btitle,.bstat,#khud,#guide,.badvice,#btug,#hint,#toast,.note-it,#pend button,.targeting,#goalBar,#tutNow,#mbAsk,.lgpanel,.lgchip,#infHud .dir{background:var(--plate)!important;border:1px solid var(--line)!important;box-shadow:none!important;text-shadow:none}
+.btitle{color:var(--bone);letter-spacing:.03em;font-weight:800}.btitle small{color:var(--bone-dim)}
+.crest small{color:var(--bone-dim)}.crest small#dateL{color:var(--bone)}
+.rc + .rc{border-left:1px solid var(--line)}.rc .ic{color:var(--bone-dim)!important}
+.time button.on{background:rgba(240,228,205,.1);color:var(--bone);box-shadow:none}
+.dock button{background:var(--plate);border:1px solid var(--line);color:var(--bone);box-shadow:none;text-shadow:none;letter-spacing:.02em}
+.dock button svg{color:var(--bone-dim)}
+.dock button:hover{border-color:var(--line-2);color:#fff;box-shadow:none}
+.tile,.gen,.pickrow,.qrow.wb{background:rgba(240,228,205,.03);border:1px solid var(--line)}
+.gen[aria-pressed="true"],.tile.skin.on{border-color:var(--gold);background:rgba(205,178,122,.08);box-shadow:none}
+.tabs{border-bottom:1px solid var(--line)}.tabs button[aria-selected="true"]{text-shadow:none;color:var(--bone);border-bottom-color:var(--gold)}
+.wfoot{border-top:1px solid var(--line);background:rgba(0,0,0,.2)}
+.window>.wfoot{background:rgba(13,12,11,.98)}
+.herald{background:rgba(240,228,205,.03);border:1px solid var(--line);box-shadow:none}
+.herald::before{display:none}
+.herald.tut .how{border-color:var(--line);background:rgba(240,228,205,.04);color:var(--bone)}
+.herald blockquote{border-left-color:var(--gold-dim);color:#ddd0b4}
+.seal{background:#1a1612;border:1px solid var(--gold-dim);box-shadow:none;color:var(--bone)}
+hr.orn{height:1px;background:var(--line)}
+.veil{background:rgba(4,3,3,.7);backdrop-filter:none}
+#banner{background:rgba(10,9,8,.82);border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--bone);letter-spacing:.03em}
+.feed div{background:linear-gradient(90deg,rgba(10,9,8,.85),rgba(10,9,8,0));border-left-color:var(--line-2)}
+.lbl.army,.lbl.site span,.lbl.spot{background:rgba(10,9,8,.82);border-color:var(--line);box-shadow:none}
+.lbl.army.s-ours,.lbl.army.on{border-color:var(--gold-dim);box-shadow:none}
+.lbl.sq{background:rgba(10,9,8,.72);border:0;padding:1px 4px 2px 1px;gap:3px}
+.lbl.sq i{width:13px;height:13px;font-size:9px;border-radius:1px}
+.lbl.sq b{font-size:10px;min-width:0;color:#e6dcc6}
+.lbl.sq.s-foe{background:rgba(10,9,8,.55);padding:1px}
+.lbl.sq.on{box-shadow:0 0 0 1px var(--gold)}
+.bhelp{background:rgba(10,9,8,.78);border:0}
+.bhelp kbd,.wbody kbd,.kh-keys kbd{border-color:var(--line-2);color:var(--bone)}
+#bmini,#cmini{border:1px solid var(--line-2);box-shadow:0 4px 14px rgba(0,0,0,.5)}
+#hint{border-width:1px!important;animation:notein .3s ease-out!important}
+#hint b{color:#f1e6cd}#hint .hbar{background:var(--line-2)}
+.tsub{letter-spacing:.42em}
+.tline{background:rgba(240,228,205,.3)}
+.ttl{background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:#ebe1ca!important;filter:drop-shadow(0 6px 24px rgba(0,0,0,.85))!important}
+.tb{background:rgba(10,9,8,.6);border:1px solid var(--line-2);letter-spacing:.22em;color:var(--bone)}
+.tb:hover{background:rgba(240,228,205,.08);border-color:rgba(240,228,205,.5);box-shadow:none;color:#fff}
+.tb.main{border-color:rgba(240,228,205,.55);box-shadow:none;background:rgba(240,228,205,.06)}
+.tb.main::before,.tb.main::after{display:none}
+.tb small{color:var(--bone-dim)}
+.joy{background:rgba(10,9,8,.35);border:1px solid var(--line-2)}
+.joy .knob{background:rgba(236,226,204,.55);box-shadow:none}
+#tpad .tp{border:1px solid rgba(240,228,205,.3);background:rgba(10,9,8,.45);box-shadow:none;backdrop-filter:none}
+#tpad .tp.big{border:1.5px solid rgba(240,228,205,.55);background:rgba(10,9,8,.55)}
+#tpad .tp.sk{background:rgba(10,9,8,.45);border-color:rgba(240,228,205,.3)}
+#tpad .tp.pill,#bcmdBtn,#menuBtn{background:var(--plate);border:1px solid var(--line-2);color:var(--bone)}
+#tpad .tp.tmu.ready{border-color:#d9a45a;box-shadow:none;color:#f2d2a0}
+.bar.musou i{background:#c9a24a}.bar.musou.full i{background:#e8c06a;animation:none}
+.kh-ko{font-size:22px;color:var(--bone);text-shadow:none;margin-top:6px}.kh-ko small{color:var(--bone-dim)}.kh-ko em{color:var(--gold)}
+.kh-row{grid-template-columns:30px 1fr;margin:4px 0}.kh-row b{display:none}
+#khud{width:220px;padding:8px 10px}
+.kh-keys{margin-top:6px;line-height:1.7}
+#khud .cd{background:none;color:#e39a8a;min-width:0;padding:0}
+.kh-duel{font-size:11.5px;color:var(--bone)}
+/* 전장: 병종 지휘판과 중대 카드를 낮고 납작하게 */
+#gcmd{gap:4px;margin-bottom:4px}
+#gcmd .gc{background:var(--plate);border:1px solid var(--line);padding:3px 4px;min-width:0;gap:3px}
+#gcmd .gc.on{background:rgba(30,27,22,.94);border-color:var(--gold);box-shadow:none}
+#gcmd .gh{font-size:12px;color:var(--bone)}#gcmd .gh small{font-size:11px}
+#gcmd .gc.on .gh small{color:var(--gold)}
+#gcmd .gb button{background:rgba(240,228,205,.05);border:1px solid var(--line);color:var(--bone);font-size:11.5px;padding:3px 7px}
+#gcmd .gb button:hover{background:rgba(240,228,205,.12)}
+#gcmd .gb button[data-v=charge],#gcmd .gb button[data-v=skill]{color:var(--bone)}
+#gcmd button .cdn{background:none;color:#e39a8a;padding:0;margin-left:5px;font-weight:600}
+.cards{gap:3px}
+.card{width:auto;min-width:104px;padding:4px 5px;grid-template-columns:20px 1fr;gap:2px 5px;background:var(--plate);border:1px solid var(--line)}
+.card .glyph{width:20px;height:20px;font-size:11px;box-shadow:none}
+.card b{font-size:11.5px;font-weight:600;font-family:var(--f-body)}
+.card .st{font-size:10px;color:var(--bone-dim)}
+.card[aria-pressed="true"]{border-color:var(--gold);background:rgba(36,31,24,.95);box-shadow:none}
+.cards .card .bar{height:3px}
+body.bTp #bcards{display:none}
+body.bTp .lbl.sq{display:none}
+#btug{padding:3px 10px;gap:6px;font-size:11px;font-weight:600}
+#btug .tb{height:5px;border:0;background:#4a1d17}#btug .tb i{background:#7f9cc2}
+#btug.hot{border-color:rgba(207,74,60,.6)!important;animation:none}
+.gglow{animation:none!important;box-shadow:0 0 0 2px rgba(205,178,122,.85)!important}
+.lbl.gglow b{animation:none}.lbl.gglow span{animation:none;box-shadow:0 0 0 1px var(--gold)}
+.lbl.gglow::after{background:var(--bone);color:#15110a;animation:none}
+.firstnote{border-color:var(--line-2);background:rgba(240,228,205,.04)}.firstnote .fn-h{color:var(--bone-dim)}
+.dock button.tut-glow{animation:none;box-shadow:0 0 0 1px var(--gold)}
+#tutArrow{text-shadow:0 2px 4px #000;color:var(--bone)}
+.vchip{border-color:var(--line)}
+.pips i{border-color:var(--gold-dim);transform:none;border-radius:1px}
+.lbl .vbadge{background:var(--bone);color:#15110a}
+@media (pointer:coarse),(max-height:520px){#btug{top:4px!important;bottom:auto!important;zoom:.55}#bcards{display:none!important}}
 </style>
 <div id="rotateHint"><b>⟳</b>휴대폰을 가로로 돌려 주세요<br><small>Deep Dark는 가로 화면에서 한다</small></div><div id="app">
   <div id="stage">
@@ -657,8 +761,8 @@ function fixJosa(str){
 const LANG=document.documentElement.lang==="en"?"en":"ko";
 const LANG_OTHER=LANG==="en"?String.fromCharCode(54620,44397,50612):"English";
 function setLang(l){try{localStorage.setItem("dd-lang",l);}catch(e){}location.href=(l==="en"?"en.html":"index.html")+location.search;}
-function langBtnHtml(){return `<div class="acts" style="margin-top:10px"><button class="b" data-a="lang">🌐 ${LANG_OTHER}</button></div>`;}
-function langTitleHtml(){return `<p class="tfoot"><button class="b ghost sm" data-a="lang">🌐 ${LANG_OTHER}</button></p>`;}
+function langBtnHtml(){return `<div class="acts" style="margin-top:10px"><button class="b" data-a="lang">${LANG_OTHER}</button></div>`;}
+function langTitleHtml(){return `<p class="tfoot"><button class="b ghost sm" data-a="lang">${LANG_OTHER}</button></p>`;}
 (function(){let p=null;try{p=localStorage.getItem("dd-lang");}catch(e){}
   if(LANG==="ko"&&(p==="en"||(!p&&!/^ko/i.test(navigator.language||"ko"))))location.replace("en.html"+location.search);
   else if(LANG==="en"&&p==="ko")location.replace("index.html"+location.search);})();
@@ -841,6 +945,12 @@ function cutDepth(tex){if(_CUTD.has(tex))return _CUTD.get(tex);const m=new THREE
     sh.fragmentShader="uniform sampler2D tCut;varying float vCut;varying vec2 vCuv;\n"+sh.fragmentShader.replace("#include <map_fragment>","if(vCut>0.5&&texture2D(tCut,vCuv).a<0.45)discard;");};
   m.customProgramCacheKey=()=>"cutd";_CUTD.set(tex,m);return m;}
 function leafShadow(o,m){if(!m.geo.attributes.aCut)return;const lm=m.mats.find(x=>x.map&&x.alphaTest);if(lm)o.customDepthMaterial=cutDepth(lm.map);}
+/* 나무·바위 배치: 크기·키·기울기·색을 하나하나 다르게 (같은 나무가 도장 찍힌 듯 늘어서지 않게) */
+const _tv={m:new THREE.Matrix4(),q:new THREE.Quaternion(),e:new THREE.Euler(),v:new THREE.Vector3(),s:new THREE.Vector3(),c:new THREE.Color()};
+function treeXf(im,i,t,rng,k,yOff=-0.2){const T=_tv,sc=t[3],tall=k==="rock"||k==="bush"?0.75+rng()*0.5:0.82+rng()*0.38,wide=0.82+rng()*0.32;
+  T.e.set((rng()-0.5)*(k==="rock"?0.5:0.1),rng()*6.283,(rng()-0.5)*(k==="rock"?0.5:0.1));T.q.setFromEuler(T.e);T.m.compose(T.v.set(t[0],t[1]+yOff,t[2]),T.q,T.s.set(sc*wide,sc*tall,sc*wide*(0.9+rng()*0.2)));im.setMatrixAt(i,T.m);
+  const br=0.74+rng()*0.34,w=rng();if(k==="pine")T.c.setRGB(br*(0.9+w*0.08),br*(0.96+w*0.06),br*(0.88+w*0.05));else if(k==="oak")T.c.setRGB(br*(0.92+w*0.16),br*(0.95+w*0.05),br*(0.82+w*0.08));else if(k==="dead")T.c.setRGB(br,br*0.97,br*0.94);else T.c.setRGB(br,br,br*0.97);
+  im.setColorAt(i,T.c);return T.m;}
 function instMesh(m,n){const im=new THREE.InstancedMesh(m.geo,instMats(m.mats),n);im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(n*3).fill(1),3);leafShadow(im,m);return im;}
 const meshOf=(m,shadow=true)=>{const o=new THREE.Mesh(m.geo,m.mats);o.castShadow=shadow;o.receiveShadow=true;leafShadow(o,m);return o;};
 
@@ -1642,17 +1752,22 @@ function buildModels(){
 
 /* ════════ 건물 부품 (모두 부품 목록을 돌려준다 → place로 배치 → mergeSmooth로 합침) ════════ */
 const B3={stone:"#a39c8e",stoneD:"#857e72",stone2:"#b3ab9a",plaster:"#d9cfb8",beam:"#5a4330",roofR:"#a5583e",roofS:"#5d6a86",roofD:"#4a4038",wood:"#7a5a3a",dark:"#2a2622"};
+/* 건물마다 돌·회벽·지붕 색을 조금씩 다르게 — 같은 집·같은 돌이 복사된 듯 보이지 않게 (만드는 순서로 정해져 늘 같다) */
+let _bldN=0;const bldRng=()=>mulberry((++_bldN)*7919+131);
+function jit(hex,r,amt=0.08){const c=new THREE.Color(hex),k=1+(r()-0.5)*2*amt,h=(r()-0.5)*0.02;const o={};c.getHSL(o);c.setHSL((o.h+h+1)%1,clamp(o.s*(0.85+r()*0.3),0,1),clamp(o.l*k,0,1));return "#"+c.getHexString();}
 function prismGeo(w,h,d){const s=new THREE.Shape();s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(0,h);s.lineTo(-w/2,0);
   const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:false});g.translate(0,0,-d/2);return g;}
 const SB=(w,h,d,col,mat="stone",p=[0,0,0],r=[0,0,0],k=3)=>P(SG.box(w,h,d),col,mat,p,r,[1,1,1],[Math.max(w,d)/k,h/k]);
-function crenels(len,y,z0,thick,col=B3.stone,axis="x"){const p=[];const n=Math.floor(len/1.6);for(let i=0;i<n;i++){const t=-len/2+0.8+i*1.6;if(i%2)continue;
-  p.push(axis==="x"?SB(1.0,1.1,thick,col,"stone",[t,y+0.55,z0]):SB(thick,1.1,1.0,col,"stone",[z0,y+0.55,t]));}return p;}
+function crenels(len,y,z0,thick,col=B3.stone,axis="x"){const p=[];const n=Math.floor(len/1.6),r=bldRng();for(let i=0;i<n;i++){const t=-len/2+0.8+i*1.6;if(i%2)continue;const hh=1.0+r()*0.22,ww=0.95+r()*0.12,cc=jit(col,r,0.1);
+  p.push(axis==="x"?SB(ww,hh,thick,cc,"stone",[t,y+hh/2,z0]):SB(thick,hh,ww,cc,"stone",[z0,y+hh/2,t]));}return p;}
 
 /* 집: 돌 기단 + 회벽 + 목재 골조 + 기와 지붕 */
 function houseParts(o={}){
-  const w=o.w||6,d=o.d||8,h=o.h||5,two=o.two??true,roof=o.roof||B3.roofR,pl=o.plaster||B3.plaster;const p=[];
-  p.push(SB(w+0.3,1.0,d+0.3,B3.stoneD,"stone",[0,0.5,0]));
-  p.push(P(SG.box(w,h,d),pl,"plaster",[0,1+h/2,0],[0,0,0],[1,1,1],[w/2,h/2]));
+  const r=bldRng();const PL=["#c9bda2","#b8aa8e","#a89a80","#d0c4a9","#bdb39c","#9f9480"];
+  const w=o.w||6,d=o.d||8,h=o.h||5,two=o.two??true,roof=jit(o.roof||B3.roofR,r,0.12),pl=jit(o.plaster&&o.plaster!==B3.plaster?o.plaster:PL[Math.floor(r()*PL.length)],r,0.05);const p=[];
+  const stoneLow=r()<0.3;
+  p.push(SB(w+0.3,1.0,d+0.3,jit(B3.stoneD,r,0.08),"stone",[0,0.5,0]));
+  p.push(stoneLow?SB(w,h,d,jit(B3.stone,r,0.1),"stone",[0,1+h/2,0]):P(SG.box(w,h,d),pl,"plaster",[0,1+h/2,0],[0,0,0],[1,1,1],[w/2,h/2]));
   // 골조
   for(const sx of [-1,1])for(const sz of [-1,1])p.push(P(SG.box(0.3,h,0.3),B3.beam,"wood",[sx*w/2,1+h/2,sz*d/2]));
   p.push(P(SG.box(w+0.2,0.28,0.32),B3.beam,"wood",[0,1+h*0.5,d/2]),P(SG.box(w+0.2,0.28,0.32),B3.beam,"wood",[0,1+h*0.5,-d/2]));
@@ -1660,8 +1775,8 @@ function houseParts(o={}){
   if(two){p.push(P(SG.box(w+0.6,h*0.5,d+0.6),pl,"plaster",[0,1+h+h*0.25,0],[0,0,0],[1,1,1],[w/2,h/4]));
     for(const sx of [-1,1])p.push(P(SG.box(0.3,h*0.5,0.3),B3.beam,"wood",[sx*(w/2+0.3),1+h*1.25,d/2+0.3]));}
   const top=1+h*(two?1.5:1);
-  p.push(P(prismGeo(w+1.6,w*0.55,d+1.4),roof,"roof",[0,top,0],[0,0,0],[1,1,1],0.35));
-  p.push(SB(1,2.6,1,B3.stoneD,"stone",[w*0.25,top+1.6,-d*0.2]));
+  p.push(P(prismGeo(w+1.4+r()*0.6,w*(0.45+r()*0.22),d+1.2+r()*0.5),roof,"roof",[0,top,0],[0,0,0],[1,1,1],0.35));
+  if(r()<0.75)p.push(SB(0.9+r()*0.3,2.2+r()*1.2,0.9+r()*0.3,jit(B3.stoneD,r,0.1),"stone",[w*(r()<0.5?0.25:-0.25),top+1.6,d*(r()-0.5)*0.6]));
   // 문과 창
   p.push(P(SG.box(1.3,2.2,0.12),"#3b2a1c","wood",[0,2.1,d/2+0.06]),P(SG.sph(0.06,6,4),"#c9a24a","gold",[0.4,2.0,d/2+0.14]));
   for(const sx of [-1,1]){p.push(P(SG.box(1.0,1.1,0.1),o.lit?"#ffb85a":"#2a2420",o.lit?"glow":"wood",[sx*w*0.3,1+h*0.62,d/2+0.05]));
@@ -1676,7 +1791,13 @@ function towerParts(r=5,h=16,roof=B3.roofS,cone=true){
   for(let i=0;i<4;i++){const a=i/4*Math.PI*2+0.4;p.push(P(SG.box(0.5,1.4,0.2),"#1e1a16","dark",[Math.cos(a)*(r+0.05),h*0.6,Math.sin(a)*(r+0.05)],[0,-a+Math.PI/2,0]));}
   return p;
 }
-function wallSeg(len,h=11,t=4){const p=[SB(len,h,t,B3.stone,"stone",[0,h/2,0]),SB(len,0.5,t+0.4,B3.stoneD,"stone",[0,h,0])];
+function wallSeg(len,h=11,t=4){const r=bldRng(),st=jit(B3.stone,r,0.07),sd=jit(B3.stoneD,r,0.07);
+  const p=[SB(len,h,t,st,"stone",[0,h/2,0]),SB(len,0.5,t+0.4,sd,"stone",[0,h,0])];
+  // 아래쪽 비스듬한 기단(흙과 이끼로 어둡다)과 중간 띠돌
+  p.push(SB(len,Math.min(2.4,h*0.22),t+1.1,jit("#6f6a5f",r,0.08),"stone",[0,Math.min(1.2,h*0.11),0]));
+  if(h>7)p.push(SB(len,0.35,t+0.25,sd,"stone",[0,h*0.62,0]));
+  // 버팀벽: 일정하지 않은 간격으로
+  if(len>9&&h>6){let x=-len/2+3+r()*3;while(x<len/2-3){for(const sz of [-1,1])p.push(SB(1.3,h*(0.55+r()*0.2),1.0,jit(B3.stoneD,r,0.06),"stone",[x,h*0.3,sz*(t/2+0.45)]));x+=7+r()*5;}}
   p.push(...crenels(len,h+0.25,t/2-0.3,0.7),...crenels(len,h+0.25,-t/2+0.3,0.7));return p;}
 function keepParts(){
   const p=[];const W=24,D=22,H=24;
@@ -1746,7 +1867,7 @@ function rangeParts(){const p=[];
 function stallParts(col){return [P(SG.box(3.4,0.9,1.8),B3.wood,"wood",[0,0.9,0]),...[[-1.6,-0.8],[1.6,-0.8],[-1.6,0.8],[1.6,0.8]].map(([x,z])=>P(SG.box(0.12,2.8,0.12),B3.wood,"wood",[x,1.4,z])),
   P(SG.box(3.8,0.08,2.4),col,"cloth",[0,2.85,0.2],[0.18,0,0]),P(SG.cyl(0.35,0.35,0.7,10),"#8a6a42","wood",[1,1.7,0]),P(SG.sph(0.4,8,6),"#c8a44a","cloth",[-0.7,1.55,0]),P(SG.box(0.6,0.4,0.5),"#d0662e","cloth",[0.1,1.55,0.2])];}
 function fountainParts(){
-  const p=[P(SG.cyl(6,6.4,1.1,32),B3.stone2,"stone",[0,0.55,0],[0,0,0],[1,1,1],[8,0.5]),P(SG.cyl(5.4,5.4,0.4,32),"#3d6a8a","metal",[0,0.95,0]),
+  const p=[P(SG.cyl(6,6.4,1.1,32),B3.stone2,"stone",[0,0.55,0],[0,0,0],[1,1,1],[8,0.5]),P(SG.cyl(5.4,5.4,0.4,32),"#2c3a40","dark",[0,0.92,0]),
     P(SG.cyl(1.5,2,3.2,16),B3.stone2,"stone",[0,2.2,0])];
   // 첫 번째 왕의 석상
   const st=humanParts({tunic:"#b8b0a0",armor:"#b8b0a0",pants:"#b8b0a0",skin:"#b8b0a0",boots:"#b8b0a0",armR:2.0}).map(pt=>({...pt,mat:"stone",col:"#b5ad9c",uv:0.5}));
@@ -2239,6 +2360,63 @@ function glowTexture(col="#ffffff"){
   g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);
 }
 const TEX={};
+// ── 화살·불 효과 ──
+// 화살: 살대·촉·깃 (막대기 하나가 아니라 화살처럼 보이게)
+function arrowGeo(){const parts=[];const sh=new THREE.CylinderGeometry(0.016,0.016,1.0,5);sh.rotateX(Math.PI/2);parts.push(sh);
+  const hd=new THREE.ConeGeometry(0.035,0.11,4);hd.rotateX(Math.PI/2);hd.translate(0,0,0.55);parts.push(hd);
+  for(const r of [0,Math.PI/2]){const fl=new THREE.PlaneGeometry(0.16,0.055);fl.rotateY(Math.PI/2);fl.rotateZ(r);fl.translate(0,0,-0.42);parts.push(fl);}
+  const pos=[],nor=[];for(const g0 of parts){const g=g0.index?g0.toNonIndexed():g0;pos.push(...g.attributes.position.array);nor.push(...g.attributes.normal.array);}
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.setAttribute("normal",new THREE.Float32BufferAttribute(nor,3));return g;}
+const FXT={};
+function fxTex(k){if(FXT[k])return FXT[k];const c=document.createElement("canvas");let g;
+  if(k==="flame"){c.width=64;c.height=128;g=c.getContext("2d");g.filter="blur(3px)";
+    const gr=g.createRadialGradient(32,100,1,32,86,46);gr.addColorStop(0,"rgba(255,226,160,1)");gr.addColorStop(0.2,"rgba(255,168,70,0.9)");gr.addColorStop(0.5,"rgba(220,86,20,0.55)");gr.addColorStop(1,"rgba(150,35,8,0)");
+    g.fillStyle=gr;g.beginPath();g.moveTo(30,6);g.bezierCurveTo(40,34,58,62,54,96);g.bezierCurveTo(51,120,13,120,10,96);g.bezierCurveTo(7,70,24,46,22,28);g.bezierCurveTo(26,34,28,20,30,6);g.fill();}
+  else if(k==="smoke"){c.width=c.height=64;g=c.getContext("2d");g.filter="blur(4px)";for(let i=0;i<7;i++){const x=20+Math.random()*24,y=20+Math.random()*24,r=10+Math.random()*10;const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,"rgba(255,255,255,0.5)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);}}
+  else if(k==="ember"){c.width=c.height=16;g=c.getContext("2d");const gr=g.createRadialGradient(8,8,0,8,8,8);gr.addColorStop(0,"rgba(255,230,170,1)");gr.addColorStop(0.4,"rgba(255,140,40,0.8)");gr.addColorStop(1,"rgba(255,80,0,0)");g.fillStyle=gr;g.fillRect(0,0,16,16);}
+  else if(k==="glow"){c.width=c.height=64;g=c.getContext("2d");const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,140,50,0.55)");gr.addColorStop(0.5,"rgba(200,70,20,0.2)");gr.addColorStop(1,"rgba(120,30,0,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);}
+  else if(k==="scorch"){c.width=c.height=128;g=c.getContext("2d");g.filter="blur(5px)";for(let i=0;i<26;i++){const a=Math.random()*6.283,r=Math.random()*24,x=64+Math.cos(a)*r,y=64+Math.sin(a)*r,rr=10+Math.random()*12;const gr=g.createRadialGradient(x,y,0,x,y,rr);gr.addColorStop(0,"rgba(18,12,8,0.55)");gr.addColorStop(1,"rgba(18,12,8,0)");g.fillStyle=gr;g.fillRect(0,0,128,128);}}
+  FXT[k]=new THREE.CanvasTexture(c);return FXT[k];}
+function partAdd(B,o){if(!B||B.headless)return;const P=B.parts||(B.parts=[]);P.push(o);if(P.length>360)P.splice(0,P.length-360);}
+// 땅에 떨어진 화살은 몇 초 동안 꽂혀 있다 (불화살은 잠깐 더 탄다)
+function stuckAdd(B,p){if(B.headless)return;const L=Math.hypot(p.x1-p.x0,p.z1-p.z0)||1,arc=p.k==="fire"?Math.min(30,L*0.42+8):Math.min(24,L*0.3),fire=p.k==="fire";
+  const q={x:p.x1,z:p.z1,y:Math.atan2(p.x1-p.x0,p.z1-p.z0),p:Math.min(1.25,Math.atan2(arc*Math.PI/p.dur,L/p.dur)),t0:B.t,life:fire?9:5,burn:fire?2.5+Math.random()*3:0};
+  (B.stuck=B.stuck||[]).push(q);if(B.stuck.length>420)B.stuck.splice(0,B.stuck.length-420);
+  if(fire&&Math.random()<0.5)for(let i=0;i<3;i++)partAdd(B,{k:"ember",x:q.x,y:bH(q.x,q.z)+0.3,z:q.z,vx:rnd(-1.5,1.5),vy:rnd(2,4),vz:rnd(-1.5,1.5),t0:B.t,dur:0.7,s0:0.18,s1:0.1,o:1,g:6});}
+function potBreak(B,p){if(B.headless)return;const y=bH(p.x1,p.z1);for(let i=0;i<8;i++)partAdd(B,{k:"ember",x:p.x1,y:y+0.4,z:p.z1,vx:rnd(-4,4),vy:rnd(2,6),vz:rnd(-4,4),t0:B.t,dur:0.8,s0:0.22,s1:0.1,o:1,g:9});for(let i=0;i<3;i++)partAdd(B,{k:"smoke",x:p.x1+rnd(-1,1),y:y+0.6,z:p.z1+rnd(-1,1),vx:0.3,vy:1,vz:0,t0:B.t,dur:1.6,s0:1,s1:3,o:0.5});}
+// 불: 불화살이 꽂힌 자리마다 불꽃이 따로 타오르다 하나씩 꺼진다. 검은 연기와 불티, 땅의 불빛, 꺼진 뒤의 그을음, 불길 안 망자 몸의 불
+function fireRender(B,dt,now){const t=B.t;BR.fxp=BR.fxp||[];let pi=0;
+  const spr=(k)=>{let sp=BR.fxp[pi];if(!sp){sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false,toneMapped:false}));sp.renderOrder=6;BR.scene.add(sp);BR.fxp.push(sp);}
+    if(sp.userData.k!==k){sp.userData.k=k;sp.material.map=fxTex(k);sp.material.blending=k==="smoke"?THREE.NormalBlending:THREE.AdditiveBlending;sp.material.needsUpdate=true;if(k==="flame")sp.center.set(0.5,0.16);else sp.center.set(0.5,0.5);}
+    sp.material.color.set(k==="smoke"?"#3a342e":"#ffffff");sp.visible=true;pi++;return sp;};
+  BR.fxd=BR.fxd||[];let di=0;
+  const dec=(k)=>{let m=BR.fxd[di];if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}));m.rotation.x=-Math.PI/2;m.renderOrder=4;BR.scene.add(m);BR.fxd.push(m);}
+    if(m.userData.k!==k){m.userData.k=k;m.material.map=fxTex(k);m.material.blending=k==="glow"?THREE.AdditiveBlending:THREE.NormalBlending;m.material.needsUpdate=true;}m.visible=true;di++;return m;};
+  B.scorch=(B.scorch||[]).filter(q=>t<q.t1);
+  for(const F of (B.fires||[])){const R=F.r||14;
+    if(!F.pt){const n=R>10?22:9;F.pt=[];for(let i=0;i<n;i++){const a=Math.random()*6.283,r=Math.pow(Math.random(),0.65)*R*0.9;F.pt.push({x:F.x+Math.cos(a)*r,z:F.z+Math.sin(a)*r,s:(0.7+Math.random()*0.9)*(R>10?1:0.8),end:0.15+Math.random()*0.8,ph:Math.random()*20,on:Math.random()*0.5});}
+      B.scorch.push({x:F.x,z:F.z,r:R*1.15,t1:t+F.t0+30,t0:t});}
+    const el=F.t0-F.t,fade=Math.max(0,Math.min(1,F.t/1.2)),lifeK=F.t/F.t0;
+    const g=dec("glow");g.position.set(F.x,bH(F.x,F.z)+0.2,F.z);g.scale.set(R*2.1,R*2.1,1);g.material.opacity=0.45*Math.min(1,el/0.6)*fade*(0.8+0.2*Math.sin(now*7));
+    for(const q of F.pt){if(el<q.on)continue;
+      const grow=Math.min(1,(el-q.on)/0.5),die=Math.min(fade,(lifeK-(1-q.end))/0.15),k=grow*Math.max(0,Math.min(1,die));if(k<=0.02)continue;   /* 불꽃마다 꺼지는 때가 다르다 */
+      const y=bH(q.x,q.z);
+      for(let j=0;j<2;j++){const fl=0.8+0.2*Math.sin(now*(9+j*4)+q.ph+j)+0.12*Math.sin(now*21+q.ph*3);const sp=spr("flame");
+        sp.position.set(q.x+(j?0.35:0),y,q.z+(j?-0.25:0));sp.scale.set(q.s*(j?0.8:1.15)*fl*k,q.s*(j?1.9:2.5)*(0.85+0.3*fl)*k,1);sp.material.opacity=0.75*k;}
+      if(Math.random()<dt*0.9*k)partAdd(B,{k:"smoke",x:q.x,y:y+q.s*2,z:q.z,vx:0.8+rnd(-0.3,0.3),vy:2+Math.random(),vz:rnd(-0.3,0.3),t0:t,dur:3+Math.random()*1.5,s0:q.s*1.5,s1:q.s*6,o:0.42});
+      if(Math.random()<dt*1.6*k)partAdd(B,{k:"ember",x:q.x+rnd(-0.4,0.4),y:y+0.8,z:q.z+rnd(-0.4,0.4),vx:rnd(-0.6,0.6)+0.4,vy:2.5+Math.random()*2.5,vz:rnd(-0.6,0.6),t0:t,dur:1.2+Math.random(),s0:0.16,s1:0.06,o:1,w:1});}
+    if(F.pw){let nb=0;for(const s of B.sq){if(nb>=14)break;if(!act(s)||s.side===(F.side||0)||Math.hypot(s.x-F.x,s.z-F.z)>R+sqR(s))continue;
+      for(const f of s.figs){if(nb>=14)break;if(!f.alive||Math.hypot(f.x-F.x,f.z-F.z)>R*0.9||((f.vi+Math.floor(now*0.5))%3))continue;nb++;
+        const fl=0.8+0.2*Math.sin(now*12+f.vi);const sp=spr("flame");sp.position.set(f.x,figY(s,f.x,f.z)+0.5+(f.hy||0),f.z);sp.scale.set(0.8*fl*fade,1.7*fl*fade,1);sp.material.opacity=0.85*fade;}}}}
+  for(const q of B.scorch){const m=dec("scorch"),a=Math.min(1,(t-q.t0)/2.5)*Math.min(1,(q.t1-t)/6);m.position.set(q.x,bH(q.x,q.z)+0.12,q.z);m.scale.set(q.r*2,q.r*2,1);m.material.opacity=0.9*a;}
+  for(const q of (B.stuck||[]))if(q.burn&&t<q.t0+q.burn){const k=Math.min(1,(q.t0+q.burn-t)/0.8),fl=0.75+0.25*Math.sin(now*14+q.x*7);const cp=Math.cos(q.p),sp=spr("flame");
+    sp.position.set(q.x-Math.sin(q.y)*cp*0.5,bH(q.x,q.z)+Math.sin(q.p)*0.5-0.1,q.z-Math.cos(q.y)*cp*0.5);sp.scale.set(0.35*fl*k,0.75*fl*k,1);sp.material.opacity=0.9*k;}
+  const tips=B.fireTips||[];for(let i=0;i<tips.length;i+=3){const fl=0.8+0.2*Math.sin(now*20+i);const sp=spr("flame");sp.position.set(tips[i],tips[i+1]-0.15,tips[i+2]);sp.scale.set(0.42*fl,0.8*fl,1);sp.material.opacity=0.95;}B.fireTips=[];
+  B.parts=(B.parts||[]).filter(p=>t<p.t0+p.dur);
+  for(const p of B.parts){const age=t-p.t0;if(age<0)continue;const a=age/p.dur,sp=spr(p.k);
+    sp.position.set(p.x+p.vx*age+(p.w?Math.sin(age*7+p.x)*0.3:0),p.y+p.vy*age-(p.g||0)*age*age*0.5,p.z+p.vz*age);sp.scale.setScalar(p.s0+(p.s1-p.s0)*a);
+    sp.material.opacity=p.k==="smoke"?p.o*Math.sin(Math.min(1,a*1.4)*Math.PI*0.5)*(1-a):p.o*(1-a*a);}
+  for(;pi<BR.fxp.length;pi++)BR.fxp[pi].visible=false;for(;di<BR.fxd.length;di++)BR.fxd[di].visible=false;}
 function glowSprite(col,size,opacity=1){
   if(!TEX[col])TEX[col]=glowTexture(col);
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:TEX[col],transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity,toneMapped:false}));
@@ -2592,7 +2770,7 @@ function scatterProps(sc){
   const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),s=new THREE.Vector3();
   for(const k in lists){const L=lists[k];if(!L.length)continue;
     const im=instMesh(MODELS[k],L.length);im.castShadow=true;im.receiveShadow=true;
-    L.forEach((t,i)=>{e.set(0,rng()*6.28,(rng()-0.5)*0.08);q.setFromEuler(e);m4.compose(v.set(t[0],t[1]-0.2,t[2]),q,s.setScalar(t[3]));im.setMatrixAt(i,m4);});
+    L.forEach((t,i)=>treeXf(im,i,t,rng,k));
     sc.add(im);}
 }
 /* ── 거점 모형 (지도 축척) ── */
@@ -2734,7 +2912,7 @@ function armyVisual(a){
   const types=[...new Set(a.comps.map(c=>c.t))];const n=Math.min(9,3+a.comps.length);
   g.userData.figs=[];
   for(let i=0;i<n;i++){const t=types[i%types.length];const r=Math.floor(i/4),c=i%4;
-    if(CHR.ready&&unitChr(t)&&t!=="cav"&&t!=="ecav"&&t!=="wolf"){g.userData.figs.push({t,ox:(c-1.5)*2.4,oz:-r*3,vi:i,ph:Math.random()*6});continue;}
+    if(CHR.ready&&unitChr(t)&&t!=="cav"&&t!=="ecav"&&t!=="wolf"){g.userData.figs.push({t,ox:(c-1.5)*2.4+(Math.random()-0.5)*0.9,oz:-r*3+(Math.random()-0.5)*1.1,vi:i,ph:Math.random()*6,sp:0.9+Math.random()*0.2});continue;}
     if((t==="cav"||t==="ecav"||t==="wolf")&&CHR.ready&&CHR.gltf[t!=="wolf"?"horse":"wolf"]){const mount=makeHero(t!=="wolf"?"horse":"wolf",[],t==="wolf"?"#9aa08c":null,t==="cav"?"horse":"wolf");
       if(mount){const rider=makeHero(t==="cav"?"knight":t==="ecav"?"paladin":"zgirl",["sword"],t==="wolf"?"#b9c79a":null,"rider");mount.position.set((c-1.5)*2.4,0,-r*3);mount.scale.setScalar(t==="cav"?1.6:1.9);mount.userData.mount=true;mount.userData.ph=0;
         if(rider){rider.position.y=(t!=="wolf"?1.15:0.9);rider.scale.setScalar(t!=="wolf"?0.95:0.8);rider.userData.rider=true;mount.add(rider);}g.add(mount);continue;}}
@@ -2786,8 +2964,11 @@ function animateWorld(dt,t){if(UI.mode==="map"&&typeof tutMapTick==="function")t
   // 지도 위 병사들: 군대마다 몇 명씩 실사 병사가 걷는다
   if(WR.crowd)for(const k in WR.crowd)if(WR.crowd[k])for(const c of WR.crowd[k])c.begin();
   for(const a of S.armies){const o=WR.armyObjs[a.id];if(!o||!o.g.visible||!o.g.userData.figs)continue;const base=o.g.position,ry=o.g.rotation.y,sc=2.4;
-    for(const f of o.g.userData.figs){const cw=mapCrowd(f.t);if(!cw)continue;const cs=Math.cos(ry),sn=Math.sin(ry);const x=base.x+(f.ox*cs+f.oz*sn)*sc,z=base.z+(-f.ox*sn+f.oz*cs)*sc;
-      cw[f.vi%cw.length].push(x,base.y,z,ry,a.moving?"walk":"idle",f.vi,f.ph,1);}}
+    for(const f of o.g.userData.figs){const cw=mapCrowd(f.t);if(!cw)continue;const cs=Math.cos(ry),sn=Math.sin(ry);
+      // 행군: 대열이 한 덩어리로 미끄러지지 않게 — 병사마다 앞뒤 간격이 조금씩 늘었다 줄고, 좌우로 흔들리며, 발은 제자리 땅을 딛는다
+      const mv=a.moving?1:0.25,ox=f.ox+Math.sin(t*0.8+f.ph)*0.35*mv,oz=f.oz+Math.sin(t*0.55+f.ph*1.7)*0.6*mv;
+      const x=base.x+(ox*cs+oz*sn)*sc,z=base.z+(-ox*sn+oz*cs)*sc;const y=onBridge(x,z)?BRIDGE_Y+0.4:Math.max(worldH(x,z),Math.abs(z-riverZ(x))<16?0.6:-99);
+      cw[f.vi%cw.length].push(x,y,z,ry+Math.sin(t*0.6+f.ph)*0.09,a.moving?"walk":"idle",f.vi,f.ph,f.sp||1);}}
   if(WR.crowd)for(const k in WR.crowd)if(WR.crowd[k])for(const c of WR.crowd[k])c.end();
   for(const a of S.armies){const o=WR.armyObjs[a.id];if(!o)continue;
     // 강바닥은 수면 아래라 군대가 물에 잠겨 안 보인다 → 여울을 건널 땐 수면 위로
@@ -2930,7 +3111,7 @@ function buildCapital(){
   for(let i=0;i<34;i++){const a=rng()*Math.PI*2,r=(40+rng()*60)*SC,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x)<18||Math.hypot(x,z-14*SC)<24*SC||inArena(x,z,12)||(Math.abs(z-26*SC)<9&&x<-10)||capLayout().some(b=>b.id!=="keep"&&Math.hypot(b.x-x,b.z-z)<Math.max(b.hw,b.hd)+10))continue;trees.oak.push([x,capH(x,z),z,0.55+rng()*0.3]);}
   const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),s=new THREE.Vector3();
   for(const k in trees){const L=trees[k];const im=instMesh(MODELS[k],L.length);im.castShadow=true;im.receiveShadow=true;
-    L.forEach((t,i)=>{e.set(0,rng()*6.28,0);q.setFromEuler(e);m4.compose(v.set(t[0],t[1]-0.2,t[2]),q,s.setScalar(t[3]));im.setMatrixAt(i,m4);});sc.add(im);}
+    L.forEach((t,i)=>treeXf(im,i,t,rng,k));sc.add(im);}
   for(let i=0;i<6;i++){const a=i/6*Math.PI*2+0.3,r=560;const m=new THREE.Mesh(new THREE.ConeGeometry(120+i*20,180+(i%3)*60,7),new THREE.MeshStandardMaterial({color:LIN(i%2?"#6a6e76":"#5d636c"),roughness:1,flatShading:true}));m.position.set(Math.cos(a)*r,40,Math.sin(a)*r);sc.add(m);
     const cap=new THREE.Mesh(new THREE.ConeGeometry(45+i*7,60,7),new THREE.MeshStandardMaterial({color:LIN("#e4e6ea"),roughness:0.8,flatShading:true}));cap.position.set(Math.cos(a)*r,40+(180+(i%3)*60)/2-25,Math.sin(a)*r);sc.add(cap);}
   // 풀
@@ -3306,7 +3487,9 @@ function drawCapMini(){const cv=$("#cmini");if(!cv||cv.hidden||!(UI.mode==="capi
   g.strokeStyle="#9a8a6a";g.lineWidth=3;g.beginPath();g.arc(W/2,H/2,CAP_R*k,0,7);g.stroke();g.fillStyle="#e6c374";g.fillRect(X(-5),Y(CAP_R)-3,10*k,6);
   // 표식 이름
   g.font="bold 11px sans-serif";g.textAlign="center";g.fillStyle="#f0dcae";
-  for(const s of CAP.spots){if(s.id==="yard2")continue;g.fillStyle="#e6c374";g.beginPath();g.arc(X(s.x),Y(s.z),3,0,7);g.fill();g.fillStyle="#f0e6d2";g.fillText(s.name.replace(" 구역","").slice(0,5),X(s.x),Y(s.z)-4);}
+  {const put=[];   /* 이름표끼리 겹치면 뒤의 것은 점만 찍는다 */
+  for(const s of CAP.spots){if(s.id==="yard2")continue;const x=X(s.x),y=Y(s.z);g.fillStyle="#cdb27a";g.beginPath();g.arc(x,y,2.5,0,7);g.fill();const t=s.name.replace(" 구역","").slice(0,5),w=g.measureText(t).width;
+    if(put.some(q=>Math.abs(q[0]-x)<(q[2]+w)/2+3&&Math.abs(q[1]-y)<11))continue;put.push([x,y,w]);g.fillStyle="#f0e6d2";g.fillText(t,x,y-4);}}
   // 왕
   g.save();g.translate(X(inPal?0:CAP.pos.x),Y(inPal?KEEP.z:CAP.pos.z));g.rotate(inPal?0:Math.PI-KC.face);g.fillStyle="#fff1b8";g.beginPath();g.moveTo(0,-7);g.lineTo(4.5,5);g.lineTo(0,2.5);g.lineTo(-4.5,5);g.closePath();g.fill();g.restore();
   // 북쪽 표시
@@ -3578,7 +3761,7 @@ function councilModal(){
 function genModal(id){
   const g=genState(id),G=genById(id);
   return `${winHead(G.name)}<div class="wbody"><div style="display:flex;gap:12px;align-items:center"><span class="seal">${G.seal}</span><div><h2>${G.name}</h2><span class="kind">${G.title}</span></div></div>
-    <p class="desc">${esc(G.bio)}</p><dl class="kv"><dt>등급</dt><dd>Lv${g.lvl} (경험 ${g.xp})</dd><dt>상시</dt><dd>${G.passive}</dd><dt>능력</dt><dd>${G.ab} — ${G.abd}</dd>${genPerks(id).map(p=>`<dt>Lv${p.need}</dt><dd style="${p.on?"color:var(--gold)":"opacity:.55"}">${p.on?"✓ ":"🔒 "}${p.n}</dd>`).join("")}</dl>
+    <p class="desc">${esc(G.bio)}</p><dl class="kv"><dt>등급</dt><dd>Lv${g.lvl} (경험 ${g.xp})</dd><dt>상시</dt><dd>${G.passive}</dd><dt>능력</dt><dd>${G.ab} — ${G.abd}</dd>${genPerks(id).map(p=>`<dt>Lv${p.need}</dt><dd style="${p.on?"color:var(--gold)":"opacity:.55"}">${p.on?"":"(잠김) "}${p.n}</dd>`).join("")}</dl>
     ${g.status==="ready"?`<div class="acts"><button class="b gold" data-a="composeGen" data-id="${id}">이 장군에게 원정을 맡긴다</button></div>`:`<p class="note">${g.status==="wounded"?`부상에서 회복 중 (${g.wound}일)`:""}</p>`}</div>`;
 }
 
@@ -3634,7 +3817,7 @@ function enterSiteView(id,o={}){
   for(let i=0;i<500;i++){const a=rng()*Math.PI*2,r=55+rng()*150,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Noise.fbm(x*0.02,z*0.02,2)<-0.1)continue;(bl>0.5?trees.dead:rng()<0.6?trees.pine:trees.oak).push([x,svH(x,z),z,0.8+rng()*0.8]);}
   const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),s=new THREE.Vector3();
   for(const k in trees){const L=trees[k];if(!L.length)continue;const im=instMesh(MODELS[k],L.length);im.castShadow=true;
-    L.forEach((t,i)=>{e.set(0,rng()*6.28,0);q.setFromEuler(e);m4.compose(v.set(t[0],t[1]-0.2,t[2]),q,s.setScalar(t[3]));im.setMatrixAt(i,m4);});sc.add(im);}
+    L.forEach((t,i)=>treeXf(im,i,t,rng,k));sc.add(im);}
   if(bl<0.5)sc.add(grassMesh(gN(5000),[140,140,0,0],svH,(x,z)=>Math.hypot(x,z)>20));
   if(parts.length)sc.add(meshOf(mergeSmooth(parts,0.06)));
   // 망자 무리: 실제 주둔·포위 병력에 비례
@@ -3875,11 +4058,12 @@ function kingHurt(dmg,from){const k=KC;if(k.ko)return false;if(k.inv>0){if(k.rol
   if(k.hp<=0){k.hp=0;k.ko=true;return true;}return false;}
 /* ── 왕 HUD: 체력·기력·무예·조작 ── */
 function renderKingHud(extra){const el=$("#khud");if(!el)return;el.hidden=false;{const st=$("#stage"),hv0=$("#hurt");if(st&&el.parentElement!==st){st.appendChild(el);if(hv0)st.appendChild(hv0);}}const k=KC;const hv=$("#hurt");if(hv){const r=k.hp/k.max;hv.hidden=false;hv.style.opacity=r<0.35?String(0.35+(0.35-r)*1.8):"0";}
-  el.innerHTML=`<div class="kh-bars"><div class="kh-row"><span>체력</span><span class="bar big"><i style="width:${Math.max(0,k.hp/k.max*100)}%;background:${k.hp<k.max*0.3?"var(--blood)":"#c9473b"}"></i></span><b class="num">${Math.ceil(k.hp)}</b></div>
-    <div class="kh-row"><span>기력</span><span class="bar big"><i style="width:${k.stam}%;background:var(--gold)"></i></span><b class="num">${Math.floor(k.stam)}</b></div>
-    ${typeof BT!=="undefined"&&BT&&BT.phase==="battle"?`<div class="kh-row"><span>기세</span><span class="bar big musou ${(k.musou||0)>=100?"full":""}"><i style="width:${k.musou||0}%"></i></span><b class="num">${(k.musou||0)>=100?"4!":Math.floor(k.musou||0)}</b></div>`:""}<div class="kh-row"><span>${HERO.gen?"레벨":"무예"}</span><span class="bar big"><i style="width:${HERO.gen?Math.min(100,((heroGenSt()||{}).lvl||1)*14):kingSkill()}%;background:#9dbbe0"></i></span><b class="num">${HERO.gen?((heroGenSt()||{}).lvl||1):Math.floor(kingSkill())}</b></div><div class="kh-note">${HERO.gen?`장군을 직접 조종 중 — 레벨이 체력 ${k.max} · 피해 ×${kingDmg().toFixed(2)}를 정한다. 처치하면 경험이 쌓인다`:`무예 → 최대 체력 ${k.max} · 피해 ×${kingDmg().toFixed(2)}${kingSkill()<6?" · 6이 되면 대련 가능":""}`}</div></div>
-    ${typeof S!=="undefined"&&S&&S.kingWound>0&&!(typeof BT!=="undefined"&&BT)?`<div class="kh-row" style="color:#f0a090"><b>중상 — ${S.kingWound}일 남음</b>&nbsp;· 말·출정 불가. 수녀원에서 치료하면 빨리 낫는다</div>`:""}
-    ${extra||""}<div class="kh-keys">${k.mounted?`<b class="kh-mode">말 위</b> <kbd>WASD</kbd>달린다 <kbd>Shift</kbd>질주 <kbd>우클릭</kbd>달리며 베기 <kbd>${typeof BT!=="undefined"&&BT?"M":"E"}</kbd>내린다 · 달리면 밟고 지나간다`:`<kbd>우클릭</kbd>베기 <kbd>R</kbd>찌르기 <kbd>Ctrl</kbd>구르기 <kbd>Space</kbd>점프 <kbd>B</kbd>막기 <kbd>C</kbd>웅크리기 <kbd>Shift</kbd>달리기<br>${KSKILLS.map(s=>kSkillOpen(s.id)?`<kbd>${s.key}</kbd>${s.n}${(k.kcd&&k.kcd[s.id]>0)?` <span class="cd">${Math.ceil(k.kcd[s.id])}초</span>`:""}`:`<span class="lock">${s.key} ${s.n} · 무예 ${s.need}</span>`).join(" ")}`}</div>`;el.hidden=false;}
+  const inB=typeof BT!=="undefined"&&BT&&BT.phase==="battle";
+  el.innerHTML=`<div class="kh-bars"><div class="kh-row"><span>체력</span><span class="bar big"><i style="width:${Math.max(0,k.hp/k.max*100)}%;background:${k.hp<k.max*0.3?"var(--blood)":"#b8463a"}"></i></span></div>
+    <div class="kh-row"><span>기력</span><span class="bar big"><i style="width:${k.stam}%;background:#c9b07a"></i></span></div>
+    ${inB?`<div class="kh-row"><span>기세</span><span class="bar big musou ${(k.musou||0)>=100?"full":""}"><i style="width:${k.musou||0}%"></i></span></div>`:`<div class="kh-row"><span>${HERO.gen?"레벨":"무예"}</span><span class="bar big"><i style="width:${HERO.gen?Math.min(100,((heroGenSt()||{}).lvl||1)*14):kingSkill()}%;background:#8fa6c0"></i></span><b class="num">${HERO.gen?((heroGenSt()||{}).lvl||1):Math.floor(kingSkill())}</b></div>`}</div>
+    ${typeof S!=="undefined"&&S&&S.kingWound>0&&!(typeof BT!=="undefined"&&BT)?`<div class="kh-row" style="color:#f0a090;display:block">중상, ${S.kingWound}일 남음. 말을 타거나 출정할 수 없다</div>`:""}
+    ${extra||""}${inB&&!k.mounted?`<div class="kh-keys">${KSKILLS.filter(s=>kSkillOpen(s.id)).map(s=>`<kbd>${s.key}</kbd>${s.n}${(k.kcd&&k.kcd[s.id]>0)?` <span class="cd">${Math.ceil(k.kcd[s.id])}</span>`:""}`).join(" ")}</div>`:""}`;el.hidden=false;}
 function hideKingHud(){const el=$("#khud");if(el)el.hidden=true;const hv=$("#hurt");if(hv){hv.style.opacity="0";}}
 
 /* ════════ 세계 길찾기: 군대는 땅을 따라 걷고 강은 다리로만 건넌다 ════════
@@ -4588,7 +4772,7 @@ function infCones(R){if(!SV.scene)return;
 function infHudTick(){let el=$("#infHud");if(!el){el=document.createElement("div");el.id="infHud";el.innerHTML='<div class="vig"></div><div class="dir"><i>➤</i><span></span></div><div class="eye"></div><div class="mtr"><span>발각</span><b><i></i></b><button data-a="infOut">철수</button></div>';document.body.appendChild(el);}
   {const mi=el.querySelector(".mtr i");if(mi){mi.style.width=INF.meter+"%";mi.style.background=INF.meter>70?"#d0533f":"#e2b04a";}}
   el.hidden=!INF.on;if(!INF.on)return;const mtr=INF.meter/100;el.querySelector(".vig").style.opacity=Math.min(1,mtr*1.2);
-  const eye=el.querySelector(".eye");eye.textContent=INF.seen&&INF.seen.size?"👁 보인다 — 시선 밖으로!":INF.meter>5?"숨는 중… 위험이 줄고 있다":"";eye.className="eye"+(INF.seen&&INF.seen.size?" on":"");
+  const eye=el.querySelector(".eye");eye.textContent=INF.seen&&INF.seen.size?"보인다! 시선 밖으로":INF.meter>5?"숨는 중… 위험이 줄고 있다":"";eye.className="eye"+(INF.seen&&INF.seen.size?" on":"");
   const left=INF.pois.filter(p=>!p.found);const dir=el.querySelector(".dir");if(!left.length){dir.hidden=true;return;}
   let b=null,bd=1e9;for(const p of left){const d=Math.hypot(p.x-INF.pos.x,p.z-INF.pos.z);if(d<bd){bd=d;b=p;}}
   const yaw=E.tp?E.tp.yaw:0,ang=Math.atan2(b.x-INF.pos.x,b.z-INF.pos.z);const rel=ang-(yaw+Math.PI);
@@ -5280,8 +5464,8 @@ function jobMapTick(){let box=$("#jobMarks");if(!box){box=document.createElement
     const out=p<0.35?p/0.35:p<0.65?1:1-(p-0.65)/0.35;const x=lerp(cap.x,tx,out),z=lerp(cap.z,tz,out);
     const sp=worldToScreen(x,worldH(x,z)+3,z);if(!sp.vis)continue;const left=Math.max(0,j.at-now);
     const what=p<0.35?"가는 중":p<0.65?"일하는 중":"짐 지고 돌아오는 중";
-    h+=`<div class="jm${p>=0.35&&p<0.65?" work":""}" style="left:${st.left+sp.x}px;top:${st.top+sp.y}px"><span>${L[0]}</span><small>${L[1]} · ${what} · ${left<1?Math.max(1,Math.round(left*24))+"시간":left.toFixed(1)+"일"} 뒤</small></div>`;
-    const tp=worldToScreen(tx,worldH(tx,tz)+1,tz);if(tp.vis)h+=`<div class="jt" style="left:${st.left+tp.x}px;top:${st.top+tp.y}px">${L[0]}</div>`;}
+    h+=`<div class="jm${p>=0.35&&p<0.65?" work":""}" style="left:${st.left+sp.x}px;top:${st.top+sp.y}px"><small>${L[1]}, ${what}</small></div>`;
+    }
   box.innerHTML=h;}
 
 /* ════════ 길잡이 표식: 바닥의 노란 점선 길과 빛기둥, 지도 위 고리, 반짝이는 버튼 ════════ */
@@ -5361,8 +5545,8 @@ const HINTS={
   wall:["성벽 방어전","성은 원형 성벽으로 둘러싸여 있고 북쪽에 성문이 있다. 궁병은 성벽 위 통로에서 쏘고, 성벽 가까이 선 보병·창병은 아래 망자에게 돌을 던진다. 망자는 사다리를 걸고 성벽을 부순다. 성문·성벽이 뚫리면 안쪽 보병·창병·기병이 알아서 틈을 막으러 간다. 성문이 부서지면 그리로 몰려온다. '성문 열기'나 돌격(G)으로 출격할 수 있다. 상단에 성문·성벽 체력이 보인다."],
   reinf:["원군이 온다","근처로 오던 아군 군대가 전투 중에 도착한다. 버티면 원군이 망자의 등이나 옆구리를 친다."],
   camp:["야영","군대를 빈 땅에 보내면 야영한다. 머무는 동안 병력과 피로가 회복된다. 피로가 높으면 전투력이 떨어진다(피로 100이면 60%)."],
-  groups:["병종별 지휘","아래 지휘판에서 보병·창병·궁병·기마병·전군을 따로 부린다. 숫자 5~9로 병종을 고르면 그 부대들이 밝게 빛나고 카드에 '지휘 중'이 뜬다 — G 돌격 · H 후퇴 · J·K 기술은 그 병종에게만 간다. 버튼을 바로 눌러도 된다. 명령이 없으면 부대는 알아서 상성 맞는 적에게 간다."],
-  skills:["병종 기술","보병: 방패막(버티기)·밀어붙이기. 창병: 창벽(트롤·기병 막기)·투창(즉시 큰 피해). 궁병: 집중 사격·불화살(10초 불길). 기마병: 측면 돌격·돌파. 전군: 함성(공격↑)·전열 정비(받는 피해↓). 쓰면 버튼에 남은 쿨타임 초가 뜬다."],
+  groups:["병종별 지휘","아래 지휘판에서 보병·창병·궁병·기마병·전군을 따로 부린다. 숫자 5~9로 병종을 고르면 그 부대들이 밝게 빛나고 카드에 '지휘 중'이 뜬다 — G 돌격, H 후퇴, J 기술은 그 병종에게만 간다. 버튼을 바로 눌러도 된다. 명령이 없으면 부대는 알아서 상성 맞는 적에게 간다."],
+  skills:["병종 기술","병종마다 기술이 하나씩 있다. 보병은 밀어붙이기, 창병은 투창, 궁병은 불화살, 기마병은 측면 돌격, 전군은 함성. 쓰고 나면 버튼에 다시 쓸 때까지 남은 초가 뜬다."],
   musou:["무쌍난무 준비","기세가 가득 찼다 — 4를 누르면 몇 초 동안 무적으로 회전하며 주위 망자를 쓸어 버린다. 기세는 적을 베거나, 공격을 딱 맞춰 막거나(B를 맞기 직전에), 구르기로 아슬아슬하게 피하면 찬다."],
   warmap:["작전도","Tab을 누르면 큰 작전도가 펼쳐지고 시간이 느려진다. 부대를 클릭하거나 끌어서 고르고, 우클릭으로 이동·공격을 명령한다. 다시 Tab으로 닫는다."],
   hero:["장군이 이끄는 전투","장군이 이끄는 전투는 전체 시점으로 지휘한다. 장군은 근위대와 함께 알아서 싸우고, Q로 장군 능력을 쓴다."],
@@ -5394,7 +5578,7 @@ function helpModal(tab){tab=tab||UI.helpTab||"keys";UI.helpTab=tab;
   else if(tab==="battle"){const t=(n,d)=>`<div class="tile"><div class="hd"><span class="nm">${n}</span></div><div class="ds">${d}</div></div>`;
     body=t("흐름","배치(부대를 끌어 자리 잡기·진형) → 개전 → 명령이 없으면 부대가 알아서 상성 맞는 적에게 간다. 이길 때까지 병종 지휘판과 왕(또는 장군)의 칼로 판을 바꾼다.")
      +t("병종별 지휘 (5~9 · G H J K)","5 보병 · 6 창병 · 7 궁병 · 8 기마병 · 9 전군. 숫자를 누르면 그 병종 부대가 밝게 빛나고 카드에 <b>지휘 중</b>이 뜬다. G 돌격 · H 후퇴 · J 첫째 기술 · K 둘째 기술은 지휘 중인 병종에게만 간다. 카드의 버튼을 바로 눌러도 된다.")
-     +t("병종 기술",GROUPS.map(G=>`<b>${G.n}</b> — ${G.sk}: ${G.skd} (쿨 ${G.cd}초) / ${G.sk2}: ${G.skd2} (쿨 ${G.cd2}초)`).join("<br>"))
+     +t("병종 기술",GROUPS.map(G=>`${G.n}, ${G.sk}: ${G.skd} (${G.cd}초마다)`).join("<br>"))
      +t("왕·장군의 칼","우클릭 베기 · R 찌르기 · Ctrl 구르기 · B 막기(맞기 직전에 누르면 패리 → 반격 ×2) · 1 회오리 · 2 함성 · 3 돌진 · 4 무쌍난무(기세가 차면). 박자 맞춰 베면 연속기가 빨라지고 세진다. 적 병사 사이는 뚫고 지나가지 못한다.")
      +t("장군이 이끄는 전투","장군이 이끄는 전투는 전체 시점으로만 지휘한다. 장군은 근위대와 함께 알아서 싸우고, Q로 장군 능력을 쓴다. 왕이 직접 나선 전투에서만 V로 왕의 시점에 들어간다.")
      +t("작전도 (Tab)","큰 작전도가 펼쳐지고 시간이 느려진다. 클릭·끌기로 부대를 고르고 우클릭으로 이동·공격. V는 전체 시점.")
@@ -5699,14 +5883,14 @@ setInterval(()=>{try{if(!S||BT||S.title||UI.mode==="battle"||UI.mode==="spy"){co
 /* 휴대폰 전장 정리: 지휘판·중대 카드는 '지휘' 버튼으로 펼칠 때만, 왕 정보는 막대만, 미니맵·설명 줄은 숨긴다 */
 setInterval(()=>{try{let b=$("#bcmdBtn");const on=!!BT&&document.body.classList.contains("tpOn")&&UI.mode==="battle";
   if(!b){b=document.createElement("button");b.id="bcmdBtn";b.addEventListener("click",()=>{document.body.classList.toggle("cmdOpen");b.textContent=document.body.classList.contains("cmdOpen")?"지휘판 닫기 ▼":"지휘판 ▲";});b.textContent="지휘판 ▲";document.body.appendChild(b);}
-  b.hidden=!on;document.body.classList.toggle("tpBattle",on);if(!on&&document.body.classList.contains("cmdOpen")){document.body.classList.remove("cmdOpen");b.textContent="지휘판 ▲";}}catch(e){}},300);
+  b.hidden=!on;document.body.classList.toggle("tpBattle",on);document.body.classList.toggle("bTp",!!BT&&UI.mode==="battle"&&E.camMode==="tp");if(!on&&document.body.classList.contains("cmdOpen")){document.body.classList.remove("cmdOpen");b.textContent="지휘판 ▲";}}catch(e){}},300);
 /* ── 휴대폰 화면 정리 (다른 모바일 액션 RPG처럼: 엄지 자리 = 조이스틱·행동 버튼, 모서리 = 상태, 나머지는 '메뉴' 안으로) ──
    왕도·대전: 아래 메뉴 버튼 하나 → 누르면 큰 메뉴판(지도·내정·원정…)  /  길잡이 패널 대신 '지금 할 일' 한 줄  /  잠입: 옆 창 대신 위의 작은 표시 */
 setInterval(()=>{try{const coarse=document.body.classList.contains("tpOn")||matchMedia("(pointer:coarse)").matches;if(!coarse)return;
-  let b=$("#menuBtn");if(!b){b=document.createElement("button");b.id="menuBtn";b.innerHTML="☰ 메뉴";b.addEventListener("click",()=>{document.body.classList.toggle("dockOpen");});document.body.appendChild(b);
+  let b=$("#menuBtn");if(!b){b=document.createElement("button");b.id="menuBtn";b.innerHTML="메뉴";b.addEventListener("click",()=>{document.body.classList.toggle("dockOpen");});document.body.appendChild(b);
     const d=$("#dock");if(d)d.addEventListener("click",e=>{if(e.target.closest("button"))document.body.classList.remove("dockOpen");});}
   const walk=!!S&&!S.title&&!BT&&(UI.mode==="capital"||UI.mode==="palace");b.hidden=!walk||!!UI.modalOpen;document.body.classList.toggle("tpWalk",walk);
-  if(!walk||UI.modalOpen)document.body.classList.remove("dockOpen");b.innerHTML=document.body.classList.contains("dockOpen")?"✕ 닫기":"☰ 메뉴";
+  if(!walk||UI.modalOpen)document.body.classList.remove("dockOpen");b.innerHTML=document.body.classList.contains("dockOpen")?"닫기":"메뉴";
   document.body.classList.toggle("tpSpy",UI.mode==="spy");}catch(e){}},250);
 
 /* ════════ 3D 전술전 ════════ */
@@ -5884,7 +6068,7 @@ function wallStep(dt){
     const a=wAng(s.x,s.z);let best=null,bv=0;for(const e of BT.sq){if(e.side!==0||!act(e))continue;const we=wIn(e.x,e.z);if(we>0||we<-14||angD(wAng(e.x,e.z),a)>0.55)continue;const v=e.alive*(e.lad||e.role==="ram"?1.6:1);if(v>bv){bv=v;best=e;}}
     const ram=(BT.engines||[]).find(e=>e.ram&&e.hp>0&&wIn(e.x,e.z)>-10&&angD(wAng(e.x,e.z),a)<0.55);
     if(!best&&!ram){s.potT=1.5;continue;}s.potT=rnd(8,11);const tg=ram&&(!best||Math.random()<0.5)?ram:best;
-    const fx=tg.x+rnd(-1.5,1.5),fz=tg.z+rnd(-1.5,1.5);if(!BT.headless){const fl=s.figs.filter(f=>f.alive);for(let i=0;i<3&&fl.length;i++){const f=fl[(i*5)%fl.length];BT.proj.push({x0:f.x,z0:f.z,x1:fx+rnd(-2,2),z1:fz+rnd(-2,2),t0:BT.t+i*0.12,dur:0.7,k:"fire",h0:wallH()+1.6});}}
+    const fx=tg.x+rnd(-1.5,1.5),fz=tg.z+rnd(-1.5,1.5);if(!BT.headless){const fl=s.figs.filter(f=>f.alive);for(let i=0;i<3&&fl.length;i++){const f=fl[(i*5)%fl.length];BT.proj.push({x0:f.x,z0:f.z,x1:fx+rnd(-2,2),z1:fz+rnd(-2,2),t0:BT.t+i*0.12,dur:0.7,k:"pot",h0:wallH()+1.6});}}
     BT.pend.push({at:BT.t+0.8,fn:()=>{if(!BT)return;BT.fires=(BT.fires||[]).concat([{x:fx,z:fz,t:6,t0:6,pw:s.alive*8,side:1,r:6,src:s.id}]);}});
     if(!BT.potSaid||BT.t-BT.potSaid>14){BT.potSaid=BT.t;bSay(ram&&tg===ram?"망자가 성벽 위에서 충차에 불단지를 던진다!":"망자가 사다리 아래로 불단지를 쏟는다 — 불길을 피해 흩어져라!");}}
   for(const s of BT.sq){if(!act(s)||!s.wallThrow||!onWallTop(s)||s.state==="rout")continue;s.thrT=(s.thrT||rnd(0,1.5))-dt;if(s.thrT>0)continue;s.thrT=1.8+rnd(0,0.6);
@@ -5963,7 +6147,7 @@ function bAbility(){
   else if(g.kind==="bless"){for(const s of bOurs())if(act(s)){s.morale=Math.min(100,s.morale+25);const mx=s.men0*sqHp(s);s.pool=Math.min(mx*0.9,s.pool+mx*0.08);}B.abCd=g.cd;bSay(`${g.name}: "빛이 함께한다!"`);}
 }
 /* ── 병종 고유 능력: 선택한 부대마다 제 능력을 쓴다 (R) ── */
-const SQ_AB={inf:{n:"방패벽",d:"10초 동안 화살 피해 절반, 근접 피해 -25%. 느려진다.",cd:35},spear:{n:"창벽",d:"10초 동안 제자리에서 창을 내린다. 기병 돌격을 막고 기병에게 +60%.",cd:35},archer:{n:"집중 사격",d:"6초 동안 화살 피해 +60%.",cd:30},cav:{n:"전력 질주",d:"8초 동안 속도 +40%, 측면·후방 타격 +50%.",cd:35},ecav:{n:"전력 질주",d:"8초 동안 속도 +40%, 측면·후방 타격 +50%.",cd:30},priest:{n:"치유의 빛",d:"주변 아군 체력 10% 회복, 사기 +15.",cd:40},royal:{n:"왕의 기치",d:"주변 아군 사기 +25, 8초 동안 공격 +25%.",cd:40},guard:{n:"장군의 기치",d:"주변 아군 사기 +20, 8초 동안 공격 +25%.",cd:40},einf:{n:"방패벽",d:"10초 동안 화살 피해 절반, 근접 피해 -25%. 느려진다.",cd:35},espear:{n:"창벽",d:"10초 동안 제자리에서 창을 내린다. 기병 돌격을 막고 기병에게 +60%.",cd:35},earcher:{n:"집중 사격",d:"6초 동안 화살 피해 +60%.",cd:30}};
+const SQ_AB={priest:{n:"치유의 빛",d:"주변 아군 체력 10% 회복, 사기 +15.",cd:40},royal:{n:"왕의 기치",d:"주변 아군 사기 +25, 8초 동안 공격 +25%.",cd:40},guard:{n:"장군의 기치",d:"주변 아군 사기 +20, 8초 동안 공격 +25%.",cd:40},einf:{n:"방패벽",d:"10초 동안 화살 피해 절반, 근접 피해 -25%. 느려진다.",cd:35},espear:{n:"창벽",d:"10초 동안 제자리에서 창을 내린다. 기병 돌격을 막고 기병에게 +60%.",cd:35},earcher:{n:"집중 사격",d:"6초 동안 화살 피해 +60%.",cd:30}};
 function bUnitAbility(){const sel=bSelected();if(!sel.length){bSay("능력을 쓸 부대를 먼저 고른다.");return;}let used=[];
   for(const s of sel){const ab=SQ_AB[s.t];if(!ab||(s.abCd||0)>0)continue;s.abCd=ab.cd;used.push(ab.n);if(typeof tipOnce==="function")tipOnce("sq_"+baseT(s.t),`부대 능력 — ${ab.n}`,`${ab.d}<br><b>다시 쓰기</b> ${ab.cd}초 뒤`);
     if(baseT(s.t)==="inf")s.buff.shield=10;else if(baseT(s.t)==="spear"){s.buff.brace=10;s.state="idle";s.target=null;s.tx=s.x;s.tz=s.z;}else if(baseT(s.t)==="archer")s.buff.focus=6;else if(baseT(s.t)==="cav")s.buff.hornLite=8;
@@ -5973,9 +6157,9 @@ function bUnitAbility(){const sel=bSelected();if(!sel.length){bSay("능력을 �
 function bVolley(x,z){
   const B=BT;B.abTarget=false;B.abCd=B.gen.cd;if(hasPerk("abCd15"))B.abCd=Math.max(5,B.abCd-15);else if(hasPerk("abCd10"))B.abCd=Math.max(5,B.abCd-10);bSay("불화살이 하늘을 덮는다!");
   const g=bOurs().find(s=>s.t==="guard"&&act(s))||{x:0,z:60};
-  for(let i=0;i<40;i++)B.proj.push({x0:g.x+rnd(-20,20),z0:g.z+rnd(-10,10),x1:x+rnd(-15,15),z1:z+rnd(-15,15),t0:B.t+rnd(0,0.3),dur:1.1,k:"fire"});
+  for(let i=0;i<40;i++)B.proj.push({x0:g.x+rnd(-20,20),z0:g.z+rnd(-10,10),x1:x+rnd(-15,15),z1:z+rnd(-15,15),t0:B.t+rnd(0,0.5),dur:1.3,k:"fire"});
   B.pend.push({at:B.t+1.3,fn:()=>{
-    B.fx.push({k:"blaze",x,z,t0:B.t,dur:2.4});
+    B.fires=(B.fires||[]).concat([{x,z,t:7,t0:7,pw:0,r:17,src:null}]);
     for(const s of bFoes())if(Math.hypot(s.x-x,s.z-z)<18+sqR(s)*0.5){const m=s.t==="ghoul"||s.t==="goblin"?2.2:s.t==="orc"?0.6:s.t==="troll"?0.9:1.2;bDamage(null,s,230*m);}
     const n=B.corpses.length;B.corpses=B.corpses.filter(c=>Math.hypot(c.x-x,c.z-z)>19);if(B.corpses.length!==n)B.corpseDirty=true;
   }});
@@ -6344,7 +6528,7 @@ function buildBattleScene(){
     (blAt(z)>0.5?trees.dead:rng()<0.5?trees.pine:trees.oak).push([x,bHraw(B,x,z),z,0.8+rng()*0.7]);}
   const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),s3=new THREE.Vector3();
   BR.trees=[];for(const k in trees){const L=trees[k];if(!L.length)continue;const im=instMesh(MODELS[k],L.length);im.castShadow=true;im.receiveShadow=true;
-    L.forEach((t,i)=>{e.set(0,rng()*6.28,0);q.setFromEuler(e);m4.compose(v.set(t[0],t[1]-0.15,t[2]),q,s3.setScalar(t[3]));im.setMatrixAt(i,m4);t.m=m4.clone();t.hid=false;});sc.add(im);if(k!=="rock"&&k!=="bush")BR.trees.push({im,L});}
+    L.forEach((t,i)=>{t.m=treeXf(im,i,t,rng,k,-0.15).clone();t.hid=false;});sc.add(im);if(k!=="rock"&&k!=="bush")BR.trees.push({im,L});}
   if(blight<0.6)sc.add(grassMesh(gN(12000),[236,166,0,0],(x,z)=>bHraw(B,x,z),(x,z)=>!inForest(x,z)));
   // 배경 건물
   if(B.ctx.kind==="assault"){const f=meshOf(mergeSmooth(place(fortressParts(B.ctx.site==="f_throne"),0,bHraw(B,0,-120),-120,0,2)));sc.add(f);
@@ -6367,12 +6551,12 @@ function buildBattleScene(){
     {const LA=0.3,h=(wallH()+0.9)/Math.cos(LA);BR.ladA=LA;BR.ladL=h;const lm=new THREE.MeshStandardMaterial({color:"#6a5236",roughness:1});for(let i=0;i<26;i++){const g=new THREE.Group();for(const sx of [-0.35,0.35]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.14,h,0.14),lm);r.position.set(sx,h/2,0);g.add(r);}for(let y=0.5;y<h;y+=0.55){const r=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.09,0.09),lm);r.position.set(0,y,0);g.add(r);}g.rotation.x=-0.28;g.visible=false;sc.add(g);BR.ladders.push(g);}}
     for(const sg of B.wall.segs){const el=document.createElement("div");el.className="lbl wallhp";sg.el=el;sg.L=addLabel(el,()=>{if(!(sg.hp<sg.max&&sg.hp>0))return null;const p=wPt(sg.ac,0);return {x:p.x,y:bH(p.x,p.z)+(wallH()+3),z:p.z};},{maxD:260});}}
   // 병사 인스턴스
-  BR.inst={};BR.crowd={};BR.ccorpse={};BR.aura=[];BR.flames=[];BR.eng=[];BR.fortLights=null;ensureCapacity();
+  BR.inst={};BR.crowd={};BR.ccorpse={};BR.fxp=[];BR.fxd=[];BR.eng=[];BR.fortLights=null;ensureCapacity();
   // 시체
   const cg=mergeSmooth([P(SG.cap(0.17,1.1),"#ffffff","cloth",[0,0.12,0],[Math.PI/2,0,0]),P(SG.sph(0.13,8,6),"#ffffff","cloth",[0,0.13,0.72])]);
   BR.corpse=instMesh(cg,1500);BR.corpse.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(1500*3).fill(1),3);BR.corpse.count=0;BR.corpse.receiveShadow=true;sc.add(BR.corpse);
   // 화살·마법탄
-  BR.arrows=new THREE.InstancedMesh(new THREE.BoxGeometry(0.05,0.05,1.1),new THREE.MeshBasicMaterial({color:"#ffffff",toneMapped:false}),900);BR.arrows.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(900*3).fill(1),3);BR.arrows.count=0;BR.arrows.frustumCulled=false;sc.add(BR.arrows);
+  BR.arrows=new THREE.InstancedMesh(arrowGeo(),new THREE.MeshLambertMaterial({color:"#ffffff",side:THREE.DoubleSide}),900);BR.arrows.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(900*3).fill(1),3);BR.arrows.count=0;BR.arrows.frustumCulled=false;sc.add(BR.arrows);
   BR.bolts=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.3,1),new THREE.MeshBasicMaterial({color:"#ffffff",toneMapped:false}),300);BR.bolts.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(300*3).fill(1),3);BR.bolts.count=0;BR.bolts.frustumCulled=false;BR.bolts.instanceMatrix.setUsage(THREE.DynamicDrawUsage);sc.add(BR.bolts);
   {// 돌덩이: 울퉁불퉁한 바위 (투석기 돌·성벽에서 던지는 돌·부서진 파편)
     const g=new THREE.IcosahedronGeometry(0.42,1),pa=g.attributes.position;for(let i=0;i<pa.count;i++){const x=pa.getX(i),y=pa.getY(i),z=pa.getZ(i),n=0.78+0.32*Math.abs(Math.sin(x*13.1+y*7.7)*Math.cos(z*11.3+x*3.1));pa.setXYZ(i,x*n*1.1,y*n*0.85,z*n);}g.computeVertexNormals();
@@ -6517,19 +6701,8 @@ function renderBattle(dt){
       s.climbing=true;}
     for(;li<BR.ladders.length;li++)BR.ladders[li].visible=false;}
   engineRender(dt);
-  // ── 기술이 눈에 보이게 ──
-  // 기술을 쓴 부대 발밑에 기술마다 다른 색의 빛고리가 맥박치고(지속 시간 동안), 불화살 자리에는 불길과 연기가 타오르고, 집중 사격 대상엔 붉은 과녁이 뜬다
-  if(!B.headless){BR.aura=BR.aura||[];const AC={shield:"#f2c46a",brace:"#8fc2ff",push:"#ff9a4a",trample:"#ff5a3a",hornLite:"#ff7a4a",focus:"#ffe08a",steady:"#9dbbe0",rally:"#ffd27a",wall:"#e8d8a0",wallLite:"#d8c890",spearwall:"#a8d0ff",horn:"#ff8a5a",heal:"#bff0c0"};let ai=0;
-    const ring=()=>{if(ai>=BR.aura.length){const m=new THREE.Mesh(new THREE.RingGeometry(0.955,1,64),new THREE.MeshBasicMaterial({color:"#fff",transparent:true,opacity:0.6,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.renderOrder=5;BR.scene.add(m);BR.aura.push(m);}return BR.aura[ai++];};
-    for(const s of B.sq){if(!act(s)||s.side!==0)continue;let k=null;for(const b of ["shield","brace","push","trample","hornLite","focus","steady","rally"])if(s.buff[b]>0){k=b;break;}if(!k)continue;
-      if((k==="trample"||k==="hornLite"||k==="push")&&Math.random()<dt*5)B.fx.push({k:"dust",x:s.x-Math.sin(s.face)*sqR(s),z:s.z-Math.cos(s.face)*sqR(s),t0:t,dur:1.2});const m=ring();m.visible=true;m.material.color.set(AC[k]);const pul=0.5+0.5*Math.sin(now*6+s.id);m.material.opacity=0.45+0.35*pul;let cx=0,cz=0,n=0,rr=0;for(const f of s.figs)if(f.alive){cx+=f.x;cz+=f.z;n++;}cx/=n||1;cz/=n||1;for(const f of s.figs)if(f.alive)rr+=Math.hypot(f.x-cx,f.z-cz);rr=rr/(n||1)*1.45;m.scale.setScalar(Math.min(rr,sqR(s))+0.8+pul*0.3);m.position.set(cx,figY(s,cx,cz)+0.25,cz);}
-    if(B.focusOn&&t<B.focusOn.until){const f=bById(B.focusOn.id);if(f&&act(f)){const m=ring();m.visible=true;m.material.color.set("#ff3a2a");m.material.opacity=0.7;m.scale.setScalar(sqR(f)+2+Math.sin(now*8)*0.5);m.position.set(f.x,bH(f.x,f.z)+0.3,f.z);}}
-    for(;ai<BR.aura.length;ai++)BR.aura[ai].visible=false;
-    // 불길
-    BR.flames=BR.flames||[];let fi=0;const flame=()=>{if(fi>=BR.flames.length){const sp=glowSprite("#ff7a2a",1,1);BR.scene.add(sp);BR.flames.push(sp);}return BR.flames[fi++];};
-    for(const F of (B.fires||[])){const life=Math.min(1,F.t/1.5,(F.t0-F.t)/0.4+0.2);for(let i=0;i<14;i++){const a=i*2.4+F.x,r=((i%5)*2.6+1.2)*(F.r||14)/14,sp=flame();const fl=0.75+0.25*Math.sin(now*11+i*3.1)+0.15*Math.sin(now*23+i);sp.visible=true;const x=F.x+Math.cos(a)*r,z=F.z+Math.sin(a)*r;sp.position.set(x,bH(x,z)+1.1*fl,z);sp.scale.set(2.4*fl,3.4*fl,1);sp.material.color.set(i%3?"#ff6a1a":"#ffb03a");sp.material.opacity=0.85*life;}
-      if(Math.random()<dt*6)B.fx.push({k:"dust",x:F.x+rnd(-9,9),z:F.z+rnd(-9,9),t0:t,dur:2.2});}
-    for(;fi<BR.flames.length;fi++)BR.flames[fi].visible=false;}
+  // ── 불: 불화살이 꽂힌 자리마다 불꽃이 따로 타오르다 하나씩 꺼지고, 검은 연기와 불티가 오르며, 그 안의 망자 몸에 불이 붙는다. 불이 꺼진 뒤엔 그을음이 남는다 ──
+  if(!B.headless)fireRender(B,dt,now);
   const counts={};for(const k in BR.inst)counts[k]=0;
   for(const t in BR.crowd)for(const c of BR.crowd[t])c.begin();
   if(!B.headless){separateFigs(B);separateFigs(B);}
@@ -6616,16 +6789,20 @@ function renderBattle(dt){
     for(const t in BR.ccorpse)for(const c of BR.ccorpse[t])c.end();
     im.count=n;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
   // 투사체
+  for(const p of B.proj)if(t>=p.t0+p.dur&&!p.done){p.done=1;if(p.k==="fire"||(p.k==="arrow"&&Math.random()<0.4))stuckAdd(B,p);if(p.k==="pot")potBreak(B,p);}
   B.proj=B.proj.filter(p=>t<p.t0+p.dur);let na=0,nb=0,nr=0;
-  for(const p of B.proj){if(t<p.t0)continue;const k=(t-p.t0)/p.dur,x=lerp(p.x0,p.x1,k),z=lerp(p.z0,p.z1,k),arc=p.k==="stone"?Math.max(14,Math.hypot(p.x1-p.x0,p.z1-p.z0)*0.32):p.k==="rock"?1.5:p.k==="chip"?(p.arc||2.5):p.k==="fire"?28:p.k==="jav"?Math.min(9,Math.hypot(p.x1-p.x0,p.z1-p.z0)*0.25):(p.k==="arrow"?Math.min(24,Math.hypot(p.x1-p.x0,p.z1-p.z0)*0.3):3);
+  for(const p of B.proj){if(t<p.t0)continue;const k=(t-p.t0)/p.dur,x=lerp(p.x0,p.x1,k),z=lerp(p.z0,p.z1,k),arc=p.k==="stone"?Math.max(14,Math.hypot(p.x1-p.x0,p.z1-p.z0)*0.32):p.k==="rock"?1.5:p.k==="chip"?(p.arc||2.5):p.k==="fire"?Math.min(30,Math.hypot(p.x1-p.x0,p.z1-p.z0)*0.42+8):p.k==="pot"?2.5:p.k==="jav"?Math.min(9,Math.hypot(p.x1-p.x0,p.z1-p.z0)*0.25):(p.k==="arrow"?Math.min(24,Math.hypot(p.x1-p.x0,p.z1-p.z0)*0.3):3);
     const y=lerp(bH(p.x0,p.z0)+1.6+(p.h0||0),bH(p.x1,p.z1)+1,k)+Math.sin(k*Math.PI)*arc;
     if(p.k==="arrow"||p.k==="fire"||p.k==="jav"){const dy=Math.cos(k*Math.PI)*arc*Math.PI/p.dur,hs=Math.hypot(p.x1-p.x0,p.z1-p.z0)/p.dur;
-      _be.set(-Math.atan2(dy,hs),Math.atan2(p.x1-p.x0,p.z1-p.z0),0,"YXZ");_bq.setFromEuler(_be);_bm.compose(_bv.set(x,y,z),_bq,_bs.set(p.k==="jav"?1.6:p.k==="fire"?2.2:1,p.k==="jav"?1.6:p.k==="fire"?2.2:1,p.k==="fire"?2.0:p.k==="jav"?2.4:1));
-      if(na<900){BR.arrows.setMatrixAt(na,_bm);BR.arrows.setColorAt(na,_bc.set(p.k==="fire"?"#ffb050":p.k==="jav"?"#4a3a28":"#3a2e22"));na++;}}
-    else if(p.k==="stone"||p.k==="rock"||p.k==="chip"){const sc0=p.k==="stone"?3.2:p.k==="rock"?1.35:(p.sz||0.6);_be.set(t*(p.k==="stone"?2.2:5)+p.x0,t*(p.k==="stone"?1.6:4)+p.z0,0);_bq.setFromEuler(_be);_bm.compose(_bv.set(x,y,z),_bq,_bs.setScalar(sc0));
-      if(nr<260){BR.rocks.setMatrixAt(nr,_bm);BR.rocks.setColorAt(nr,_bc.set(p.k==="stone"?"#8a8070":p.k==="chip"?(p.col||"#7a7266"):"#7d756a"));nr++;}
+      _be.set(-Math.atan2(dy,hs),Math.atan2(p.x1-p.x0,p.z1-p.z0),0,"YXZ");_bq.setFromEuler(_be);_bm.compose(_bv.set(x,y,z),_bq,_bs.set(p.k==="jav"?1.5:1,p.k==="jav"?1.5:1,p.k==="jav"?2.2:1));
+      if(na<900){BR.arrows.setMatrixAt(na,_bm);BR.arrows.setColorAt(na,_bc.set(p.k==="jav"?"#5a4630":"#4a3a2a"));na++;}
+      if(p.k==="fire"){const hx=Math.sin(_be.y)*Math.cos(_be.x)*0.55,hy=-Math.sin(_be.x)*0.55,hz=Math.cos(_be.y)*Math.cos(_be.x)*0.55;(B.fireTips=B.fireTips||[]).push(x+hx,y+hy,z+hz);if(Math.random()<dt*16)partAdd(B,{k:"smoke",x:x,y:y,z:z,vx:0.3,vy:0.6,vz:0,t0:t,dur:0.9,s0:0.35,s1:1.3,o:0.35});}}
+    else if(p.k==="stone"||p.k==="rock"||p.k==="chip"||p.k==="pot"){const sc0=p.k==="stone"?3.2:p.k==="rock"?1.35:p.k==="pot"?0.9:(p.sz||0.6);if(p.k==="pot"){(B.fireTips=B.fireTips||[]).push(x,y+0.5,z);if(Math.random()<dt*12)partAdd(B,{k:"smoke",x,y,z,vx:0.2,vy:0.8,vz:0,t0:t,dur:1,s0:0.5,s1:1.6,o:0.4});}_be.set(t*(p.k==="stone"?2.2:5)+p.x0,t*(p.k==="stone"?1.6:4)+p.z0,0);_bq.setFromEuler(_be);_bm.compose(_bv.set(x,y,z),_bq,_bs.setScalar(sc0));
+      if(nr<260){BR.rocks.setMatrixAt(nr,_bm);BR.rocks.setColorAt(nr,_bc.set(p.k==="stone"?"#8a8070":p.k==="chip"?(p.col||"#7a7266"):p.k==="pot"?"#6a4a34":"#7d756a"));nr++;}
       if(p.k==="stone"&&!B.paused&&Math.random()<0.35)B.fx.push({k:"dust",x,z,t0:t,dur:0.7,y});}
     else{_bm.compose(_bv.set(x,y,z),_bq.identity(),_bs.setScalar(1));if(nb<300){BR.bolts.setMatrixAt(nb,_bm);BR.bolts.setColorAt(nb,_bc.set(p.k==="stone"?"#4a4440":p.k==="rock"?"#5a544c":p.k==="holy"?"#fff1b8":"#b98cff"));nb++;}}}
+  if(B.stuck){B.stuck=B.stuck.filter(q=>t<q.t0+q.life);for(const q of B.stuck){if(na>=900)break;_be.set(q.p,q.y,0,"YXZ");_bq.setFromEuler(_be);const cp=Math.cos(q.p),dx=Math.sin(q.y)*cp,dy=-Math.sin(q.p),dz=Math.cos(q.y)*cp,g=bH(q.x,q.z);
+    _bm.compose(_bv.set(q.x-dx*0.28,g-dy*0.28,q.z-dz*0.28),_bq,_bs.setScalar(1));BR.arrows.setMatrixAt(na,_bm);BR.arrows.setColorAt(na,_bc.set(q.burn&&t<q.t0+q.burn?"#2a1e16":"#4a3a2a"));na++;}}
   BR.arrows.count=na;BR.arrows.instanceMatrix.needsUpdate=true;if(BR.arrows.instanceColor)BR.arrows.instanceColor.needsUpdate=true;
   BR.rocks.count=nr;BR.rocks.instanceMatrix.needsUpdate=true;if(BR.rocks.instanceColor)BR.rocks.instanceColor.needsUpdate=true;BR.bolts.count=nb;BR.bolts.instanceMatrix.needsUpdate=true;if(BR.bolts.instanceColor)BR.bolts.instanceColor.needsUpdate=true;
   // 효과
@@ -6642,7 +6819,7 @@ function renderBattle(dt){
     if(f.obj){f.obj.material.opacity=(1-k)*0.9;if(f.k==="ring")f.obj.scale.setScalar(1+k*2.5);else if(f.k==="shock"||f.k==="purify"||f.k==="raise")f.obj.scale.setScalar(f.base*(0.3+k));else if(f.k==="heal")f.obj.position.y+=dt*3;}return true;});
   // 선택 고리
   const sel=bOurs().filter(s=>B.sel.has(s.id)&&act(s));
-  while(BR.selRings.length<sel.length){const m=new THREE.Mesh(new THREE.RingGeometry(0.92,1,40),new THREE.MeshBasicMaterial({color:"#e98a3d",transparent:true,opacity:0.85,depthWrite:false}));m.rotation.x=-Math.PI/2;BR.scene.add(m);BR.selRings.push(m);}
+  while(BR.selRings.length<sel.length){const m=new THREE.Mesh(new THREE.RingGeometry(0.975,1,72),new THREE.MeshBasicMaterial({color:"#e8dcc0",transparent:true,opacity:0.4,depthWrite:false}));m.rotation.x=-Math.PI/2;BR.scene.add(m);BR.selRings.push(m);}
   BR.selRings.forEach((m,i)=>{const s=sel[i];m.visible=!!s;if(s){const r=sqR(s)+2;m.scale.setScalar(r);m.position.set(s.x,bH(s.x,s.z)+0.35,s.z);}});
   // 조준 원
   if(B.abTarget&&UI.hoverG){if(!BR.aim){BR.aim=new THREE.Mesh(new THREE.RingGeometry(17,18,48),new THREE.MeshBasicMaterial({color:"#ff9a3c",transparent:true,opacity:0.8,depthWrite:false}));BR.aim.rotation.x=-Math.PI/2;BR.scene.add(BR.aim);}
@@ -6701,7 +6878,7 @@ function addSqLabel(s){
 function updateSqLabels(){
   for(const s of BT.sq){if(!s.labelEl)continue;const u=U[s.t];
     const st=s.state==="rout"?" rout":"";const sel=BT.sel.has(s.id)?" on":"";
-    const html=`<i style="background:${s.isCapt?"#c9a24a":u.col}">${s.isCapt?"두":u.g}</i><b>${s.alive}</b>${s.side===0?`<em style="width:${clamp(s.morale,0,100)}%"></em>`:""}`;
+    const html=`<i style="background:${s.isCapt?"#c9a24a":u.col}">${s.isCapt?"두":u.g}</i>${s.side===0?`<b>${s.alive}</b>`:""}${s.side===0?`<em style="width:${clamp(s.morale,0,100)}%"></em>`:""}`;
     if(s.labelEl._h!==html+st+sel){s.labelEl._h=html+st+sel;s.labelEl.innerHTML=html;s.labelEl.className=`lbl sq ${s.side===0?"s-ours":"s-foe"}${st}${sel}`;}}
 }
 function sqAtScreen(px,py,side){
@@ -6769,7 +6946,7 @@ function battleAdvice(){if(!BT)return "";const B=BT,tips=[];const side=x=>x<-25?
   const fs=B.forests.filter(f=>f.z>-10);if(fs.length)tips.push(`${side(fs[0].x)} 숲은 화살을 40% 막는다 — 궁병 앞에 적이 숨을 수 있다`);
   if(B.pools&&B.pools.length)tips.push("늪·웅덩이에 선 부대는 근접 피해를 더 받는다");
   const foes=B.sq.filter(s=>s.side===1);const has=t=>foes.some(s=>s.t===t);
-  if(has("troll"))tips.push("트롤은 창병의 창벽(창병 선택 후 R)으로 받아라 — 기병은 튕겨 나간다");if(has("necro"))tips.push("강령술사를 먼저 베면 주변 망자가 무너진다 — 기병으로 돌아 들어가라");if(has("wolf"))tips.push("늑대기수는 옆으로 돌아 궁병을 노린다 — 창병을 궁병 옆에");
+  if(has("troll"))tips.push("트롤은 창병으로 받아라. 기병은 튕겨 나간다");if(has("necro"))tips.push("강령술사를 먼저 베면 주변 망자가 무너진다 — 기병으로 돌아 들어가라");if(has("wolf"))tips.push("늑대기수는 옆으로 돌아 궁병을 노린다 — 창병을 궁병 옆에");
   if(foes.some(s=>s.isCapt))tips.push(`두목(두)을 쓰러뜨리면 망자 사기 -15 — 왕이 직접 베면 2배`);
   if(B.fort)tips.unshift(`<em class="ft">${FORT_TRAIT[B.fort].n}</em> — ${FORT_TRAIT[B.fort].d}`);
   if(B.tac&&B.tacSaid&&TACTICS[B.tac])tips.unshift(`<em class="ft">적의 계략: ${TACTICS[B.tac].n}</em> — ${TACTICS[B.tac].say}`);
@@ -6867,7 +7044,7 @@ function battleKingControl(dt){
   // 창 던지기 (T)
   if(KC.wantSpear){KC.wantSpear=false;if(!KC.ab.spear&&KC.stam>=20){const fx=Math.sin(KC.face),fz=Math.cos(KC.face);let best=null,bd=1e9;for(const s of bFoes()){const dx=s.x-k.x,dz=s.z-k.z,d=Math.hypot(dx,dz);if(d<30&&(dx*fx+dz*fz)/(d||1)>0.5&&d<bd){bd=d;best=s;}}
       if(best){KC.ab.spear=8;KC.stam-=20;const royal=r;const tm=bd/40;BT.proj.push({x0:k.x,z0:k.z,x1:best.x,z1:best.z,t0:BT.t,dur:tm,k:"arrow",h0:1.2});BT.pend.push({at:BT.t+tm,fn:()=>{if(act(best)){BT.fx.push({k:"ring",x:best.x,z:best.z,t0:BT.t,dur:0.6,col:"#ffd27a"});bDamage(royal,best,sqHp(best)*best.perFig*3*kingDmg()/OUR_K);}}});sfx("swing",1.2);bSay("창을 던졌다!");kingGainSkill(0.3,"전투");}else bSay("앞에 던질 적이 없다.");}}
-  if((BT.t*10|0)!==(((BT.t-dt)*10)|0))renderKingHud(`<div class="kh-ko">${(BT.sq.find(q=>q.isKing)||{}).kills||0}<small>격파</small>${KC.streak>1?`<em>${KC.streak}연속</em>`:""}</div><div class="kh-duel">${KC.mounted?"기마 — 달리면 짓밟는다 · M 내리기":"도보 · M 말 타기"} · T 창 던지기${KC.ab.spear?` (${Math.ceil(KC.ab.spear)})`:""} · 4 무쌍난무 · Tab 작전도 · P 일시정지</div>`);
+  if((BT.t*10|0)!==(((BT.t-dt)*10)|0))renderKingHud(`<div class="kh-ko">${(BT.sq.find(q=>q.isKing)||{}).kills||0}<small>격파</small>${KC.streak>1?`<em>${KC.streak}연속</em>`:""}</div>${(KC.musou||0)>=100?`<div class="kh-duel"><kbd>4</kbd> 무쌍난무</div>`:""}`);
 }
 // 왕의 베기: 앞쪽 부채꼴 안의 적 병사를 벤다
 function bKingStrike(x,z,face,dmg,kind){const r=BT.sq.find(q=>q.isKing);let hit=0;const k=BT.kingPos;x=k.x;z=k.z;BT.kingHit={x:x+Math.sin(face)*1.2,z:z+Math.cos(face)*1.2};const reach=kind==="trample"?2.2:kind==="stab"?3.6:kind==="spin"?4.2:kind==="dash"?5:3.3;
@@ -7099,11 +7276,11 @@ function tugTick(){if(!BT||BT.headless)return;let el=$("#btug");const hud=$("#bh
 /* ════════ 병종별 지휘: 보병·창병·궁병·기마병·전군마다 돌격 · 후퇴 · 기술 ════════
    싸우면서 부대를 하나하나 고르지 않아도 되게 — 5~9로 병종을 고르고 G 돌격 · H 후퇴 · J 기술 (화면 버튼도 된다) */
 const GROUPS=[
-  {k:"inf",n:"보병",key:"5",sk:"방패막",skd:"12초 동안 받는 근접 피해 -55%·화살 -70%, 대신 공격 -40%·느려짐 — 버티며 시간을 끈다",cd:30,sk2:"밀어붙이기",skd2:"8초 동안 가장 가까운 적을 방패로 밀어붙인다 — 공격 +80%, 빨라짐",cd2:35,has:t=>baseT(t)==="inf"||t==="militia"},
-  {k:"spear",n:"창병",key:"6",sk:"창벽",skd:"12초 동안 제자리에서 창을 내린다 — 트롤·기병 피해 -50%, 그들에게 +60%, 다른 적 피해 -25%",cd:30,sk2:"투창",skd2:"사거리 30 안의 가장 가까운 적에게 창을 한꺼번에 던진다 — 즉시 큰 피해(한 중대가 망자 수십을 쓰러뜨린다), 트롤·늑대에 1.6배",cd2:40,has:t=>baseT(t)==="spear"},
-  {k:"archer",n:"궁병",key:"7",sk:"집중 사격",skd:"망자가 가장 빽빽한 곳을 골라 모든 궁병이 8초 동안 그곳에 화살을 퍼붓는다 (궁병 공격 ×2.6)",cd:28,sk2:"불화살",skd2:"가장 빽빽한 곳에 불을 지른다 — 10초 동안 반경 14m 안의 망자가 크게 타 죽고 사기가 꺾인다",cd2:45,has:t=>baseT(t)==="archer"||t==="priest"},
-  {k:"cav",n:"기마병",key:"8",sk:"측면 돌격",skd:"가장 큰 적 무리의 옆구리로 돌아 들이친다 — 8초 동안 속도 +40%, 측면·후방 타격 ×2.2",cd:30,sk2:"돌파",skd2:"가장 가까운 적을 정면으로 꿰뚫는다 — 6초 동안 속도 +50%, 구울·고블린 같은 경보병에 ×2.4, 다른 적 ×1.6",cd2:40,has:t=>baseT(t)==="cav"||t==="ecav"},
-  {k:"all",n:"전군",key:"9",sk:"전군 함성",skd:"모든 부대 사기 +20, 8초 동안 공격 +15%",cd:45,sk2:"전열 정비",skd2:"10초 동안 모든 부대가 받는 피해 -40%, 사기 +10 — 무너지는 전선을 다잡는다",cd2:50,has:t=>true},
+  {k:"inf",n:"보병",key:"5",sk:"밀어붙이기",skd:"8초 동안 가장 가까운 적을 방패로 들이받는다 — 공격 +80%, 빨라짐, 부딪힌 적이 밀려난다",cd:30,has:t=>baseT(t)==="inf"||t==="militia"},
+  {k:"spear",n:"창병",key:"6",sk:"투창",skd:"사거리 30 안의 가장 가까운 적에게 창을 한꺼번에 던진다 — 즉시 큰 피해, 트롤·늑대에 1.6배",cd:35,has:t=>baseT(t)==="spear"},
+  {k:"archer",n:"궁병",key:"7",sk:"불화살",skd:"망자가 가장 빽빽한 곳에 불화살을 퍼붓는다 — 10초 동안 반경 14m가 불타고 그 안의 망자가 타 죽으며 사기가 꺾인다",cd:40,has:t=>baseT(t)==="archer"||t==="priest"},
+  {k:"cav",n:"기마병",key:"8",sk:"측면 돌격",skd:"가장 큰 적 무리의 옆구리로 돌아 들이친다 — 8초 동안 속도 +40%, 측면·후방 타격 ×2.2",cd:30,has:t=>baseT(t)==="cav"||t==="ecav"},
+  {k:"all",n:"전군",key:"9",sk:"함성",skd:"모든 부대 사기 +20, 8초 동안 공격 +15%",cd:45,has:t=>true},
 ];
 function grpSquads(k){const G=GROUPS.find(g=>g.k===k);return bOurs().filter(s=>(BT.cmdOwner!=null?(s.ref&&s.ref.mpSlot===BT.cmdOwner):!(s.ref&&(s.ref.mpSlot!=null||s.ref.realmAlly)))&&act(s)&&s.state!=="rout"&&!s.isKing&&!s.isCmd&&s.t!=="guard"&&s.t!=="royal"&&G.has(s.t));}
 function grpCmd(k,act_){if(!BT||BT.phase!=="battle"||BT.over)return;if(BT.remote){mpBatSend({c:"grp",k,a:act_});bSay("명령을 보냈다");return;}const G=GROUPS.find(g=>g.k===k);if(!G)return;const sq=grpSquads(k);if(!sq.length){bSay(`${G.n}이(가) 없다.`);return;}
@@ -7118,51 +7295,43 @@ function grpCmd(k,act_){if(!BT||BT.phase!=="battle"||BT.over)return;if(BT.remote
         else{const p0=wPt(wAng(s.x,s.z),18),p=viaBreach(s,p0.x,p0.z)||wPt(wAng(s.x,s.z),-30);s.tx=p.x;s.tz=p.z;}}
       else if(BT.wall){// 공성 중: 성벽에서 멀리, 우리 진영 쪽으로 (성 안에 들어가 있으면 뚫린 곳으로 나온다)
         const a=wAng(s.x,s.z);if(wIn(s.x,s.z)>0){const p0=wPt(a,-40),p=viaBreach(s,p0.x,p0.z)||p0;s.tx=p.x;s.tz=p.z;}else{const p=wPt(a,-45);s.tx=clamp(p.x,-110,110);s.tz=clamp(p.z,-80,83);}}});bSay(`${G.n}, 물러나라!`);sfx("drum",0.7);}
-  else if(act_==="skill2"){const ck=k+"2",cd=BT.gcd[ck]||0;if(cd>BT.t){bSay(`${G.sk2}: ${Math.ceil(cd-BT.t)}초 뒤에 다시 쓸 수 있다`);return;}BT.gcd[ck]=BT.t+G.cd2;skillTip(G,2);
+  else if(act_==="skill"){const cd=BT.gcd[k]||0;if(cd>BT.t){bSay(`${G.sk}: ${Math.ceil(cd-BT.t)}초 뒤에 다시 쓸 수 있다`);return;}BT.gcd[k]=BT.t+G.cd;skillTip(G);
     const near=(s,r)=>{const fs=bFoes().filter(f=>dd(s,f)<r);const top=BT.wall&&BT.wallAtk===s.side?fs.filter(onWallTop):[];return (top.length?top:fs).sort((p,q)=>dd(s,p)-dd(s,q))[0];};   /* 공성 중 투창은 성벽 위 망자부터 */
     if(k==="inf"){for(const s of sq){bPop(s,"밀어붙여라!","good");s.buff.push=8;s.buff.shield=0;delete s.buff.shield;const t=near(s,60)||ourAutoTarget(s);if(t){s.state="attack";s.target=t.id;s.hold=false;s.orderT=BT.t;}}bSay("보병, 방패로 밀어붙여라!");}
     else if(k==="spear"){let n=0;for(const s of sq){const t=near(s,30);if(!t)continue;n++;const big=t.t==="troll"||t.t==="wolf";{const dm=s.alive*7*(big?1.6:1);BT.pend.push({at:BT.t+0.85,fn:()=>{if(act(t))bDamage(s,t,dm);}});}for(let i=0;i<6;i++)BT.proj.push({x0:s.x+rnd(-4,4),z0:s.z+rnd(-2,2),x1:t.x+rnd(-4,4),z1:t.z+rnd(-4,4),t0:BT.t+rnd(0,0.25),dur:0.75,k:"jav",h0:0});}
-      if(!n){BT.gcd[ck]=BT.t+3;bSay("투창: 30m 안에 적이 없다");return;}bSay(`창병, 던져라! (${n}개 중대)`);}
+      if(!n){BT.gcd[k]=BT.t+3;bSay("투창: 30m 안에 적이 없다");return;}bSay(`창병, 던져라! (${n}개 중대)`);}
     else if(k==="archer"){const fs=bFoes();let best=null,bs=-1;for(const f of fs){let sum=0;for(const g of fs)if(dd(f,g)<14)sum+=g.alive;if(sum>bs){bs=sum;best=f;}}
-      if(!best){BT.gcd[ck]=BT.t+3;bSay("쏠 적이 없다.");return;}const pw=sq.reduce((a,s)=>a+s.alive,0),bx=best.x,bz=best.z;BT.pend.push({at:BT.t+1.4,fn:()=>{BT.fires=(BT.fires||[]).concat([{x:bx,z:bz,t:10,t0:10,pw,src:sq[0].id}]);if(!BT.headless){E.shake=Math.max(E.shake||0,0.08);try{sfx("flesh",0.6);}catch(e){}}}});for(const f of fs)if(Math.hypot(f.x-best.x,f.z-best.z)<14)f.morale=Math.max(0,f.morale-10);
-      for(const s of sq){bPop(s,"불화살!","good");for(let i=0;i<14;i++)BT.proj.push({x0:s.x+rnd(-4,4),z0:s.z+rnd(-3,3),x1:best.x+rnd(-11,11),z1:best.z+rnd(-11,11),t0:BT.t+rnd(0,0.35),dur:1.1,k:"fire",h0:onWallTop(s)?wallH():0});}bSay(`궁병, 불화살! (망자 ${fmtN(bs)} 밀집)`);}
-    else if(k==="cav"){for(const s of sq){bPop(s,"돌파!","good");const t=near(s,90)||ourAutoTarget(s);s.buff.trample=6;if(t){s.state="attack";s.target=t.id;s.hold=false;s.flank=null;s.orderT=BT.t;}}bSay("기마병, 꿰뚫어라!");}
-    else if(k==="all"){for(const s of bOurs())if(act(s)){bPop(s,"전열 정비","good");s.buff.steady=10;s.morale=Math.min(100,s.morale+10);}BT.fx.push({k:"ring",x:cmdPos().x,z:cmdPos().z,t0:BT.t,dur:1.4,col:"#9dbbe0"});bSay("전군, 전열을 다잡아라!");}
-    sfx(k==="inf"?"order":k==="spear"?"volley":k==="archer"?"volley":k==="cav"?"hooves":"rally",0.9);}
-  else if(act_==="skill"){const cd=BT.gcd[k]||0;if(cd>BT.t){bSay(`${G.sk}: ${Math.ceil(cd-BT.t)}초 뒤에 다시 쓸 수 있다`);return;}BT.gcd[k]=BT.t+G.cd;skillTip(G,1);
-    if(k==="inf"){for(const s of sq){bPop(s,"방패막!","good");s.buff.shield=12;s.state="idle";s.target=null;s.tx=s.x;s.tz=s.z;s.orderT=BT.t+4;}bSay("보병, 방패막을 세워라!");}
-    else if(k==="spear"){for(const s of sq){bPop(s,"창벽!","good");s.buff.brace=12;s.state="idle";s.target=null;s.tx=s.x;s.tz=s.z;s.orderT=BT.t+4;}bSay("창병, 창을 내려라!");}
-    else if(k==="archer"){const fs=bFoes();let best=null,bs=-1;for(const f of fs){let sum=0;for(const g of fs)if(dd(f,g)<20)sum+=g.alive;if(sum>bs){bs=sum;best=f;}}
-      if(best){BT.focusOn={id:best.id,until:BT.t+8};for(const s of sq){bPop(s,"집중 사격!","good");s.buff.focus=8;s.target=best.id;s.state="idle";s.orderT=BT.t+8;}BT.fx.push({k:"ring",x:best.x,z:best.z,t0:BT.t,dur:1.4,col:"#e8c46a"});bSay(`궁병, 저기에 화살을 퍼부어라! (망자 ${fmtN(bs)} 밀집)`);}else bSay("쏠 적이 없다.");}
+      if(!best){BT.gcd[k]=BT.t+3;bSay("쏠 적이 없다.");return;}const pw=sq.reduce((a,s)=>a+s.alive,0),bx=best.x,bz=best.z;BT.pend.push({at:BT.t+1.4,fn:()=>{BT.fires=(BT.fires||[]).concat([{x:bx,z:bz,t:10,t0:10,pw,src:sq[0].id}]);if(!BT.headless){E.shake=Math.max(E.shake||0,0.08);try{sfx("flesh",0.6);}catch(e){}}}});for(const f of fs)if(Math.hypot(f.x-best.x,f.z-best.z)<14)f.morale=Math.max(0,f.morale-10);
+      for(const s of sq){bPop(s,"불화살!","good");for(let i=0;i<14;i++){const a=Math.random()*6.283,r=Math.sqrt(Math.random())*12;BT.proj.push({x0:s.x+rnd(-4,4),z0:s.z+rnd(-3,3),x1:best.x+Math.cos(a)*r,z1:best.z+Math.sin(a)*r,t0:BT.t+rnd(0,0.5),dur:1.2+rnd(0,0.15),k:"fire",h0:onWallTop(s)?wallH():0});}}bSay(`궁병, 불화살! (망자 ${fmtN(bs)} 밀집)`);}
     else if(k==="cav"){const fs=bFoes().filter(f=>f.t!=="troll");const big=fs.sort((a,b)=>b.alive-a.alive)[0]||bFoes()[0];
       if(big){const side=(sq[0].x<big.x)?-1:1;for(const s of sq){bPop(s,"측면 돌격!","good");s.buff.hornLite=8;s.hold=false;s.state="attack";s.target=big.id;s.orderT=BT.t+3;s.flank={x:clamp(big.x+side*30,-115,115),z:clamp(big.z-6,-80,80)};}bSay("기마병, 옆구리를 쳐라!");}}
-    else if(k==="all"){for(const s of bOurs())if(act(s)){bPop(s,"와아아!","good");s.morale=Math.min(100,s.morale+20);s.buff.rally=8;}BT.fx.push({k:"ring",x:cmdPos().x,z:cmdPos().z,t0:BT.t,dur:1.4,col:"#f2c46a"});bSay("전군, 함성을 질러라!");}
-    sfx(k==="inf"||k==="spear"?"shieldwall":k==="archer"?"volley":k==="cav"?"hooves":"rally",0.9);}
+    else if(k==="all"){for(const s of bOurs())if(act(s)){bPop(s,"와아아!","good");s.morale=Math.min(100,s.morale+20);s.buff.rally=8;}bSay("전군, 함성을 질러라!");}
+    sfx(k==="inf"?"order":k==="spear"||k==="archer"?"volley":k==="cav"?"hooves":"rally",0.9);}
   UI.battleDirty=true;}
-function grpPanelHtml(){if(!BT||BT.phase!=="battle")return "";const cur=BT.grp||"all";const ky=(G,c)=>cur===G.k?`<kbd>${c}</kbd>`:"";BT.gcd=BT.gcd||{};
-  return `<div id="gcmd">${GROUPS.map(G=>{const n=G.k==="all"?bOurs().filter(s=>act(s)&&s.state!=="rout").length:grpSquads(G.k).length;if(!n&&G.k!=="all")return "";const cd=Math.max(0,(BT.gcd[G.k]||0)-BT.t),cd2=Math.max(0,(BT.gcd[G.k+"2"]||0)-BT.t);
-    return `<div class="gc ${cur===G.k?"on":""}"><div class="gh" data-a="gsel" data-k="${G.k}"><kbd>${G.key}</kbd>${G.n}<small>${cur===G.k?"지휘 중":n+"개 중대"}</small></div><div class="gb"><button data-a="gcmd" data-k="${G.k}" data-v="charge" title="돌격 (G)">${ky(G,"G")}돌격</button><button data-a="gcmd" data-k="${G.k}" data-v="retreat" title="후퇴 (H)">${ky(G,"H")}후퇴</button><button data-a="gcmd" data-k="${G.k}" data-v="skill" title="${G.sk}: ${G.skd} (J)" ${cd>0?"disabled":""}>${ky(G,"J")}${G.sk}${cd>0?`<b class="cdn">${Math.ceil(cd)}초</b>`:""}</button><button data-a="gcmd" data-k="${G.k}" data-v="skill2" title="${G.sk2}: ${G.skd2} (K)" ${cd2>0?"disabled":""}>${ky(G,"K")}${G.sk2}${cd2>0?`<b class="cdn">${Math.ceil(cd2)}초</b>`:""}</button></div></div>`;}).join("")}<div class="gk">5~9로 병종을 고르면 그 부대가 밝게 빛난다 · 단축키는 '지휘 중'인 병종에게만 · 버튼은 바로 눌러도 된다</div></div>`;}
+function grpPanelHtml(){if(!BT||BT.phase!=="battle")return "";const cur=BT.grp||"all";const ky=(G,c)=>cur===G.k&&!COARSE?`<kbd>${c}</kbd>`:"";BT.gcd=BT.gcd||{};
+  return `<div id="gcmd">${GROUPS.map(G=>{const n=G.k==="all"?bOurs().filter(s=>act(s)&&s.state!=="rout").length:grpSquads(G.k).length;if(!n&&G.k!=="all")return "";const cd=Math.max(0,(BT.gcd[G.k]||0)-BT.t);
+    return `<div class="gc ${cur===G.k?"on":""}"><div class="gh" data-a="gsel" data-k="${G.k}">${COARSE?"":`<kbd>${G.key}</kbd>`}${G.n}<small>${cur===G.k?"지휘 중":n+"개 중대"}</small></div><div class="gb"><button data-a="gcmd" data-k="${G.k}" data-v="charge" title="돌격 (G)">${ky(G,"G")}돌격</button><button data-a="gcmd" data-k="${G.k}" data-v="retreat" title="후퇴 (H)">${ky(G,"H")}후퇴</button><button data-a="gcmd" data-k="${G.k}" data-v="skill" title="${G.sk}: ${G.skd} (J)" ${cd>0?"disabled":""}>${ky(G,"J")}${G.sk}${cd>0?`<b class="cdn">${Math.ceil(cd)}초</b>`:""}</button></div></div>`;}).join("")}</div>`;}
 
 // 불화살 불길: 매 순간 반경 안 망자를 태운다
 function grpTick(dt){if(!BT||!BT.fires||!BT.fires.length)return;
   for(const F of BT.fires){F.t-=dt;const sd=F.side||0,src=bById(F.src)||BT.sq.find(q=>q.side===sd),R=F.r||14;
-    for(const f of BT.sq)if(act(f)&&f.side!==sd&&Math.hypot(f.x-F.x,f.z-F.z)<R+sqR(f)*0.5&&src)bDamage(src,f,F.pw*(sd===0?0.11:0.02)*dt*(U[f.t].tags.includes("light")?1.3:1));
+    if(F.pw)for(const f of BT.sq)if(act(f)&&f.side!==sd&&Math.hypot(f.x-F.x,f.z-F.z)<R+sqR(f)*0.5&&src)bDamage(src,f,F.pw*(sd===0?0.11:0.02)*dt*(U[f.t].tags.includes("light")?1.3:1));
     if(sd===1&&BT.engines)for(const e of BT.engines)if(e.side===0&&e.hp>0&&Math.hypot(e.x-F.x,e.z-F.z)<R+3){e.hp-=(e.ram?9:6)*dt;if(e.hp<=0&&!e.deadT){e.hp=0;e.deadT=BT.t;bSay(e.ram?"충차가 불길에 타 버렸다!":"투석기가 불에 탔다!");BT.log.push(e.ram?"아군 충차 소실":"아군 투석기 소실");}}
-    if(!BT.headless&&Math.random()<dt*10)BT.fx.push({k:"dust",x:F.x+rnd(-12,12),z:F.z+rnd(-12,12),t0:BT.t,dur:0.8,col:"#ff7a2a"});}
+  }
   BT.fires=BT.fires.filter(F=>F.t>0);}
 
 // 병종 고르기: 고른 병종의 부대가 전장에서 밝게 빛나고(선택), 지휘판에 '지휘 중'이 크게 뜬다 — 단축키가 누구에게 가는지 늘 보이게
 function grpSelect(k){if(!BT)return;const G=GROUPS.find(g=>g.k===k);if(!G)return;BT.grp=k;const sq=k==="all"?bOurs().filter(s=>act(s)&&s.state!=="rout"&&!s.isKing):grpSquads(k);BT.sel=new Set(sq.map(s=>s.id));
-  if(BT.grpSaid!==k){BT.grpSaid=k;bSay(`${G.n} 지휘 — G 돌격 · H 후퇴 · J ${G.sk} · K ${G.sk2}`);}}
+  if(BT.grpSaid!==k){BT.grpSaid=k;bSay(COARSE?`${G.n} 지휘`:`${G.n} 지휘 — G 돌격 · H 후퇴 · J ${G.sk}`);}}
 
 // 기술을 처음 쓰면: 무엇이 바뀌고 화면에서 무엇이 보이는지 알려 준다
-const SKILL_SEE={inf1:"보병 발밑에 금빛 고리가 생기고 병사들이 어깨를 붙여 촘촘히 선다. 그 자리에서 버틴다.",inf2:"주황 고리와 함께 보병이 가장 가까운 적에게 방패로 밀고 들어간다.",
-  spear1:"푸른 고리가 생기고 창병이 그 자리에 멈춰 창을 내린다 — 움직이지 않으니 트롤·기병이 오는 길목에서 쓴다.",spear2:"창 다발이 한꺼번에 날아가 가장 가까운 적 무리에 꽂힌다.",
-  archer1:"노란 고리와 함께 모든 궁병의 화살이 망자가 가장 빽빽한 한 곳으로 쏟아진다.",archer2:"불화살이 비처럼 떨어지고 그 자리가 10초 동안 불탄다 — 그 안의 망자는 계속 타고 사기가 꺾인다.",
-  cav1:"기병이 크게 돌아 가장 큰 적 무리의 옆구리로 파고든다.",cav2:"붉은 고리와 함께 기병이 정면의 적을 꿰뚫고 지나간다 — 구울·고블린 같은 가벼운 적에게 특히 세다.",
-  all1:"모든 부대에 금빛 고리가 뜨고 북소리와 함성이 울린다.",all2:"모든 부대에 하늘빛 고리가 뜨고 물러서지 않고 버틴다."};
-function skillTip(G,i){if(typeof tipOnce!=="function")return;const n=i===1?G.sk:G.sk2,d=i===1?G.skd:G.skd2,cd=i===1?G.cd:G.cd2;
-  tipOnce("sk_"+G.k+i,`${G.n} — ${n}`,`${d}<br><b>화면에서</b> ${SKILL_SEE[G.k+i]||""}<br><b>다시 쓰기</b> ${cd}초 뒤 (지휘판 버튼에 남은 초가 뜬다)`);}
+const SKILL_SEE={inf:"보병이 방패를 앞세워 가장 가까운 적에게 들이받는다. 부딪힌 망자가 뒤로 밀려난다.",
+  spear:"창 다발이 한꺼번에 날아가 가장 가까운 적 무리에 꽂힌다.",
+  archer:"불붙은 화살이 높게 날아가 떨어지고, 그 자리가 10초 동안 불탄다. 불길 안의 망자는 계속 타고 사기가 꺾인다.",
+  cav:"기병이 크게 돌아 가장 큰 적 무리의 옆구리로 파고든다.",
+  all:"북소리와 함성이 울리고 모든 부대의 사기가 오른다."};
+function skillTip(G){if(typeof tipOnce!=="function")return;
+  tipOnce("sk_"+G.k,`${G.n}, ${G.sk}`,`${G.skd}<br><br>${SKILL_SEE[G.k]||""}<br><br>다시 쓰려면 ${G.cd}초를 기다려야 한다.`);}
 
 /* ════════ 성 공방전: 망자의 역할 · 사다리 · 투석기 · 돌 던지기 ════════
    망자는 역할을 나눠 성을 친다.
@@ -7363,7 +7532,7 @@ try{const b=parseFloat(localStorage.getItem("ashen-bright"));if(b>0){UI.bright=b
 function notice(t,k){let box=$("#notes");if(!box){box=document.createElement("div");box.id="notes";document.body.appendChild(box);}const el=document.createElement("div");el.className="note-it "+(k||"");el.textContent=t.length>90?t.slice(0,88)+"…":t;box.appendChild(el);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>{el.classList.add("out");setTimeout(()=>el.remove(),400);},4200);}
 UI.aiStatus=()=>{const el=$("#aiL");if(el)el.textContent=AI.ok()?"망자의 군주: 당신의 Claude가 지휘한다":(window.__TEST?"":ITCH?"체험판 — 망자의 군주는 기본 규칙으로 움직인다 (설정에서 Claude 연결)":"이 게임은 당신의 Claude와 연결해야 시작된다");};
 let bannerT=null;
-UI.bannerSay=t=>{t=fixJosa(t);if(typeof COARSE!=="undefined"&&COARSE)t=String(t).replace(/WASD ?/g,"").replace(/(^|[^A-Za-z])E([^A-Za-z]|$)/g,"$1버튼$2");const b=$("#banner");b.textContent=t;b.className="";b.hidden=false;clearTimeout(bannerT);bannerT=setTimeout(()=>{b.hidden=true;},3600+Math.max(0,String(t).length-30)*70);};
+UI.bannerSay=t=>{t=fixJosa(t);if(typeof COARSE!=="undefined"&&COARSE&&typeof touchTxt==="function")t=touchTxt(String(t));const b=$("#banner");b.textContent=t;b.className="";b.hidden=false;clearTimeout(bannerT);bannerT=setTimeout(()=>{b.hidden=true;},3600+Math.max(0,String(t).length-30)*70);};
 
 /* ── 창 ── */
 UI.openModal=(html,o={})=>{if(document.pointerLockElement)document.exitPointerLock();$("#win").className="window panel"+(o.narrow?" narrow":"");$("#win").innerHTML=fixJosa(html);$("#modal").hidden=false;UI.modalOpen=true;if(o.blocking)UI.modalBlocking=true;fitModal();};
@@ -7659,26 +7828,27 @@ function renderBattleHUD(){
   $("#bstat").innerHTML=`<div class="rc"><span class="ic" style="color:var(--steel)">${ICON.shield}</span><div><div class="v">${fmtN(o)}</div><div class="k">아군</div></div></div><div class="rc"><span class="ic" style="color:var(--blight)">${ICON.skull}</span><div><div class="v">${fmtN(z)}</div><div class="k">망자</div></div></div>${wallHtml}`;
   $("#btime").innerHTML=(B.phase==="deploy"?"":`<button data-a="bpause" class="${B.paused?"on":""}" title="일시정지 (P)">${B.paused?ICON.play:ICON.pause}</button>`)+`<button data-a="help" title="도움말 (F1)" style="font-family:var(--f-display);font-size:18px;font-weight:700">?</button><button data-a="settings" title="설정">${ICON.gear}</button>`+(S&&S.practice?`<button data-a="practiceQuit" title="${S.prologue?"프롤로그를 건너뛰고 1일째로":"연습을 그만두고 처음 화면으로"}" style="font-family:var(--f-body);font-size:13px;color:var(--bone)">${S.prologue?"건너뛰기 →":"연습 끝내기"}</button>`:"");
   const sel=bSelected(),hold=sel.length&&sel.every(s=>s.hold);
-  $("#bcmds").innerHTML=B.phase==="deploy"
+  {const _h=B.phase==="deploy"
     ?`<button class="b gold" data-a="bbegin">전투 개시</button><button class="b sm" data-a="ball">전체 선택</button><span class="note" style="background:rgba(10,12,15,.75);padding:4px 10px;border-radius:3px">부대를 끌어 푸른 구역 안에 배치한다 · 성 공방전이면 궁병은 성벽 위로, 나머지는 성 안 어디든</span>`
-    :grpPanelHtml()+(E.camMode==="tp"?`${B.gen?`<button class="b sm ab ${B.abTarget?"on":""}" data-a="bab" ${B.abCd>0||B.genDead||B.over?"disabled":""} title="${esc(B.gen.abd)}">${esc(B.gen.ab)} (Q)${B.abCd>0?`<span class="cd">${Math.ceil(B.abCd)}</span>`:""}</button>`:""}${B.wall&&B.wallDef===0?`<button class="b sm ${B.gateOpen?"on":""}" data-a="bgate">${B.gateOpen?"성문 닫기":"성문 열기"}</button>`:""}<span class="grow"></span><button class="b sm on" data-a="bview">전체 시점 (V)</button>${B.ctx.kind!=="siege"?`<button class="b sm red" data-a="bretreat" ${B.over?"disabled":""}>${B.retreatArm&&performance.now()-B.retreatArm<3000?"정말 퇴각? 한 번 더":"전투 퇴각"}</button>`:""}`:`<button class="b sm" data-a="ball">전체 선택</button>${[...new Set(bOurs().filter(act).map(s=>s.t))].map(t=>`<button class="b sm" data-a="btype" data-t="${t}" title="${U[t].n} 전부 선택 (Shift: 추가)" style="padding:5px 7px"><span class="glyph" style="width:18px;height:18px;font-size:10px;background:${U[t].col}">${U[t].g}</span></button>`).join("")}
+    :grpPanelHtml()+(E.camMode==="tp"?`${B.gen?`<button class="b sm ab ${B.abTarget?"on":""}" data-a="bab" ${B.abCd>0||B.genDead||B.over?"disabled":""} title="${esc(B.gen.abd)}">${esc(B.gen.ab)} (Q)${B.abCd>0?`<span class="cd">${Math.ceil(B.abCd)}</span>`:""}</button>`:""}${B.wall&&B.wallDef===0?`<button class="b sm ${B.gateOpen?"on":""}" data-a="bgate">${B.gateOpen?"성문 닫기":"성문 열기"}</button>`:""}<span class="grow"></span><button class="b sm on" data-a="bview">전체 시점 (V)</button>${B.ctx.kind!=="siege"?`<button class="b sm red" data-a="bretreat" ${B.over?"disabled":""}>${B.retreatArm&&performance.now()-B.retreatArm<3000?"정말 퇴각? 한 번 더":"전투 퇴각"}</button>`:""}`:`<button class="b sm" data-a="ball">전체 선택</button>
       ${(()=>{const abs=[...new Set(sel.map(s=>s.t).filter(t=>SQ_AB[t]))];if(!abs.length)return "";const cd=Math.max(0,...sel.map(s=>s.abCd||0));return `<button class="b sm ab" data-a="bsqab" ${cd>0?"disabled":""} title="${abs.map(t=>SQ_AB[t].n+": "+SQ_AB[t].d).join("\n")}">${abs.map(t=>SQ_AB[t].n).join("·")} (R)${cd>0?`<span class="cd">${Math.ceil(cd)}</span>`:""}</button>`;})()}
       
       <span class="grow"></span>
       ${B.gen?`<button class="b sm ab ${B.abTarget?"on":""}" data-a="bab" ${B.abCd>0||B.genDead||B.over?"disabled":""} title="${esc(B.gen.abd)}">${esc(B.gen.ab)}${B.abCd>0?`<span class="cd">${Math.ceil(B.abCd)}</span>`:""}</button>`:""}
       ${B.wall&&B.wallDef===0&&B.phase==="battle"?`<button class="b sm ${B.gateOpen?"on":""}" data-a="bgate" title="성문을 열면 보병·창병이 나가 싸울 수 있다. 망자도 들어온다. 성벽 위 보병·창병은 아래 망자에게 돌을 던진다">${B.gateOpen?"성문 닫기":"성문 열기 (출격)"}</button>`:""}
-      ${B.cmd?`<button class="b sm" data-a="bfollow" title="선택한(없으면 모든) 부대가 지휘관을 따라 진형을 유지한다">나를 따르라 (F)</button><button class="b sm" data-a="bcharge" title="선택한(없으면 모든) 부대가 가장 알맞은 적에게 돌격한다">돌격 (G)</button>
+      ${B.cmd?`<button class="b sm" data-a="bfollow" title="선택한(없으면 모든) 부대가 지휘관을 따라 진형을 유지한다">나를 따르라 (F)</button>
         ${B.king?`<button class="b sm ${E.camMode==="tp"?"on":""}" data-a="bview">${E.camMode==="tp"?"전체 시점 (V)":"왕의 시점 (V)"}</button>`:""}`:""}
       ${B.ctx.kind!=="siege"?`<button class="b sm red" data-a="bretreat" ${B.over?"disabled":""}>${B.retreatArm&&performance.now()-B.retreatArm<3000?"정말 퇴각? 한 번 더":"퇴각"}</button>`:""}`);
+  const _b=$("#bcmds"),_hh=COARSE?_h.replace(/<kbd>[^<]*<\/kbd>/g,"").replace(/ \([A-Z]\)/g,""):_h;if(_b._h!==_hh){_b._h=_hh;_b.innerHTML=_hh;}}
   const cards=$("#bcards"),os=bOurs();
   const html=os.map(s=>{const u=U[s.t],tg=s.target&&bById(s.target),cm=tg?counter(s.t,tg.t):0,adv=!tg?"":cm>=1.4?`<i class="adv up">▲유리</i>`:cm<=0.7?`<i class="adv dn">▼불리</i>`:"",st=s.dead?"전멸":s.fled?"이탈":s.state==="rout"?"패주":s.buff.wall?"방패벽":s.buff.shield?"방패벽":s.buff.brace?"창벽":s.buff.focus?"집중 사격":s.buff.hornLite?"질주":s.hold?"고수":s.chargeT>0?"돌격":s.engaged?"교전":s.state==="move"?(s.stuckT>1.5?"막힘":"이동"):s.state==="attack"?(tg&&B.wall&&!isRng(s.t)&&acrossWall(s,tg)?(onWallDef(s)?"성벽 방어":"성벽에 막힘"):s.stuckT>1.5?"막힘":"공격"):(isRng(s.t)&&s.shootT!==undefined&&B.t-s.shootT<2.5?"사격":s.buff.push?"밀어붙임":s.buff.trample?"돌파":"대기");
     return `<button class="card ${s.state==="rout"?"rout":""} ${!act(s)?"dead":""}" data-a="bcard" data-id="${s.id}" aria-pressed="${B.sel.has(s.id)}" ${!act(s)?"disabled":""}><span class="glyph" style="background:${u.col}">${u.g}</span>
-      <b><span>${u.n}${s.vet?`<span style="color:var(--gold);font-size:10px">${"★".repeat(s.vet)}</span>`:""}${s.follow?" ⚑":""}</span><span class="num">${s.alive}</span></b><span class="bars"><span class="bar" title="병력 ${s.alive}/${s.men0}"><i style="width:${s.alive/s.men0*100}%;background:var(--steel)"></i></span><span class="bar" title="사기 ${Math.round(s.morale)} — 0이 되면 패주"><i style="width:${clamp(s.morale,0,100)}%;background:${s.morale<30?"var(--blood)":"var(--gold)"}"></i></span><span class="st">${st}${s.form==="tight"?" · 방진":s.form==="loose"?" · 산개":""} ${adv}</span></span></button>`;}).join("");
+      <b><span>${u.n}${s.vet?`<span style="color:var(--gold);font-size:10px">${"★".repeat(s.vet)}</span>`:""}${s.follow?" ⚑":""}</span><span class="num">${s.alive}</span></b><span class="bars"><span class="bar" title="병력 ${s.alive}/${s.men0}"><i style="width:${s.alive/s.men0*100}%;background:var(--steel)"></i></span><span class="bar" title="사기 ${Math.round(s.morale)} — 0이 되면 패주"><i style="width:${clamp(s.morale,0,100)}%;background:${s.morale<30?"var(--blood)":"var(--gold)"}"></i></span><span class="st">${st}</span></span></button>`;}).join("");
   if(cards._h!==html){cards._h=html;cards.innerHTML=html;}
   $("#bhelp").innerHTML=B.phase==="deploy"?"부대를 끌어 위치를 정한다 · 화면을 끌면 시점 이동, 휠·두 손가락으로 확대":E.camMode==="tp"?
     (B.king?`왕의 시점 · <kbd>WASD</kbd> 이동 <kbd>우클릭</kbd> 베기 <kbd>R</kbd> 찌르기 <kbd>T</kbd> 창 <kbd>Ctrl</kbd> 구르기 <kbd>Space</kbd> 점프 <kbd>B</kbd> 막기 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 왕의 기술 · <kbd>F</kbd> 따르라 <kbd>G</kbd> 돌격 <kbd>Q</kbd> 장군 능력 <kbd>V</kbd> 전체 시점 <kbd>P</kbd> 일시정지 <kbd>/</kbd> 도움말`:`지휘관 시점 · <kbd>WASD</kbd> 지휘관 이동 · 화면 끌기: 둘러보기 · 부대 선택(카드·<kbd>1</kbd>–<kbd>9</kbd>) 후 땅·적·미니맵 클릭 · <kbd>F</kbd> 따르라 <kbd>G</kbd> 돌격 <kbd>Q</kbd> 능력 <kbd>V</kbd> 전체 시점`):
-    `끌어서 상자 선택 · 부대 두 번 누르기: 같은 병종 전부 · 우클릭: 이동/공격 · <kbd>WASD</kbd> 시점 · 우클릭 끌기: 회전 · <kbd>R</kbd> 부대 능력 <kbd>Q</kbd> 장군 능력 <kbd>G</kbd> 돌격 <kbd>Space</kbd>/<kbd>P</kbd> 일시정지 <kbd>/</kbd> 도움말`;
-  {const hv=$("#hint");$("#bhelp").hidden=(B.t>16+(B.helpT||0)&&B.phase==="battle")||B.over||(typeof COARSE!=="undefined"&&COARSE)||B.phase==="deploy"||!!(hv&&!hv.hidden&&hv.offsetParent);}
+    `끌어서 상자 선택 · 부대 두 번 누르기: 같은 병종 전부 · 우클릭: 이동/공격 · <kbd>WASD</kbd> 시점 · 우클릭 끌기: 회전 · <kbd>Q</kbd> 장군 능력 <kbd>G</kbd> 돌격 <kbd>Space</kbd>/<kbd>P</kbd> 일시정지 <kbd>/</kbd> 도움말`;
+  {const hv=$("#hint"),bn=$("#banner");$("#bhelp").hidden=(B.t>16+(B.helpT||0)&&B.phase==="battle")||!!(bn&&!bn.hidden)||B.over||(typeof COARSE!=="undefined"&&COARSE)||B.phase==="deploy"||!!(hv&&!hv.hidden&&hv.offsetParent);}
   {let ad=$("#badvice");if(!ad){ad=document.createElement("div");ad.id="badvice";ad.className="badvice";$("#bhud").appendChild(ad);}const h=B.phase==="deploy"?`<b>${B.gen?esc(B.gen.name):"부관"}의 조언</b>${battleAdvice()}<div style="margin-top:6px;opacity:.75;font-size:11.5px">${(typeof COARSE!=="undefined"&&COARSE)?"부대를 끌어 위치를 정한다 · 화면을 끌면 시점 이동, 두 손가락으로 확대":"부대를 끌어 위치를 정한다 · 화면을 끌면 시점 이동, 휠로 확대"}</div>`:"";if(ad._h!==h){ad._h=h;ad.innerHTML=h;}ad.hidden=!h;}
 }
 
@@ -7898,7 +8068,7 @@ addEventListener("keydown",e=>{if(e.target&&e.target.closest&&e.target.closest("
     const kingTp=E.camMode==="tp"&&BT.king&&!KC.ko&&BT.phase==="battle";
     if(e.code==="Tab"){e.preventDefault();toggleWarMap();return;}
     if(BT.phase==="battle"&&!e.ctrlKey&&!e.metaKey){const gi=["Digit5","Digit6","Digit7","Digit8","Digit9"].indexOf(e.code);if(gi>=0){e.preventDefault();grpSelect(GROUPS[gi].k);renderBattleHUD();return;}
-      if(e.code==="KeyG"){e.preventDefault();doCharge();renderBattleHUD();return;}if(e.code==="KeyH"){e.preventDefault();grpCmd(BT.grp||"all","retreat");renderBattleHUD();return;}if(e.code==="KeyJ"){e.preventDefault();grpCmd(BT.grp||"all","skill");renderBattleHUD();return;}if(e.code==="KeyK"){e.preventDefault();grpCmd(BT.grp||"all","skill2");renderBattleHUD();return;}}
+      if(e.code==="KeyG"){e.preventDefault();doCharge();renderBattleHUD();return;}if(e.code==="KeyH"){e.preventDefault();grpCmd(BT.grp||"all","retreat");renderBattleHUD();return;}if(e.code==="KeyJ"){e.preventDefault();grpCmd(BT.grp||"all","skill");renderBattleHUD();return;}}
     if(kingTp&&e.code==="Digit4"){e.preventDefault();KC.wantMusou=true;return;}
     if(kingTp){if(e.code==="Digit1"||e.code==="Digit2"||e.code==="Digit3"){e.preventDefault();KC.wantSkill={Digit1:"spin",Digit2:"cry",Digit3:"dash"}[e.code];return;}if(e.code==="Space"){e.preventDefault();KC.wantJump=true;return;}if(e.code==="KeyC"){KC.crouch=!KC.crouch;return;}if(e.code==="KeyR"){KC.wantKick=true;return;}if(e.code==="ControlLeft"||e.code==="ControlRight"){e.preventDefault();KC.wantRoll=true;return;}if(e.code==="KeyT"){KC.wantSpear=true;return;}if(e.code==="KeyM"){KC.wantMount=true;return;}if(e.code==="KeyP"){BT.paused=!BT.paused;renderBattleHUD();return;}}
     if(e.code==="Space"||e.code==="KeyP"){e.preventDefault();if(BT.phase==="battle"){BT.paused=!BT.paused;renderBattleHUD();}}
@@ -8076,6 +8246,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.147","AI가 만든 티 걷어내기: 금박 그라데이션 글씨, 빛나는 테두리, 마름모 장식, 금속 버튼을 없애고 어두운 판과 가는 테두리로 차분하게 · 병종 기술은 하나씩만(보병 밀어붙이기, 창병 투창, 궁병 불화살, 기마병 측면 돌격, 전군 함성). 같은 일을 하던 부대 능력(R)도 정리 · 불화살: 불붙은 화살이 높게 날아가 땅에 꽂히고, 꽂힌 자리마다 불꽃이 따로 타다 하나씩 꺼진다. 검은 연기와 불티가 오르고 불길 안 망자 몸에 불이 붙으며, 꺼진 뒤엔 그을음이 남는다 · 화살은 살대·촉·깃이 있는 화살로, 떨어진 화살은 몇 초 동안 땅에 꽂혀 있다 · 기술을 쓰면 발밑에 뜨던 색 고리를 없앴다 · 망자의 불단지는 화살이 아니라 단지로 날아간다 · 나무마다 크기·키·기울기·색이 다르다 · 집마다 회벽·지붕 색과 지붕 기울기, 굴뚝이 다르고 일부는 돌집 · 성벽에 기단, 띠돌, 버팀벽이 생기고 돌 색이 구간마다 조금씩 다르다 · 지도 위 행군: 병사마다 간격이 늘었다 줄고 좌우로 흔들리며 자기 발밑 땅을 딛는다 · 전장 정리: 왕 시점에선 중대 카드와 머리 위 이름표를 숨기고, 적 이름표는 병종 글자만, 왕 정보는 막대만, 병종 버튼·돌격 버튼 중복 제거, 휴대폰에선 중대 카드 숨김, 휴대폰 전장의 아군/망자 막대가 화면 가운데를 가리던 것 고침 · 왕궁 지도 이름표가 겹치던 것 고침 · 분수 물이 줄무늬로 보이던 것 고침 · 이모지 아이콘 제거"],
  ["0.9.146","영어판: 설정·첫 화면의 🌐 버튼으로 한국어/English를 바꾼다. 처음 여는 사람은 기기 언어를 따른다(한국어가 아니면 English). 망자의 군주(Claude)도 영어판에선 영어로 말한다"],
  ["0.9.145","체험판 첫 화면 아래의 \x27Claude와 연결해야 시작된다\x27 문구를 체험판 안내로 바꿈"],
  ["0.9.144","itch.io 체험판: itch.io에서 열면 Claude API 키 없이 바로 시작한다(망자의 군주는 기본 규칙 — 설정에서 키를 넣으면 Claude가 지휘) · 구글 로그인은 깃허브 주소의 로그인 창에서 하고 저절로 돌아온다 · 첫 화면 멀티플레이에 남아 있던 '준비 중' 글씨를 지웠다"],
@@ -8344,7 +8515,7 @@ const FSDB={doc:p=>({get:async()=>{const d=await firebase.firestore().doc(p).get
 /* 아이디·비밀번호: 아이디는 내부적으로 '아이디@deepdark.game' 이메일로 만든다 (진짜 이메일이 아니므로 비밀번호 찾기는 없다) */
 const idMail=id=>`${id.toLowerCase()}@deepdark.game`;
 function loginTitleHtml(){if(!loginOn())return "";const u=LOGIN.user;
-  if(u)return `<div class="lgchip"><span>☁ ${esc(u.displayName||(u.email||"").replace(/@deepdark\.game$/,"")||"계정")} · 클라우드 저장</span><button class="b ghost sm" data-a="logout">로그아웃</button></div>`;
+  if(u)return `<div class="lgchip"><span>${esc(u.displayName||(u.email||"").replace(/@deepdark\.game$/,"")||"계정")} · 클라우드 저장</span><button class="b ghost sm" data-a="logout">로그아웃</button></div>`;
   let guest=false;try{guest=localStorage.getItem("dd-guest")==="1";}catch(e){}
   if(guest)return `<div class="lgchip"><span>게스트 — 이 기기에만 저장</span><button class="b sm" data-a="loginShow">로그인</button></div>`;
   return `<div class="lgpanel"><h3>로그인</h3><p>구글 계정으로 로그인하면 폰·PC 어디서든 같은 왕국을 이어 한다.</p>
@@ -8455,7 +8626,7 @@ async function mpLeave(silent){const db=MPDB;MP.subs.forEach(f=>f());MP.subs=[];
   if(db&&MP.code){try{await db.set(mpR("players/"+MP.uid),null);if(MP.host&&!MP.started)await db.set(mpR(""),null);}catch(e){}}
   const was=MP.started;Object.assign(MP,{on:false,host:false,code:null,meta:null,players:{},chat:[],kingdoms:{},started:false});UI.closeModal();if(was)location.reload();}
 function mpPresence(){}
-function mpChatToast(){const c=MP.chat[MP.chat.length-1];if(!c||c.t<=(MP.lastChatT||0))return;MP.lastChatT=c.t;if(MP.started)logMsg(`💬 ${c.n}: ${c.m}`);}
+function mpChatToast(){const c=MP.chat[MP.chat.length-1];if(!c||c.t<=(MP.lastChatT||0))return;MP.lastChatT=c.t;if(MP.started)logMsg(`${c.n}: ${c.m}`);}
 /* ── 시작: 모두 같은 세계를 만든다 ── */
 async function mpBegin(){const m=MP.meta;if(!m||MP.started)return;MP.started=true;MP.slot=m.slots[MP.uid]??0;MP.host=m.host===MP.uid;
   UI.closeModal();mpSetupWorld(m.n,MP.slot,m.names||[]);
@@ -8554,7 +8725,7 @@ function mpApplyKingdoms(){if(!S)return;
 function mpRenderAllies(){let box=$("#allyMarks");if(!box){box=document.createElement("div");box.id="allyMarks";document.body.appendChild(box);}
   if(UI.mode!=="map"||UI.modalOpen){box.hidden=true;return;}box.hidden=false;const st=$("#stage").getBoundingClientRect();let h="";
   for(const k of Object.values(MP.kingdoms))for(const [id,x,z,men,mv,king] of k.armies||[]){const p=worldToScreen(x,worldH(x,z)+4,z);if(!p.vis)continue;
-    h+=`<div class="am" style="left:${st.left+p.x}px;top:${st.top+p.y}px;border-color:${MP_COLS[k.slot]}"><b style="background:${MP_COLS[k.slot]}"></b>${king?"👑 ":""}${esc(k.name)} ${fmtN(men)}</div>`;}
+    h+=`<div class="am" style="left:${st.left+p.x}px;top:${st.top+p.y}px;border-color:${MP_COLS[k.slot]}"><b style="background:${MP_COLS[k.slot]}"></b>${king?"왕 ":""}${esc(k.name)} ${fmtN(men)}</div>`;}
   box.innerHTML=h;}
 setInterval(()=>{try{if(MP.started)mpRenderAllies();}catch(e){}},250);
 
@@ -8785,7 +8956,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.146 · 바뀐 점</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.147 · 바뀐 점</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
