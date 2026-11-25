@@ -3,7 +3,7 @@
 en.html은 index.html에서 자동으로 만든다. index.html을 고친 뒤:
 
 1. `npm i acorn@8.11.3` (ext.js용)
-2. 경로를 맞추고 `python3 gen.py index.html en.html`
+2. `python gen.py > gen.log` (경로는 스스로 찾는다. 출력을 head로 자르지 말 것)
 3. 'missing'에 새 한국어 문장이 나오면 o23.json 같은 새 파일에 번역을 넣는다 (all.json의 id 기준, 새 문장은 id를 새로 매긴다)
 
 - o00~o22.json: 문장별 번역 (id → 영어)

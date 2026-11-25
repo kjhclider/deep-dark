@@ -1,17 +1,18 @@
-import json,re,glob,subprocess,sys
-SRC=sys.argv[1] if len(sys.argv)>1 else '/home/claude/deep-dark/index.html'
-OUT=sys.argv[2] if len(sys.argv)>2 else '/home/claude/deep-dark/en.html'
-allv={o['id']:o['v'] for o in json.load(open('/home/claude/tr/all.json'))}
+import json,re,glob,subprocess,sys,os,tempfile
+HERE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(os.path.dirname(HERE));SEGS=os.path.join(tempfile.gettempdir(),'dd_segs.json')
+SRC=sys.argv[1] if len(sys.argv)>1 else os.path.join(ROOT,'index.html')
+OUT=sys.argv[2] if len(sys.argv)>2 else os.path.join(ROOT,'en.html')
+allv={o['id']:o['v'] for o in json.load(open(os.path.join(HERE,'all.json'),encoding='utf-8'))}
 tr={}
-for f in sorted(glob.glob('/home/claude/tr/o[0-9]*.json')):
-    for k,v in json.load(open(f)).items():
+for f in sorted(glob.glob(os.path.join(HERE,'o[0-9]*.json'))):
+    for k,v in json.load(open(f,encoding='utf-8')).items():
         if v is not None: tr[allv[int(k)]]=v
 VER=re.compile(r'v0\.9\.\d+')
 def norm(t): return VER.sub('v0.9.X',t)
 trn={norm(k):v for k,v in tr.items()}
-ov=json.load(open('/home/claude/tr/overrides.json')) if glob.glob('/home/claude/tr/overrides.json') else {}
-subprocess.run(['node','/tmp/tools/ext.js',SRC],check=True,capture_output=True)
-segs=json.load(open('/tmp/segs.json'))
+ov=json.load(open(os.path.join(HERE,'overrides.json'),encoding='utf-8')) if os.path.exists(os.path.join(HERE,'overrides.json')) else {}
+subprocess.run(['node',os.path.join(HERE,'ext.js'),SRC,SEGS],check=True,capture_output=True)
+segs=json.load(open(SEGS,encoding='utf-8'))
 s=open(SRC,encoding='utf-8').read()
 u2p=[];
 for pi,ch in enumerate(s):
