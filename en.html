@@ -457,7 +457,7 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 #tpad [data-tp="s3"]{right:calc(202px + env(safe-area-inset-right));bottom:217px;width:52px;height:52px}
 #tpad [data-tp="s4"]{right:calc(133px + env(safe-area-inset-right));bottom:257px;width:52px;height:52px}
 #tpad [data-tp="q"]{right:calc(54px + env(safe-area-inset-right));bottom:265px;width:52px;height:52px}
-#tpad [data-tp="mount"]{right:calc(24px + env(safe-area-inset-right));bottom:163px;width:52px;height:52px}
+#tpad [data-tp="mount"]{right:calc(38px + env(safe-area-inset-right));bottom:150px;width:52px;height:52px}
 #tpad [data-tp="crouch"]{right:calc(46px + env(safe-area-inset-right));bottom:240px;width:52px;height:52px}
 #tpad [data-tp="e"]{display:none!important}   /* 들어가기는 가운데 아래 기존 버튼(이름표)이 맡는다 */
 #tpad .tp.cool{opacity:.55;filter:grayscale(.6)}
@@ -652,6 +652,8 @@ kbd{font-family:var(--f-body)!important}
 .setin{width:100%;box-sizing:border-box;margin:6px 0 8px;padding:8px 10px;background:#0d0c0b;color:var(--bone);border:1px solid var(--line-2);border-radius:2px;font:inherit}
 .set .note{margin:8px 0 0}.setcred{opacity:.6;margin:10px 0 0;font-size:11.5px}
 html[lang=en] .kh-row{grid-template-columns:54px 1fr}
+@media (max-height:520px){#btime{zoom:.72}}
+#notes{z-index:35}
 .tb{background:rgba(10,9,8,.74)}.tb.main{background:rgba(22,19,15,.8)}
 @media (max-height:520px){
   #title{padding:7vh 16px 3vh}.lgchip{zoom:.72;top:10px;right:12px}.ttl{font-size:clamp(34px,6.4vw,54px);margin:4px 0 2px}.tline{width:min(300px,50vw)}.tsub{margin:2px 0 0;font-size:11px}
@@ -778,13 +780,13 @@ const ICON={
 function touchTxt(str){
   /* 휴대폰: 어떤 키·버튼을 누르라는 말은 뺀다 — 버튼은 눈에 보이고, 사람은 알아서 누른다 */
   if(typeof COARSE==="undefined"||!COARSE)return str;
-  return String(str).replace(/<kbd>[^<]*<\/kbd>\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
-    .replace(/WASD ?(로 )?(이동)?/g,"").replace(/더블\s?클릭(해서|하면)?\s?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/우클릭\s?(끌기:?\s?회전|으로|로)?\s?/g,"").replace(/\s?\((우클릭|Tab|E)\)/g,"")
+  return String(str).replace(/<kbd>우클릭<\/kbd>하면/g,"길게 누르면").replace(/<kbd>[^<]*<\/kbd>(으로|로)?\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
+    .replace(/WASD ?(로 )?(이동)?/g,"").replace(/[^.>]*우클릭으로도 보낼 수 있다\.?/g,"").replace(/우클릭하면/g,"길게 누르면").replace(/\s?Shift로 질주\.?/g,"").replace(/Tab(으로|:)?\s?/g,"").replace(/(^|[\s·(,])[A-Z]로 (?=[가-힣])/g,"$1").replace(/(가서|다가가) E(?=[^A-Za-z]|$)/g,"$1").replace(/더블\s?클릭(해서|하면)?\s?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/우클릭\s?(끌기:?\s?회전|으로|로)?\s?/g,"").replace(/\s?\((우클릭|Tab|Ctrl|Shift|Space|[A-Z])\)/g,"")
     .replace(/Tab을 누르면 /g,"").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1").replace(/(^|[\s·(])E (?=[가-힣])/g,"$1")
     .replace(/[,.]? ?(또는|돌아올 때도) M(?=[.\s,)]|$)/g,"")
     .replace(/(^|[\s·(])(Ctrl|Shift|Space|Alt|[A-Z]) (?=[가-힣])/g,"$1")
     .replace(/(을|를) 클릭(?=\s?→)/g,"").replace(/(을|를) 클릭(해서|하면|하거나)?\s?/g,"$1 ").replace(/\s?클릭(해서|하면|하거나)?\s?/g," ")
-    .replace(/ +([·,.→—])/g," $1").replace(/^(\s*)[·—]\s*/,"$1").replace(/ {2,}/g," ")).join("");
+    .replace(/(숫자 )?5~9로 /g,"").replace(/\s?\(\)/g,"").replace(/ +([·,.→—])/g," $1").replace(/^(\s*)[·—]\s*/,"$1").replace(/ {2,}/g," ")).join("");
 }
 function fixJosa(str){
   str=touchTxt(str);
@@ -3708,7 +3710,7 @@ function placeGenerals(){
 function palSpots(){
   const pet=S.court&&S.court.pet.length;
   const L=[
-    {id:"throne",name:PAL.sit?"Rise from the throne":"Throne",sub:PAL.sit?"E or WASD to rise":(pet?`Petitions waiting: ${pet}`:"Sit on the throne · Audiences"),x:0,z:-19.4,act:()=>{if(PAL.sit){PAL.sit=false;renderPrompt();return;}PAL.sit=true;PAL.pos.x=0;PAL.pos.z=-20.9;E.tp.yaw=Math.PI;E.tp.pitch=0.22;E.tp.dd=6.5;E.tp.snap=true;UI.bannerSay("Seated on the throne — E or WASD to rise");openPetitions();const sp=PAL.spots.find(s=>s.id==="throne");if(sp){sp.name="Rise from the throne";sp.sub="E or WASD to rise";}renderPrompt();}},
+    {id:"throne",name:PAL.sit?"Rise from the throne":"Throne",sub:PAL.sit?"Move to rise":(pet?`Petitions waiting: ${pet}`:"Sit on the throne · Audiences"),x:0,z:-19.4,act:()=>{if(PAL.sit){PAL.sit=false;renderPrompt();return;}PAL.sit=true;PAL.pos.x=0;PAL.pos.z=-20.9;E.tp.yaw=Math.PI;E.tp.pitch=0.22;E.tp.dd=6.5;E.tp.snap=true;UI.bannerSay("Seated on the throne. Move to rise");openPetitions();const sp=PAL.spots.find(s=>s.id==="throne");if(sp){sp.name="Rise from the throne";sp.sub="Move to rise";}renderPrompt();}},
     {id:"door",name:"To the Keep Yard",sub:"Go outside",x:0,z:22.6,act:()=>leavePalace()},
     {id:"table",name:"War Council Table",sub:"Plan expeditions",x:-17,z:3.6,act:()=>UI.openModal(councilModal())},
     {id:"armor",name:"King's Armor Stand",sub:"Wardrobe",x:6.4,z:-18.5,act:()=>UI.openModal(wardrobeModal())},
@@ -3729,7 +3731,7 @@ function enterPalace(){if(regentOn())setTimeout(()=>UI.bannerSay(`Regent ${regen
   E.onTap=()=>{if(COARSE&&PAL.near)PAL.near.act();};E.onDragStart=null;E.onHover=null;   // 데스크톱은 E로만 (클릭은 시점 잠금)
   E.onFrame=dt=>{tickWorld(dt);palTick(dt);uiTick(dt);};
   UI.mode="palace";showCapitalHUD();
-  if(!UI.palHint){UI.palHint=true;UI.bannerSay("Great Hall — approach a minister and press E · audiences at the throne · war room past the west door");}
+  if(!UI.palHint){UI.palHint=true;UI.bannerSay("Great Hall — walk up to a minister to speak · audiences at the throne · war room past the west door");}
 }
 function leavePalace(){E.tp.clampFn=null;E.tp.ceil=null;CAP.pos={x:0,z:KEEP.z+17};CAP.face=0;enterCapital();E.tp.yaw=Math.PI;E.tp.snap=true;}
 function palTick(dt){if(typeof tutPalTick==="function")tutPalTick(dt);
@@ -4286,7 +4288,7 @@ function onDay(){
   S.res.food+=e.food;S.res.gold+=e.gold;
   /* 병사가 백성의 60%를 넘으면 들판이 비고 집집마다 아들을 잃었다 — 민심이 매일 깎인다 */
   {const sol=soldiersAll();if(sol>S.civ*0.6){S.morale=clamp(S.morale-1.5,0,100);if(!(S.draftWarnD>S.day-4)){S.draftWarnD=S.day;logMsg(`Over-conscription — ${fmtN(sol)} soldiers exceed 60% of the ${fmtN(S.civ)} people. Favor drops daily, and short-handed farms and markets slow down.`,"bad");}}
-   else if(laborK()<1&&!(S.laborWarnD>S.day-5)){S.laborWarnD=S.day;logMsg(`Short of hands — with fewer people, farms and markets run at only ${Math.round(laborK()*100)}%. Raise housing and encourage settlers.`,"bad");}}
+   else if(laborK()<1&&!(S.laborWarnD>S.day-5)){S.laborWarnD=S.day;logMsg(`Short of hands — with fewer people, farms and markets run at only ${Math.round(laborK()*100)}%. Housing and settlers are needed.`,"bad");}}
   /* 마을 몫은 마을마다 쌓였다가 사흘마다 수레로 들어온다 */
   S.vAcc=S.vAcc||{};for(const v of villagesOwned()){const r=vilEarn(v);const a=S.vAcc[v.id]=S.vAcc[v.id]||{g:0,f:0};a.g+=r.g;a.f+=r.f;}
   if((S.day|0)%3===0){let G=0,F=0;const parts=[];for(const [id,a] of Object.entries(S.vAcc)){const s=siteById(id);if(!s||!(a.g||a.f))continue;if(S.sites[id].state!=="ok"){continue;}G+=a.g;F+=a.f;parts.push(`${s.name} gold ${a.g}·food ${a.f}`);}
@@ -4300,7 +4302,7 @@ function onDay(){
   S.morale=clamp(S.morale+(S.morale<60?0.4:0),0,100);
   // 민심의 무게: 낮으면 탈영·소요, 높으면 의용군
   if(S.morale<30&&S.garrison.length){const c=pick(S.garrison);const n=Math.min(c.men-10,ri(4,9));if(n>0){c.men-=n;logMsg(`Favor has hit bottom. From the ${U[c.t].n} company, ${n} deserted in the night.`,"bad");}}
-  if(S.morale<20&&S.day%3===0){const g=Math.min(S.res.gold,ri(80,160));S.res.gold-=g;S.civ=Math.max(300,S.civ-ri(20,50));logMsg(`Riots in the city. The stores were looted: lost gold ${g}, and people left. Win back their favor — festivals, blessings, victories.`,"bad");}
+  if(S.morale<20&&S.day%3===0){const g=Math.min(S.res.gold,ri(80,160));S.res.gold-=g;S.civ=Math.max(300,S.civ-ri(20,50));logMsg(`Riots in the city. The stores were looted: lost gold ${g}, and people left. Festivals, blessings and victories win back their favor.`,"bad");}
   if(S.morale>=80&&S.day%5===0&&S.civ>600){S.civ-=100;S.garrison.push({t:"militia",men:100});logMsg("With favor high, a company of volunteers (100 militia) took up spears on their own.","gold");}
   // 마을 인구 증가는 vilDay에서 한 번만 (상한도 그쪽이 정한다)
   // 훈련
@@ -4312,7 +4314,7 @@ function onDay(){
   if(S.kingWound>0&&--S.kingWound===0){logMsg("The king's wound has healed.");try{KC.max=kingMaxHp();}catch(e){}}
   weatherDay();courtDay();vilDay();realmDay();tradeDay();pactDay();migrDay();wallDay();
   // 위험 신호: 미리 알린다
-  {const e2=econ();e2.food+=e2.vf;if(e2.food<0&&S.res.food+e2.food*3<0&&S.res.food>0&&!(S.foodWarnD>S.day-3)){S.foodWarnD=S.day;logMsg(`Food runs out within three days (per day ${e2.food}). Raise farms, cut troops, or buy food.`,"bad");}
+  {const e2=econ();e2.food+=e2.vf;if(e2.food<0&&S.res.food+e2.food*3<0&&S.res.food>0&&!(S.foodWarnD>S.day-3)){S.foodWarnD=S.day;logMsg(`Food runs out within three days (per day ${e2.food}). Raising farms, cutting troops or buying food would fix it.`,"bad");}
    if((S.civ<700||S.morale<25)&&typeof hintOnce==="function")hintOnce("danger");}if(typeof gearDay==="function")gearDay();if(typeof campaignDay==="function")campaignDay();if(S.debt>0){S.debt*=1.10;if(S.debt>2500){S.morale=clamp(S.morale-2,0,100);if(S.day%3===0)logMsg(`Debt remaining: ${fmtN(Math.round(S.debt))}. Merchants turn away and favor wavers.`,"bad");}}campDay();rebuildDay();fatigueDay();eliteDay();techDay();
   for(const g of S.gens)if(g.status==="wounded"&&--g.wound<=0){g.status="ready";logMsg(`${genById(g.id).name} recovered from wounds.`);}
   // 망자 요새 성장 (멀티: 방장만 — 손님은 방장 세계를 받는다)
@@ -4656,7 +4658,7 @@ function resolveSpy(op){
   } else if(Math.random()<0.5){
     /* 절반은 들키기 전에 눈치채고 빈손으로 돌아온다 — 첩자를 잃지 않는다 */
     const I=S.intel[s.id]||{found:[]};I.alarm=S.day+3;S.intel[s.id]=I;spyLeave(op);
-    logMsg(`${s.name} is too heavily watched — the spy couldn't get in and turned back. Try again in a few days.`,"bad");UI.dirty=true;
+    logMsg(`${s.name} is too heavily watched — the spy couldn't get in and turned back. A spy can try again in a few days.`,"bad");UI.dirty=true;
   } else {
     S.spy.agents--;S.spy.ops=S.spy.ops.filter(o=>o!==op);
     const I=S.intel[s.id]||{found:[]};I.alarm=S.day+6;S.intel[s.id]=I;
@@ -4680,7 +4682,7 @@ function spyReportHtml(id,live){
     ${s.kind==="village"?`<p class="rp">The village can hold about ${I.doom} days</p>`:`<p class="rp">New Dead join about every ${s.rate} days. The Lord orders the next sortie in about ${Math.max(1,I.lord)} days.</p>`}
     ${weakFound?`<div class="eyebrow" style="margin:8px 0 4px;color:#6b5530">Weaknesses found (apply when attacking)</div>${weakFound}`:""}
     ${(I.found||[]).length===3?`<p class="rp"><b>Perfect recon</b> — knowing every weakness, the whole enemy fights 15% weaker in the assault.</p>`:""}
-    ${unknown>0?`<p class="rp" style="opacity:.75">Weaknesses still hidden: ${unknown}. ${op&&op.phase==="in"?"The spy is still on site — infiltrate in person to find them.":"Send a spy again and infiltrate to find them."}</p>`:""}
+    ${unknown>0?`<p class="rp" style="opacity:.75">Weaknesses still hidden: ${unknown}. ${op&&op.phase==="in"?"The spy is still on site. You can infiltrate in person.":"Send a spy again and infiltrate to find them."}</p>`:""}
     ${age>INTEL_FRESH?`<p class="rp" style="color:#8a2a1a">Old intel. Things may have changed.</p>`:""}
     ${live&&AI.ok()?`<p class="rp story" id="spyFlav"><span class="spin"></span></p>`:""}
   </div>`;
@@ -5576,18 +5578,18 @@ function tutNowTick(){let el=$("#tutNow");if(!el){el=document.createElement("div
 /* ════════ 처음 마주칠 때 한 번 뜨는 안내 카드 (게임을 멈추지 않는다) ════════ */
 const HINTS={
   tactic:["Enemy tactics","The Dead use one tactic per battle. Respond to what the scouts shout and to the advice panel at top left — pincer: spearmen on the flanks; archer hunt: infantry beside the archers; wedge: pull back or back up the targeted unit."],
-  map:["Reading the world map","Blue banners are ours, red are the Dead. '?' is fog — click it and send a spy to learn what it is. Click a site for info on the right; select an army, then right-click ground or a site to send it there. M to return to the Palace."],
+  map:["Reading the world map","Blue banners are ours, red are the Dead. '?' marks a place hidden by fog; a spy can find out what it is. Select an army and choose a destination to send it there."],
   spy:["Spy arrived","A spy stays at a fort for 3 days. Meanwhile, use 'Infiltrate' to go in yourself and find weaknesses (up to 3) — each one weakens the enemy in the assault. Find all 3 and the whole enemy is -15%. When forming the expedition you can also choose the entry side (front, flank, rear)."],
   neutral:["Neutral faction","Neutral factions like mercenaries and woodsmen are won over by sending an army. Meet their demand in troops or gold and they join, giving you troops. If you fall short, the army simply comes back."],
   fort:["Fort of the Dead","Every fort is different (red box on the right). While a fort stands, the Dead keep growing. Scout their units with spies and strike with an army that counters them. Each fort razed also shrinks the Great Raids."],
   realm:["Neighboring realms","At relations 40: trade and treaties; at 70: alliance — you can borrow reinforcements. Envoys are free (every 5 days). Leaving armies on their land for long lowers relations."],
-  deploy:["Battle deployment","Drag units into position inside the blue zone. Archers in back or on hills, spearmen in front of cavalry. Read the general's advice at top left and press 'Begin battle' to start the clock — until then, time is frozen."],
+  deploy:["Battle deployment","Drag units into position inside the blue zone. Archers in back or on hills, spearmen in front of cavalry. Time stays frozen until the battle begins."],
   wall:["Wall defense","The castle is ringed by a circular wall with the gate to the north. Archers shoot from the wall walk; infantry and spearmen near the wall hurl stones at the Dead below. The Dead raise ladders and batter the wall. If the gate or wall is breached, infantry, spearmen and cavalry inside move to plug the gap on their own. If the gate breaks, they pour through it. You can sally out with 'Open gate' or a charge (G). Gate and wall HP are shown at the top."],
   reinf:["Reinforcements coming","An allied army that was heading nearby arrives mid-battle. Hold on and the reinforcements hit the Dead in the back or flank."],
   camp:["Camping","Send an army to open ground and it camps. Troops and fatigue recover while it stays. High fatigue lowers combat power (60% at fatigue 100)."],
-  groups:["Commanding by unit type","Command infantry, spearmen, archers, cavalry or the whole army separately from the panel below. Pick a branch with 5-9 and its companies light up and the card shows 'Commanding'. G charge, H retreat and J skill then go to that branch only. You can also press the buttons directly. Without orders, companies go for the enemies they counter."],
+  groups:["Commanding by unit type","Command infantry, spearmen, archers, cavalry or the whole army separately from the panel below. Pick a branch with 5-9 and its companies light up and the card shows 'Commanding'. G charge, H retreat and J skill then go to that branch only. Without orders, companies go for the enemies they counter."],
   skills:["Unit skills","Each branch has one skill: infantry Shove, spearmen Javelins, archers Fire Arrows, cavalry Flank Charge, the whole army War Cry. After use, the button shows the seconds until it is ready again."],
-  musou:["Rampage ready","Fury is full — press 4 to spin invincibly for a few seconds, sweeping away the Dead around you. Fury fills when you cut enemies, block right on time (B just before a hit), or roll out of the way at the last moment."],
+  musou:["Rampage ready","Fury is full — Unrivaled Fury makes you spin invincibly for a few seconds, sweeping away the Dead around you. Fury fills when you cut enemies, block just before a hit, or roll out of the way at the last moment."],
   warmap:["War map","Press Tab to open the big war map and slow time. Click or drag to select units, right-click to move or attack. Tab again to close."],
   hero:["Battles led by a general","Battles led by a general are commanded from the overview. The general fights alongside the bodyguard on their own; press Q to use the general's ability."],
   duel:["Sparring tips","Generals read and block a repeated move. Mix slash, stab and skills; time a block (B) just before their attack and they stagger. Mash attacks and they counter without flinching."],
@@ -5611,17 +5613,18 @@ function hintNext(){let el=$("#hint");if(!el){el=document.createElement("div");e
   clearTimeout(hintOnce._t);hintOnce._t=setTimeout(hintNext,ms);}
 // 도움말: 조작법·수치 설명·길잡이 목록을 한 창에
 function helpModal(tab){tab=tab||UI.helpTab||"keys";UI.helpTab=tab;
-  const tabs=[["keys","Controls"],["battle","Battle command"],["terms","Numbers explained"],["guide","Guide list"],["lose","How to win & lose"]];
+  if(COARSE&&tab==="keys")tab=UI.helpTab="battle";
+  const tabs=[...(COARSE?[]:[["keys","Controls"]]),["battle","Battle command"],["terms","Numbers explained"],["guide","Guide list"],["lose","How to win & lose"]];
   let body="";
   if(tab==="keys")body=controlsModal().replace(/^[\s\S]*?<div class="wbody">/,"").replace(/<\/div><div class="wfoot">[\s\S]*$/,"");
   else if(tab==="terms")body=glossaryModal().replace(/^[\s\S]*?<div class="wbody">/,"").replace(/<\/div><div class="wfoot">[\s\S]*$/,"");
   else if(tab==="battle"){const t=(n,d)=>`<div class="tile"><div class="hd"><span class="nm">${n}</span></div><div class="ds">${d}</div></div>`;
     body=t("Flow","Deploy (drag units into position, formation) → battle starts → without orders, units go after enemies they counter. Turn the tide with the unit command bar and the king's (or general's) blade.")
-     +t("Commanding by type (5–9 · G H J K)","5 infantry · 6 spearmen · 7 archers · 8 cavalry · 9 whole army. Press a number and those units glow with <b>Commanding</b> on their cards. G charge · H retreat · J first skill · K second skill go only to the commanded type. You can also press the buttons on the cards.")
+     +t("Commanding by unit type",COARSE?"Pick a branch on the command panel and charge, retreat and skill go to that branch only. Pick the whole army and they go to everyone.":"5 infantry · 6 spearmen · 7 archers · 8 cavalry · 9 whole army. Press a number and those units glow with <b>Commanding</b> on their cards. G charge · H retreat · J skill go only to the commanded branch.")
      +t("Unit skills",GROUPS.map(G=>`${G.n}, ${G.sk}: ${G.skd} (${G.cd}s cooldown)`).join("<br>"))
-     +t("The king's & general's blade","Right-click slash · R stab · Ctrl roll · B block (just before a hit = parry → counter ×2) · 1 whirlwind · 2 roar · 3 dash · 4 Rampage (when fury is full). Slash in rhythm for faster, stronger combos. You can't push through enemy soldiers.")
-     +t("Battles led by a general","Battles led by a general are commanded only from the overview. The general fights with the bodyguard on their own; Q uses the general's ability. Only in battles the king leads in person does V switch to the king's view.")
-     +t("War map (Tab)","Opens the big war map and slows time. Click or drag to select units, right-click to move or attack. V for the overview.")
+     +t("The king's & general's blade",COARSE?"Block just before a hit and it becomes a parry: your counter lands twice as hard. Slash in rhythm for faster, stronger combos. When fury is full you can use Unrivaled Fury. You can't push through enemy soldiers.":"Right-click slash · R stab · Ctrl roll · B block (just before a hit = parry → counter ×2) · 1 whirlwind · 2 roar · 3 dash · 4 Rampage (when fury is full). Slash in rhythm for faster, stronger combos. You can't push through enemy soldiers.")
+     +t("Battles led by a general",COARSE?"Battles led by a general are commanded only from the overview. The general fights with the bodyguard on their own. The king's view exists only in battles the king leads in person.":"Battles led by a general are commanded only from the overview. The general fights with the bodyguard on their own; Q uses the general's ability. Only in battles the king leads in person does V switch to the king's view.")
+     +(COARSE?"":t("War map (Tab)","Opens the big war map and slows time. Click or drag to select units, right-click to move or attack. V for the overview."))
      +t("Wall defense","The Palace has a half-ring wall (backed by the keep and mountains); villages have a ring palisade all around. Archers shoot from the walls (they climb back up if they come down; archer retreat = back to the wall). Infantry and spearmen on the wall throw stones. If the gate breaks, the enemy pours through it.")
      +t("Fort assault","Defenders have a big advantage in a castle. Infantry are the heroes — under their shields they climb ladders fastest and fall least, then shove forward once over. A group of spearmen rams the gate, two catapults break the walls. Archers outside only hit the wall top and just inside. Cavalry wait until there's a breach, then pour in. The Dead on the walls throw firepots and bone spears.")
      +t("Archers' line of sight","Archers on the wall only shoot outward in front of them — the far side of the castle is hidden behind the walls. With no visible enemies, they move along the wall toward the enemy. Spread evenly they cover every side but each spot is weaker; bunch them up and another side empties, letting the Dead come over ladders there.")+t("The Dead's tactics","Trolls lead, and the rest of the Dead hide behind them, marching in step — when the trolls hit or reach the wall, they all surge at once. Bring trolls down first with archers and javelins. At walls, trolls break one section, orcs and wolves batter the gate, and ghouls and goblins climb ladders (archers holding the wall knock them off). Break the Dead's catapults by opening the gate and sending out cavalry. The Lord of the Dead (Claude) picks a tactic each battle and remembers past fights. Scouts announce the tactic about 7s in. Great Raids are announced three days ahead with their composition and direction.")
@@ -5655,7 +5658,7 @@ function warBoardModal(){const row=(a,t,sub,cls="")=>`<button class="qrow wb ${c
 
 /* ── 전투 종류마다 처음 한 번: 이 싸움이 어떻게 돌아가는지 ── */
 const BATTLE_INTRO={
-  field:["Open-field battle","The Dead far outnumber us. But each of our soldiers is far stronger than one of the Dead — numbers are beaten with command.<br><br><b>Counters</b> Spearmen → trolls & wolves · Archers → ghouls & goblins · Cavalry → necromancers & goblins · Infantry → orcs<br><b>Command</b> Pick a type with 5–9 (infantry, spearmen, archers, cavalry, all) then G charge · H retreat · J·K type skills. You can also drag-select units and right-click to move them.<br><b>Rout</b> Units whose morale runs out flee. Units near a general or the king hold better."],
+  field:["Open-field battle","The Dead far outnumber us. But each of our soldiers is far stronger than one of the Dead — numbers are beaten with command.<br><br><b>Counters</b> Spearmen → trolls & wolves · Archers → ghouls & goblins · Cavalry → necromancers & goblins · Infantry → orcs<br><b>Command</b> Pick a type with 5–9 (infantry, spearmen, archers, cavalry, all) then G charge · H retreat · J branch skill. You can also drag-select units and right-click to move them.<br><b>Rout</b> Units whose morale runs out flee. Units near a general or the king hold better."],
   siege:["Palace defense","The Palace is ringed by a half-circle wall, with the keep and mountains behind.<br><br><b>Archers</b> shoot from the walls. They can't shoot past the walls to the far side, so move them to where the enemy masses.<br><b>Infantry & spearmen</b> wait inside to stop enemies coming over ladders and to plug breaches. Soldiers near the wall drop stones on those below.<br><b>The Dead</b> come with ladders, trolls and catapults. Enemies reaching the top of a ladder go for the archers on the wall first. Walls hit by catapult stones crack and then collapse — sally out with 'Open gate' to smash the catapults.<br><b>Fall</b> If the Dead inside the walls clearly outmatch the remaining defenders for 20 seconds, the castle falls."],
   vsiege:["Village defense","A village is ringed all around by a round palisade. The Dead surround it from every side, or mass where there are fewest archers.<br><br><b>Archers</b> on the palisade shoot only to their front. Spread evenly they cover every side but each spot is weak; bunch them and the other side empties — watch where the enemy comes from and shift them.<br><b>Infantry & spearmen</b> wait in the village center and strike whatever comes over or breaks through."],
   fort:["Fort assault","Defenders have a big advantage in a castle — bring plenty of troops.<br><br><b>Infantry are the heroes</b> Under their shields they climb ladders fastest and fall least, then shove forward once over. Spearmen are slow and fall often.<br><b>Ram</b> A group of spearmen pushes it into the gate. <b>Catapults</b> Two of them break the walls. <b>Archers</b> outside only hit the wall top and just inside. <b>Cavalry</b> wait until the gate or wall is breached, then pour through.<br><b>Beware</b> The Dead on the walls pour firepots down on ladders and rams, and throw bone spears. Don't stand in the flames for long."],
@@ -5676,7 +5679,7 @@ const FIRST_WIN={
   armies:"Our armies — the armies out on the map. View each one on the map or give it orders. Fatigue lowers combat power — halt on open ground to camp and recover.",
   gens:"Generals — each has a passive and a battlefield ability (Q). Attach one to an expedition and they lead the army. Wounded generals rest a few days; fallen ones never return.",
   chron:"Chronicle — a record of everything so far. Catch up on news you missed here.",
-  warboard:"War — next Great Raid date, intel on each fort, and what to do now at a glance. Click a row to go there.",
+  warboard:"War — next Great Raid date, intel on each fort, and what needs doing now. Pick a row to go there.",
   wardrobe:"Wardrobe — change the king's armor. Locked armors open with prowess, armor level, tournaments and renown. Stats are upgraded at the forge.",
   forge:"Forge — upgrade the king's sword and armor level by level (HP and damage up; next level needs prowess). Also refill the garrison here.",
   treasury:"Treasurer — tax policy. Higher taxes bring more gold and drain favor daily. If favor reaches 0, the realm falls.",
@@ -5916,7 +5919,7 @@ function startPrologue(){if(S&&!S.title&&!S.practice)saveGame();
   startBattle({kind:"siege",foeArmy:foe,foes:foe.comps,title:"Prologue — The Old King's Last Night"});
   setTimeout(()=>{if(WAR)beginBattle(true);},60);
   setTimeout(()=>UI.bannerSay("The Dead pound on the walls of Astera — hold the gate. You are the king."),1500);
-  setTimeout(()=>UI.bannerSay(COARSE?"When the Dead reach the gate, go there":"WASD move · click to slash · command unit types from the bar below — when the Dead reach the gate, go there"),7000);}
+  setTimeout(()=>UI.bannerSay("When the Dead reach the gate, go there"),7000);}
 function prologueEnd(){UI.closeModal();UI.modalBlocking=false;BT=null;S=null;startNewGame(true);}
 /* 전투·잠입 화면으로 넘어가도 목표 막대·지금 할 일이 남아 있지 않게 */
 setInterval(()=>{try{if(!S||BT||S.title||UI.mode==="battle"||UI.mode==="spy"){const g=$("#goalBar"),t=$("#tutNow");if(g)g.hidden=true;if(t)t.hidden=true;}}catch(e){}},300);
@@ -6094,7 +6097,8 @@ const WALL_T=()=>BT.wall?(wallWood()?2.4:3.2):2.4;   // 성벽 두께 — 궁병
 // 성벽 위 통로: 궁병은 성벽 꼭대기에 선다
 const wallCrew=s=>isRng(s.t)||!!s.wallThrow;   // 성벽 위에 서는 무리: 궁병(활·주술) + 망자 요새의 고블린 투척병
 function onWallTop(s){if(!BT.wall)return false;if(s.escTop&&s.side===BT.wallAtk){const w=wIn(s.x,s.z);return w>-0.4&&w<WALL_T()+0.8&&wallUp(s.x,s.z);}if(s.side!==BT.wallDef||!wallCrew(s))return false;const w=wIn(s.x,s.z);return w>-0.2&&w<WALL_T()+0.6&&wallUp(s.x,s.z);}
-const figY=(s,x,z)=>bH(x,z)+(onWallTop(s)?wallH()+0.25:0);
+/* 성벽 위 부대라도 병사 하나하나는 제 발밑이 성벽일 때만 성벽 높이에 선다 (성벽 밖으로 밀려난 병사가 허공에 뜨지 않게) */
+const figY=(s,x,z)=>{const g=bH(x,z);if(!onWallTop(s))return g;const w=wIn(x,z);if(w<-0.8||w>WALL_T()+1||!wallUp(x,z)){BT.fpN=(BT.fpN||0)+1;return g;}return g+wallH()+0.25;};
 function setRad(s,off){const p=wPt(wAng(s.x,s.z),off);s.x=p.x;s.z=p.z;}
 function wallStep(dt){
   const W=BT.wall;if(!W)return;const T=WALL_T();
@@ -6154,7 +6158,7 @@ function bMove(x,z){if(BT.remote){mpBatSend({c:"move",ids:[...BT.sel],x:+x.toFix
     // 성벽 건너편으로 가라면: 성문·뚫린 곳을 지나서 간다. 지날 곳이 없으면 성벽 앞까지만 간다
     if(BT.wall&&(wIn(s.x,s.z)>0)!==(wIn(s.tx,s.tz)>0)&&segUp(segAt(s.tx,s.tz))){const fin={x:s.tx,z:s.tz},p=viaBreach(s,fin.x,fin.z);
       if(p){s.wp=fin;s.tx=clamp(p.x,-118,118);s.tz=clamp(p.z,-83,83);}
-      else{const sd=wIn(s.x,s.z)>0?1:-1,q=wPt(wAng(fin.x,fin.z),sd*(sqR(s)+3));s.tx=clamp(q.x,-118,118);s.tz=clamp(q.z,-83,83);if(!BT.wallSaid||BT.t-BT.wallSaid>8){BT.wallSaid=BT.t;bSay(BT.wallAtk===s.side?"The wall blocks the way — enter the castle by ladders (charge, G) or through the gate or a breach.":"The wall blocks the way — open the gate to go outside.");}}}}
+      else{const sd=wIn(s.x,s.z)>0?1:-1,q=wPt(wAng(fin.x,fin.z),sd*(sqR(s)+3));s.tx=clamp(q.x,-118,118);s.tz=clamp(q.z,-83,83);if(!BT.wallSaid||BT.t-BT.wallSaid>8){BT.wallSaid=BT.t;bSay(BT.wallAtk===s.side?"The wall blocks the way — enter the castle by ladders (charge) or through the gate or a breach.":"The wall blocks the way — open the gate to go outside.");}}}}
   BT.fx.push({k:"ring",x,z,t0:BT.t,dur:0.7,col:"#9fc0ee"});
 }
 function bAttack(t){if(BT.remote){mpBatSend({c:"atk",ids:[...BT.sel],tg:t.id});for(const s of bSelected()){s.target=t.id;}return;}for(const s of bSelected()){if(s.buff.wall&&!isRng(s.t))continue;s.follow=null;s.orderT=BT.t;s.holdT=0;s.state="attack";s.target=t.id;s.flank=null;}BT.fx.push({k:"ring",x:t.x,z:t.z,t0:BT.t,dur:0.7,col:"#d0503f"});}
@@ -6174,7 +6178,7 @@ function bForm(f){const sel=bSelected();if(!sel.length){bSay("Select the units t
 function bHold(){const sel=bSelected();if(!sel.length)return;const v=!sel.every(s=>s.hold);for(const s of sel){s.hold=v;if(v){s.state="idle";s.target=null;s.tx=s.x;s.tz=s.z;}}}
 function bAbility(){
   const B=BT;const _cd0=B.abCd;setTimeout(()=>{if(BT===B&&B.abCd>_cd0+1){if(hasPerk("abCd15"))B.abCd=Math.max(5,B.abCd-15);else if(hasPerk("abCd10"))B.abCd=Math.max(5,B.abCd-10);}},0);if(B.phase!=="battle"||B.abCd>0||B.genDead||!B.gen)return;if(S&&S.tut)S.tut.genAb=true;
-  const g=B.gen;setTimeout(()=>{if(BT===B&&B.abCd>0&&typeof tipOnce==="function")tipOnce("gen_"+g.id,`General's ability — ${g.ab||"King's Roar"}`,`${g.abd||"All units' morale surges and they fight harder for 10 seconds."}<br><b>Ready again</b> in ${Math.round(B.abCd)}s (seconds left show on the button)`);},50);
+  const g=B.gen;setTimeout(()=>{if(BT===B&&B.abCd>0&&typeof tipOnce==="function")tipOnce("gen_"+g.id,`General's ability — ${g.ab||"King's Roar"}`,`${g.abd||"All units' morale surges and they fight harder for 10 seconds."}<br><b>Ready again</b> in ${Math.round(B.abCd)}s`);},50);
   if(g.id==="king"){for(const s of bOurs())if(act(s)&&s.state!=="rout"){s.buff.rally=10;s.morale=Math.min(100,s.morale+35);}B.abCd=g.cd;bSay(`${S.ruler}: "For Astera!"`);sfx("horn");if(BR.king){const R=BR.king.userData.rig;if(BR.king.userData.hero)R.cheer=true;else R.attack=1;}}
   else if(g.id==="eorin"){for(const s of bOurs())if(act(s)&&U[s.t].tags.includes("cavalry"))s.buff.horn=10;B.abCd=g.cd;bSay("The charge horn sounds!");}
   else if(g.id==="hadrik"){let tg=bSelected().filter(s=>baseT(s.t)==="inf"||baseT(s.t)==="spear");if(!tg.length)tg=bOurs().filter(s=>act(s)&&(baseT(s.t)==="inf"||baseT(s.t)==="spear"));
@@ -6783,7 +6787,7 @@ function renderBattle(dt){
         if(f.hy>0||f.vy>0){f.vy-=22*dt;f.hy=Math.max(0,(f.hy||0)+f.vy*dt);if(f.hy<=0){f.vy=0;f.hy=0;f.downT=VAT_T.value+0.7;}}
         // 성벽: 인형도 성벽을 뚫지 못한다. 바깥 망자는 성벽 앞에서 멈추고(앞줄은 성벽을 두드린다), 성벽 위 궁병은 통로 안에 머문다
         let wallHit=false;f.wh=false;if(B.wall&&!(s.climbing&&(f.cst==="up"||f.cst==="fall"))){const w=wIn(f.x,f.z),T=WALL_T(),rr=f._r||0.4;if(wallUp(f.x,f.z)){
-          if(s.onWall&&s.side===B.wallDef&&wallCrew(s)&&onWallTop(s)){if(w<0.4||w>T-0.4){const a2=wAng(f.x,f.z),q=wPt(a2,clamp(w,0.4,T-0.4));f.x=q.x;f.z=q.z;}}
+          if(((s.onWall&&s.side===B.wallDef&&wallCrew(s))||s.escTop)&&onWallTop(s)){if(w<0.4||w>T-0.4){const a2=wAng(f.x,f.z),q=wPt(a2,clamp(w,0.4,T-0.4));f.x=q.x;f.z=q.z;}}
           else if(wIn(s.x,s.z)<0){if(w>-rr-0.3){const q=wPt(wAng(f.x,f.z),-rr-0.3);f.x=q.x;f.z=q.z;}if(s.side===B.wallAtk&&!s.engaged&&w>-rr-1.2&&s.state!=="rout"&&s.state!=="move"&&canBash(s,segAt(f.x,f.z)))wallHit=f.wh=true;}
           else if(w<T+rr+0.3){const q=wPt(wAng(f.x,f.z),T+rr+0.3);f.x=q.x;f.z=q.z;}}}
         // 떨림 방지: 걷기/서기를 문턱 두 개(0.5/0.15)로 나누고, 동작은 최소 0.5초 유지한다
@@ -7059,7 +7063,7 @@ function battleKingControl(dt){
   // 왕이 직접 싸운다: 몸은 KC가 움직이고 친위대가 뒤따른다
   if(!BT.kingPos)BT.kingPos={x:r.x,z:r.z};KC.model=BR.king;
   kingStep(dt,{onCry:()=>{const big=hasPerk("cryBig");for(const q of bOurs())if(act(q)&&Math.hypot(q.x-BT.kingPos.x,q.z-BT.kingPos.z)<(big?60:40)){q.morale=Math.min(100,q.morale+(big?50:25));q.buff.rally=big?14:8;}bSay(`${S.ruler}: "Don't give ground!" — nearby allies morale +25`);},pos:BT.kingPos,h:bH,faceCam:!COARSE,collide:(x,z)=>{x=clamp(x,-118,118);z=clamp(z,-83,83);if(!(KC.musouT>0)){const p=bKingPush(x,z);x=p.x;z=p.z;}if(BT.wall){const k=BT.kingPos;const a0=wIn(k.x,k.z),a1=wIn(x,z);const T=WALL_T(),pad=KC.mounted?1.6:0.9;if(((a0>0)!==(a1>0)||(a1>-pad&&a1<T+pad))&&wallUp(x,z)&&!(a0>-pad&&a0<T+pad&&Math.abs(a1-T/2)>Math.abs(a0-T/2))){x=k.x;z=k.z;}}return {x,z};},model:BR.king,canAct:true,onStrike:bKingStrike});
-  if(KC.wantMount){KC.wantMount=false;if(KC.horse){if(KC.mounted){KC.mounted=false;KC.horsePos={x:BT.kingPos.x,z:BT.kingPos.z};bSay("Dismounted.");}else{const hp=KC.horsePos||BT.kingPos;if(Math.hypot(hp.x-BT.kingPos.x,hp.z-BT.kingPos.z)<4){KC.mounted=true;bSay("Mounted.");}else bSay("The horse is far away — go stand beside it.");}}}
+  if(KC.wantMount){KC.wantMount=false;if(KC.horse){if(KC.mounted){KC.mounted=false;KC.horsePos={x:BT.kingPos.x,z:BT.kingPos.z};bSay("Dismounted.");}else{const hp=KC.horsePos||BT.kingPos;if(Math.hypot(hp.x-BT.kingPos.x,hp.z-BT.kingPos.z)<4){KC.mounted=true;bSay("Mounted.");}else bSay("The horse is far away.");}}}
   if(!KC.mounted&&KC.horse&&KC.horsePos){KC.horse.visible=true;KC.horse.position.set(KC.horsePos.x,bH(KC.horsePos.x,KC.horsePos.z),KC.horsePos.z);animateHero(KC.horse,dt,0);}
   const k=BT.kingPos;if(!r.ghost&&act(r)&&r.state!=="rout"){r.state="move";r.target=null;r.hold=false;r.kingDrive=true;r.tx=clamp(k.x-Math.sin(KC.face)*3,-118,118);r.tz=clamp(k.z-Math.cos(KC.face)*3,-83,83);}
   // 두목은 왕을 알아본다: 14m 안이면 부대를 돌려 왕에게 덤빈다 (왕의 칼은 두목에게 2.2배)
@@ -7500,7 +7504,7 @@ function engineTick(dt){const B=BT;if(!B.engines)return;
       const inside=B.sq.filter(q=>act(q)&&q.side!==e.side&&wIn(q.x,q.z)>WALL_T()+2);
       if(inside.length&&Math.random()<0.3){const q=inside[Math.floor(Math.random()*inside.length)];tx=q.x+rnd(-4,4);tz=q.z+rnd(-4,4);}
       else{const near=B.wall.segs.filter(g=>g.hp>0&&!g.back).sort((a,b)=>angD(a.ac,wAng(e.x,e.z))-angD(b.ac,wAng(e.x,e.z)));wallSeg=e.side===0?near.slice(0,3).sort((a,b)=>a.hp/a.max-b.hp/b.max)[0]:near[Math.floor(Math.random()*Math.min(3,near.length))];if(!wallSeg)continue;const p=wPt(wallSeg.ac+rnd(-0.05,0.05),WALL_T()*0.5);tx=p.x;tz=p.z;}
-      launchStone(e,tx,tz,wallSeg);if(!B.engSaid&&e.side===1){B.engSaid=true;bSay("The Dead's catapults are hitting the wall — open the gate and send cavalry to smash them (Open gate)");}}
+      launchStone(e,tx,tz,wallSeg);if(!B.engSaid&&e.side===1){B.engSaid=true;bSay("The Dead's catapults are hitting the wall — open the gate and send cavalry to smash them");}}
     else{// 성벽 밖, 가장 빽빽한 망자 무리
       const fs=B.sq.filter(f=>act(f)&&f.side!==e.side&&wIn(f.x,f.z)<-2&&Math.hypot(f.x-e.x,f.z-e.z)<140);if(!fs.length){e.cd=2;continue;}
       let best=null,bs=-1;for(const f of fs){let sum=0;for(const g of fs)if(dd(f,g)<14)sum+=g.alive*(g.t==="troll"?3:1);if(sum>bs){bs=sum;best=f;}}
@@ -7657,7 +7661,7 @@ function renderSide(){
           <button class="b sm" data-a="vlevyArmy" data-id="${v.id}" data-a2="${a.id}" ${st.pop>=300&&S.res.gold>=40&&S.res.food>=25?"":"disabled"} title="100 villagers become militia and join (gold 40 · food 25)">Village levy joins (pop. ${fmtN(st.pop)})</button></div></div>`;}).join("");})()}
         ${a.moving?(()=>{const lv=a.rush||0;const why=lv>=3?"Max level":S.res.gold<200?"Not enough gold":S.res.food<200?"Not enough food":"";return `<div class="tile"><div class="hd"><span class="nm">Forced march ${lv?`${lv} · speed +${lv*25}%`:""}</span><span class="note" style="margin-left:auto">Gold 200 · Food 200</span></div><div class="ds">Add more carts and cut rest time. Each level gives +25% speed for this march (max 3 levels, +75%). Wears off on arrival; each level adds +6 fatigue.</div><button class="b sm gold" data-a="rush" data-id="${a.id}" ${why?"disabled":""}>${why||`Forced march ${lv+1}`}</button></div>`;})():""}
         ${a.safeUntil>nowD()?`<p class="note">Retreating — can't be caught by the enemy for a while</p>`:""}
-        <div class="acts"><button class="b" data-a="retarget" data-id="${a.id}">Change target</button><button class="b" data-a="campT" data-id="${a.id}" title="Click anywhere on the map to send it. Right-click works too">Move</button>${S.armies.some(x=>x.side===0&&x!==a)?`<button class="b" data-a="joinT" data-id="${a.id}">Join another army</button>`:""}${a.mission!=="return"?`<button class="b" data-a="recall" data-id="${a.id}">Recall</button>`:""}</div></div>`;}
+        <div class="acts"><button class="b" data-a="retarget" data-id="${a.id}">Change target</button><button class="b" data-a="campT" data-id="${a.id}" title="Choose a destination on the map">Move</button>${S.armies.some(x=>x.side===0&&x!==a)?`<button class="b" data-a="joinT" data-id="${a.id}">Join another army</button>`:""}${a.mission!=="return"?`<button class="b" data-a="recall" data-id="${a.id}">Recall</button>`:""}</div></div>`;}
     else html=`${winHead("The Dead host")}<div class="body"><h2>The Dead host</h2><dl class="kv"><dt>Action</dt><dd>${esc(missionName(a))}</dd>${a.moving?`<dt>Arrival</dt><dd>~${eta} days</dd>`:""}</dl>${forceHtml("Forces (scouted estimate)",a.comps,true)}
       <div class="acts"><button class="b red" data-a="compose" data-t="army:${a.id}">Intercept expedition</button></div></div>`;
   }
@@ -7685,7 +7689,7 @@ function kingdomModal(){
     <div class="acts">${[500,1000].map(v=>`<button class="b sm" data-a="sellFood" data-v="${v}" ${S.res.food<v+300||S.grainSold===(S.day|0)?"disabled":""}>Food ${v} → gold ${Math.round(v*0.3)}</button>`).join("")}</div>
     <div class="ds" style="margin-top:6px">Buy grain — you pay twice the selling price. Today ${S.grainBought===(S.day|0)?"already bought":"you can buy once"}.</div>
     <div class="acts">${[500,1000].map(v=>`<button class="b sm" data-a="buyFood" data-v="${v}" ${S.res.gold<Math.round(v*0.6)||S.grainBought===(S.day|0)?"disabled":""}>Gold ${Math.round(v*0.6)} → food ${v}</button>`).join("")}</div></div>
-${visitList(["market","farm","homes"])}<p class="note">Debt up to 3,000 gold. Repay with caravans, trade and loot.</p>`;
+${visitList(["market","farm","homes"])}<p class="note">Debt up to 3,000 gold. Repaid with caravans, trade and loot.</p>`;
   else if(t==="recruit")body=`<p class="note" style="margin:0">One company is 100 men. Recruiting turns 100 people into soldiers.</p>${visitList(["barracks","range","stable","chapel"])}<div class="grid2">${OURS.map(k=>{const u=U[k],why=canRecruit(k);
     return `<div class="tile ${u.need&&!S.bld[u.need]?"locked":""}"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(k)} days</span></div>
       <div class="ds">${u.d}</div>
@@ -7820,7 +7824,7 @@ function battlePromptModal(c){
 // 적 병종마다 무엇으로 맞서야 하는지
 const BEST_VS={ghoul:["archer","inf"],goblin:["archer","cav"],orc:["inf","priest"],troll:["spear"],wolf:["spear","inf"],necro:["cav","priest"]};
 function matchupHtml(foes){const ts=[...new Set(foes.filter(c=>c.men>0).map(c=>c.t))];if(!ts.length)return "";
-  return `<div class="tile"><div class="eyebrow" style="margin-bottom:4px">Counters — send the right units</div>${ts.map(t=>`<div class="frow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span>${U[t].n} <span class="note" style="margin-left:auto">← ${BEST_VS[t].map(o=>U[o].n).join(" · ")} (up to ${Math.max(...BEST_VS[t].map(o=>counter(o,t))).toFixed(1)}×)</span></div>`).join("")}
+  return `<div class="tile"><div class="eyebrow" style="margin-bottom:4px">Counters</div>${ts.map(t=>`<div class="frow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span>${U[t].n} <span class="note" style="margin-left:auto">← ${BEST_VS[t].map(o=>U[o].n).join(" · ")} (up to ${Math.max(...BEST_VS[t].map(o=>counter(o,t))).toFixed(1)}×)</span></div>`).join("")}
     <p class="note" style="margin:6px 0 0">Flank ×1.35 · rear ×2 · cavalry charge ×2.8 (stopped by braced spearmen) · archers on hills ×1.25</p></div>`;}
 function battleResultModal(res,c,after,genNote){if(S&&S.prologue)UI.proWin=!!res.win;
   return `${winHead("Battle Result",false)}<div class="wbody"><div><div class="eyebrow">${esc(c.title)} · ${Math.floor(res.time/60)}m ${Math.round(res.time%60)}s</div><h2>${res.win?"Victory":res.retreat?"Retreat":"Defeat"}</h2></div>
@@ -7955,14 +7959,14 @@ document.addEventListener("click",e=>{
     case"ajoinTo":{const a=armyById(+b.dataset.id),t=armyById(+b.dataset.t);if(a&&t&&assignTarget(a,{kind:"army",id:t.id})){a.moving=true;logMsg(`${armyName(a)} is going to join ${armyName(t)}.`);}UI.closeModal();UI.openModal(armiesModal());break;}
     case"arecall":{const ar=armyById(+b.dataset.id);if(ar){goHome(ar);UI.openModal(armiesModal());syncArmies();}break;}
     case"aview":{const ar=armyById(+b.dataset.id);if(ar){UI.closeModal();if(UI.mode!=="map")openMap();selectObj({kind:"army",id:ar.id});E.ctrl.set(ar.x,ar.z,140);}break;}
-    case"campT":startTargeting({mode:"camp",army:+b.dataset.id},"Click where to go on the map (right-click also works)");break;
+    case"campT":startTargeting({mode:"camp",army:+b.dataset.id},"Choose a destination on the map");break;
     case"diplo":UI.openModal(diploModal(b.dataset.id));break;
     case"pact":{const ok=proposePact(realmById(b.dataset.id));toast(ok?"Pact signed!":"Refused.");UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();break;}
     case"trade":if(startTrade(realmById(b.dataset.id))){UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();}break;
     case"envoy":if(sendEnvoy(realmById(b.dataset.id))){UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();}break;
     case"gift":if(realmGift(realmById(b.dataset.id),+b.dataset.v)){UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();}break;
     case"askAid":if(realmAsk(realmById(b.dataset.id))){UI.openModal(diploModal(b.dataset.id));renderTop();UI.dirty=true;saveGame();}break;
-    case"settlers":{const n=settlers();if(n){toast(`${n} people settled.`);UI.openModal(kingdomModal());renderTop();saveGame();}else toast(S.civ>=popCap()?"Housing is full. Raise housing.":"Not enough gold.");break;}
+    case"settlers":{const n=settlers();if(n){toast(`${n} people settled.`);UI.openModal(kingdomModal());renderTop();saveGame();}else toast(S.civ>=popCap()?"Housing is full.":"Not enough gold.");break;}
     case"vfill":if(moveToVillage(b.dataset.id,200)){UI.openModal(villageModal(b.dataset.id));renderTop();saveGame();}else toast("At least 300 people must remain at the Palace, and it costs 40 food.");break;
     case"vmove":if(moveVillagers(b.dataset.id,200)){UI.openModal(villageModal(b.dataset.id));renderTop();saveGame();}else toast("The village population is too small or Palace housing is full.");break;
     case"joinT":startTargeting({mode:"join",army:+b.dataset.id},"Click an allied army to join on the map");break;
@@ -8090,7 +8094,7 @@ document.addEventListener("click",e=>{
     case"mpArmyTo":mpSendArmy(+b.dataset.id,+b.dataset.k);break;
     case"practice":gateThen(()=>UI.openModal(practiceModal()));break;
     case"mouseMode":E.soft=b.dataset.v==="soft";try{localStorage.setItem("dd-mouse",E.soft?"soft":"lock");}catch(e){}E.wantLock=!E.soft&&(UI.mode==="capital"||UI.mode==="palace");if(E.soft&&document.pointerLockElement)document.exitPointerLock();UI.openModal(settingsModal());break;
-    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("Enter an API key starting with sk-ant-.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok&&!gateGo())toast(S&&S.title?"Connected to Claude":"Connected to Claude — the Lord of the Dead now runs on Claude");});break;}
+    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("An API key starting with sk-ant- is required.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok&&!gateGo())toast(S&&S.title?"Connected to Claude":"Connected to Claude — the Lord of the Dead now runs on Claude");});break;}
     case"lang":setLang(LANG==="en"?"ko":"en");break;
     case"apiKeyDel":try{localStorage.removeItem("dd-apikey");}catch(e){}AI.sample=null;AI.checked=false;UI.closeModal();UI.aiStatus();toast(S&&S.title?"Saved key deleted.":"Key deleted — until you add one again, the Dead follow basic rules.");break;
     case"gateSkip":UI.gateSkip=true;UI.closeModal();if(!gateGo())toast("Temporary: the Lord of the Dead follows basic rules.");break;
@@ -8239,24 +8243,24 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
   ["Raise the walls","On day 20 a Great Raid hits the Palace. Each wall level cuts our losses in defense by 12%, and archers shoot down from the walls.","Realm → Build → Walls (takes a day)",S.bld.walls>0||!!(S.bq&&S.bq.walls)],
   ["Raise elite companies","Drill a ★★ company for 7 more days and it becomes elite — Elite Infantry, Spearmen, Archers, Cavalry. Expensive and slow, but they turn battles.","Drill a company twice (★★), then Realm → Garrison tab → Make elite (gold 700 · food 250)",allComps().some(c=>c.elite||c.eliteT>0)],
   ["Strike a fort","While a fort stands, the Dead keep coming. Scout its deployment with spies, build an army that counters it, and start with the nearest fort, Morgash.","March → pick the fort → choose general and troops. Stronger if the king goes in person",S.armies.some(a=>a.side===0&&a.mission==="attack")||razedForts()>=1],
-  ["Use a general's skill in battle","Each general has a unique skill — the King's Roar (morale), Eorin's charge, Hadrik's shield wall… one move that turns the tide.","Q in battle (or the skill button at the bottom). Has a cooldown",!!T.genAb],
+  ["Use a general's skill in battle","Each general has a unique skill — the King's Roar (morale), Eorin's charge, Hadrik's shield wall… one move that turns the tide.","Used during battle (Q)",!!T.genAb],
 ].map((it,i)=>{if((T.skip2||[]).includes(i))it[3]=true;return it;});}
   // [제목, 왜 하는가, 어떻게, 완료 조건]
   return [
   ["Walk the Palace","The king is a body you move yourself. The Dead won't come for the first 7 days, so learn your way around the castle.",(COARSE?"Walk around the castle and look at the buildings":"WASD move · Shift run · Alt switches between view mode (turn with mouse) and cursor mode · E at a building opens the door"),(T.walk||0)>25],
   ["Cut the training dummies","Higher prowess raises the king's HP and damage. The longer the king lasts on the field, the more his soldiers' morale holds.","Strike the training dummy in the southwest yard (right-click). Consecutive hits raise it faster",(S.kingSkill||0)>0],
-  ["Open the map at the war table","The whole realm is ruled from the map. Villages, forts and neighboring realms are there.","At the table in front of the Great Hall, E, or M. M again to come back",!!UI.mapSeen],
-  ["Enter the Great Hall and meet your ministers","Inside the Great Hall are the ministers who run the realm: Chancellor (building, recruiting), Treasurer (taxes), Spymaster (spies), High Priest (blessings), Chamberlain (petitions), the war council table, the wardrobe, and the generals.","Walk in through the Great Hall's big doors. E in front of a minister. The chamberlain collects the people's petitions (audiences) — E in front of him, or sit on the throne, to hear them",!!(T.palace&&T.court)],
-  ["Set taxes with the Treasurer","Taxes balance gold against favor. Early on, protecting favor makes the population grow faster.","In the Great Hall, Treasurer Bella on the right, E → Tax policy",!!(T.court&2)],
+  ["Open the map at the war table","The whole realm is ruled from the map. Villages, forts and neighboring realms are there.","The war table in front of the Great Hall, or M",!!UI.mapSeen],
+  ["Enter the Great Hall and meet your ministers","Inside the Great Hall are the ministers who run the realm: Chancellor (building, recruiting), Treasurer (taxes), Spymaster (spies), High Priest (blessings), Chamberlain (petitions), the war council table, the wardrobe, and the generals.","Walk in through the Great Hall's big doors and speak to a minister. The chamberlain collects the people's petitions (audiences). Go to him or sit on the throne to hear them",!!(T.palace&&T.court)],
+  ["Set taxes with the Treasurer","Taxes balance gold against favor. Early on, protecting favor makes the population grow faster.","In the Great Hall, Treasurer Bella on the right → Tax policy",!!(T.court&2)],
   ["Upgrade a building","Building levels drive recruiting speed, taxes, food and population. Spare gold goes here first.","'Realm' below → Build. Start with farms (food), market (gold), housing (people)",bldSum>T.bld0||!!(S.bq&&Object.keys(S.bq).length)],
   ["Recruit soldiers","The garrison is the Palace's shield. Training takes days, so recruit before the attack comes.","Barracks door (E) or Realm → Recruit. Raise a mix of infantry, spearmen and archers",S.queue.length>0||S.garrison.length>8],
   ["Answer an event","The world doesn't sit still. Merchants, refugees, scouts, wolves… when an event comes, the game pauses and asks you to choose. For events that need an army, 'View on map' takes you to the map to pick one. If it's not urgent, defer it with 'Hear it a day later'.","Fishermen will come by shortly. Just pick an option",!!T.evDone],
   ["Drill a company","Fresh companies are weak. Drilling earns ★ for attack and defense, and at ★★ you can raise them into elites (infantry, spearmen, archers, cavalry).","Realm → Recruit tab → 'Drill companies' list, drill one company (gold 70 · food 30 · 2 days). Also at the barracks door (E). Elite training is in the Garrison tab",S.garrison.some(c=>(c.vet||0)>0||c.drill>0||c.elite||c.eliteT>0)],
-  ["Invest in a village","Village population drives taxes, food and village recruiting. Mines and toll houses add gold every day.","Click the gold-blinking mine or riverside village → Manage village → Mine expansion/Toll house. Village recruiting or walls work too",villagesOwned().some(v=>{const st=S.sites[v.id];return st.mine||st.toll||st.mineT||st.tollT||(st.vgar&&st.vgar.length)||(st.vq&&st.vq.length)||st.wallQ;})],
+  ["Invest in a village","Village population drives taxes, food and village recruiting. Mines and toll houses add gold every day.","A mine or riverside village → Manage village → Mine expansion/Toll house. Village recruiting or walls work too",villagesOwned().some(v=>{const st=S.sites[v.id];return st.mine||st.toll||st.mineT||st.tollT||(st.vgar&&st.vgar.length)||(st.vq&&st.vq.length)||st.wallQ;})],
   ["Send a garrison to a village","The Dead besiege the farthest villages first. A garrison holds out days longer and buys time for relief.","On the map, village → Send garrison (detached from the Palace garrison)",S.armies.some(a=>a.side===0&&a.mission==="guard")||SITES.some(s=>s.kind==="village"&&S.sites[s.id].vgar&&S.sites[s.id].vgar.length)],
-  ["Send a spy to a fort","Knowing the enemy's numbers and units lets you build an army that counters them.","Click the fort Morgash in the north of the map (visible from the start) → Spy. Click a '?' in the fog and send a spy to find out what it is",S.spy.ops.length>0||Object.keys(S.intel||{}).length>0],
-  ["Send an envoy to a neighboring realm","At relations 40: trade and treaties; at 70: borrow reinforcements. Envoys cost no gold.","On the map, click a neighbor's capital → Send envoy. Once every 5 days",Object.values(S.realms||{}).some(r=>r.envD||r.pact||r.rel>=40)],
-  ["Spar with a general at the Colosseum","Sparring raises both prowess and the general's experience, and pays gold.","At the west Colosseum door, E → pick a general. Finish one bout (win or lose) to pass. Your opponent scales to the king's prowess",(S.duelDone||0)>0],
+  ["Send a spy to a fort","Knowing the enemy's numbers and units lets you build an army that counters them.","The fort Morgash in the north of the map (visible from the start) → Spy. A spy sent to a '?' in the fog also finds out what it is",S.spy.ops.length>0||Object.keys(S.intel||{}).length>0],
+  ["Send an envoy to a neighboring realm","At relations 40: trade and treaties; at 70: borrow reinforcements. Envoys cost no gold.","On the map, a neighbor's capital → Send envoy. Once every 5 days",Object.values(S.realms||{}).some(r=>r.envD||r.pact||r.rel>=40)],
+  ["Spar with a general at the Colosseum","Sparring raises both prowess and the general's experience, and pays gold.","The west Colosseum → pick a general. Finish one bout (win or lose) to pass. Your opponent scales to the king's prowess",(S.duelDone||0)>0],
 ].map((it,i)=>{if((T.skip||[]).includes(i))it[3]=true;return it;});}
 function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(jb&&UI.mode!=="map")jb.hidden=true;}const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
   if(off||!(UI.mode==="capital"||UI.mode==="map"||UI.mode==="palace")){el.hidden=true;document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));return;}
@@ -8282,6 +8286,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.150","Full pass over every line of text: press-this and click-that instructions and nagging phrasing are gone from descriptions, the guide and error messages · Phones no longer mention keyboard or mouse; the Controls tab and war-map notes in Help appear on PC only · Soldiers pushed off a wall no longer hang in the air at wall height · On phones the mount button is no longer cut off at the right edge · Notifications no longer cover the battle result table · Outdated wording removed"],
  ["0.9.149","Guidance text shortened to read like other games: the line at the bottom is now an Objective that states the task without telling you which button to press · The raid bar shows only the outlook, without urging you to recruit · Settings reorganised into Display, Sound, Mouse, Language, Claude, Game and Saves, one row each; duplicate buttons and rarely used options removed · Switching to English also switches the king's name in a game started in Korean"],
  ["0.9.148","Two typefaces only: a sans for the interface and a serif for titles and story text. Wide letter-spacing, the decorative display face and monospaced numbers are gone · Units flash briefly and kick up dust when they use a skill. Infantry already in contact shove the enemy back on the spot, javelins fly in twice the number, stick in the ground and knock back what they hit, and War Cry and Flank Charge shake the screen slightly · The palace roof no longer covers the lower half of the deployment view · On phones the title menu no longer overlaps the subtitle · Title menu text no longer washes out against the bright sky · Outdated wording in Help and Settings cleaned up"],
  ["0.9.147","A calmer, less machine-made look: gold gradient lettering, glowing borders, diamond ornaments and metallic buttons are gone in favour of dark panels with thin borders · One skill per branch (infantry Shove, spearmen Javelins, archers Fire Arrows, cavalry Flank Charge, army War Cry); the overlapping company abilities (R) were folded in · Fire arrows arc high, stick in the ground and set separate fires that die out one by one, with black smoke, sparks, burning dead and scorch marks afterwards · Arrows now have shafts, heads and fletching, and spent arrows stay stuck in the ground for a few seconds · No more coloured rings under units using skills · The dead's fire pots fly as pots, not arrows · Every tree differs in size, height, lean and colour · Houses vary in plaster and roof colour, roof pitch and chimneys, some built of stone · Walls get a plinth, string course and buttresses, with stone colour varying by section · Armies marching on the map no longer slide as a rigid block · Battle screen cleanup: unit cards and floating labels hidden in the king's view, enemy labels show only the unit letter, king panel shows bars only, duplicate buttons removed, unit cards hidden on phones, the army/dead balance bar no longer covers the middle of the phone screen · Palace minimap labels no longer overlap · Fountain water no longer looks striped · Emoji icons removed"],
@@ -8315,13 +8320,13 @@ function glossaryModal(){const sk=kingSkill();const G=[
   ["Debt","Borrowing in the Treasury tab costs 10% interest a day. Above 2,500, favor drops daily"],
   ["King's skills",`Unlock as prowess rises — 1 Whirlwind Slash (prowess 10, 360°), 2 Indomitable Cry (prowess 25, nearby allies morale +25 · attack +25%), 3 Dash Strike (prowess 40, pierce in a line ×2.5). Usable both in the Palace and in the king's view in battle`],
   ["King's gear","At the Palace forge, upgrade the sword (damage +10%/level) and armor (HP +12% · damage taken -5%/level). Each level needs 8 more prowess and takes a day. Max level 5"],
-  ["Audiences (petitions)","Commoners, merchants, nobles and monks bring requests to the chamberlain in the Great Hall — one every two or three days. Press E before the chamberlain (or sit on the throne) to hear waiting petitions in turn and choose — gold, food, people, favor and troops go up or down. Putting them off doesn't make them vanish"],
+  ["Audiences (petitions)","Commoners, merchants, nobles and monks bring requests to the chamberlain in the Great Hall — one every two or three days. Go to the chamberlain or sit on the throne to hear waiting petitions in turn and choose — gold, food, people, favor and troops go up or down. Putting them off doesn't make them vanish"],
   ["Numbers of the Dead","Individual Dead don't get stronger. Instead, more come at once as the days go by — invasions grow by a company every 6 days, Great Raids by 20% each time. The more forts you raze, the smaller the Great Raids"],
   ["Captain","In assaults and defenses, an enemy captain leads the horde. Get close and its arrival is announced; cut it down for Dead morale -22 across the army and spoils. Captains take 2.2× damage from the hero's blade"],
   ["War map","The parchment map at the top right of the battlefield. Press Tab to unroll it, select units (drag for box select) and right-click to move or attack. Selected units' routes are drawn as ink arrows. The bar at the top shows both sides' momentum (troops × morale)"],
   ["Enemy tactics","The Dead use one tactic each battle — pincer (split left and right onto the flanks), archer hunt (wolves and goblins circle around for the archers only), wedge (trolls and orcs onto your single weakest unit), reserve (hide 30%, commit to the flank after 20s), feigned retreat (fall back, then return with raised morale), wall breaker (trolls and orcs on the weakest wall, wall damage +35%). Scouts call it out 7s in and it stays in the advice panel"],
   ["Lord of the Dead","Let Claude command in Settings (trial) and Claude decides invasion targets, feints, Great Raid composition and battle tactics. It reads the last 8 battles and the king's army makeup to strike weak points. After battle, a captured herald confesses its intent"],
-  ["King's swordplay","Master these to grow stronger — ① Rhythm: press as the previous slash is ending to chain faster and 30% harder (golden sparks); mashing early breaks the combo ② Perfect block: press B within 0.25s before a hit to deflect at no stamina cost, next hit ×2, and duel opponents stagger ③ Perfect dodge: let an attack slip past during roll invincibility for a split-second freeze, stamina +30, next hit ×2"],
+  ["King's swordplay","Master these to grow stronger — ① Rhythm: press as the previous slash is ending to chain faster and 30% harder (golden sparks); mashing early breaks the combo ② Perfect block: block within 0.25s before a hit to deflect at no stamina cost, next hit ×2, and duel opponents stagger ③ Perfect dodge: let an attack slip past during roll invincibility for a split-second freeze, stamina +30, next hit ×2"],
   ["Impact","When the king's blade lands, blood flies, the screen shakes and time freezes for an instant. Blocks throw sparks. The more you cut at once, the stronger it feels"],
   ["Fatigue","Builds up with repeated marches and battles. At fatigue 100, combat power is 60%. Recovered by garrisoning at the Palace or camping (send the army to open ground)"],
   ["Local discount","Owning ranch, deep forest or highland villages makes cavalry, archer and spearman recruitment cheaper in gold"],
@@ -8351,9 +8356,8 @@ async function claudeGate(){
     if(r!=="timeout"){AI.fail(r);if(!AI.off&&r&&r.code==="rate_limited"){AI.checked=true;return true;}UI.gateWhy=r&&r.code?`(${r.code})`:"";}
     else UI.gateWhy="timeout";}
   UI.openModal(`${winHead("Claude connection required")}<div class="wbody"><p class="story" style="font-size:16px">In Deep Dark, the Lord of the Dead is commanded by <b>your Claude</b>. It reads your realm's weaknesses, remembers past battles, and plans a different invasion every time.</p>
-    <p class="note">${!AI.sample?"Claude can't be called from this screen. Open this game page while signed in to claude.ai.":UI.gateWhy==="timeout"?"Waited 25 seconds for Claude's reply, but none came. Check for a permission prompt above or below the screen; if there isn't one, refresh the page and press Reconnect.":AI.off?"Claude use wasn't allowed. Press Reconnect and allow it in the permission prompt.":"Couldn't reach Claude "+(UI.gateWhy||"")+" — press Reconnect in a moment."} Each decision uses a little of your Claude usage.</p>
-    ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?`<div class="tile" style="margin-top:10px"><div class="hd"><span class="nm">App: connect with my Claude API key</span></div><div class="ds">The app runs outside claude.ai, so it calls Claude with your Anthropic API key. The key is stored only on this computer, and each Lord of the Dead decision costs a little API usage (issued at console.anthropic.com).</div><input id="apiKeyIn" type="password" placeholder="sk-ant-…" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">Save key and connect</button>${deskKey()?`<button class="b ghost" data-a="apiKeyDel">Delete saved key</button>`:""}</div></div>`:""}
-    <div class="acts" style="margin-top:12px"><button class="b gold" data-a="gateRetry">Reconnect</button><button class="b ghost" data-a="gateSkip" title="Temporary button until release">Start without Claude (temporary)</button></div></div>`,{blocking:false});
+    <p class="note">${!AI.sample?"Claude can't be called from this screen. Open this game page while signed in to claude.ai.":UI.gateWhy==="timeout"?"Waited 25 seconds for Claude's reply, but none came. Check for a permission prompt above or below the screen; if there isn't one, refresh the page and reconnect.":AI.off?"Claude use wasn't allowed. Reconnect and allow it in the permission prompt.":"Couldn't reach Claude "+(UI.gateWhy||"")+" — try reconnecting in a moment."} Each decision uses a little of your Claude usage.</p>
+    ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?`<div class="tile" style="margin-top:10px"><div class="hd"><span class="nm">App: connect with my Claude API key</span></div><div class="ds">The app runs outside claude.ai, so it calls Claude with your Anthropic API key. The key is stored only on this computer, and each Lord of the Dead decision costs a little API usage (issued at console.anthropic.com).</div><input id="apiKeyIn" type="password" placeholder="sk-ant-…" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">Save key and connect</button>${deskKey()?`<button class="b ghost" data-a="apiKeyDel">Delete saved key</button>`:""}</div></div>`:""} <div class="acts" style="margin-top:12px"><button class="b gold" data-a="gateRetry">Reconnect</button><button class="b ghost" data-a="gateSkip">Start without Claude</button></div></div>`,{blocking:false});
   return false;}
 /* 연결 창(API 키 등)을 거쳐 연결되면, 처음 누른 것(싱글플레이·START·이어 하기)으로 바로 들어간다 — 다시 누를 필요 없다 */
 function gateThen(fn){if(ITCH&&!UI.gateSkip&&!AI.ok()){UI.gateSkip=true;setTimeout(()=>toast("Trial: the Lord of the Dead follows basic rules. Enter a Claude API key in Settings and Claude commands it directly."),2500);}if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){UI.gateNext=null;fn();return;}UI.gateNext=fn;claudeGate().then(ok=>{if(ok)gateGo();});}
@@ -8425,8 +8429,8 @@ function loginTitleHtml(){if(!loginOn())return "";const u=LOGIN.user;
     <button class="b gold lgbig" data-a="login"><b class="g">G</b> Sign in with Google</button>
     <button class="b ghost" data-a="guest">Play as guest <small>— saved on this device only</small></button></div>`;}
 function lgMsg(t,bad){const m=$("#lgMsg");if(m){m.textContent=t;m.style.color=bad?"#ff8a7a":"#9fd08a";}else toast(t);}
-const LG_ERR={"auth/invalid-credential":"Wrong ID or password","auth/wrong-password":"Wrong password","auth/user-not-found":"No such ID — press Sign up","auth/invalid-login-credentials":"Wrong ID or password",
-  "auth/email-already-in-use":"That ID is taken — use another or press Log in","auth/weak-password":"Password must be 6+ characters","auth/too-many-requests":"Too many attempts — try again later","auth/network-request-failed":"Check your internet connection","auth/operation-not-allowed":"(Admin) Email/password sign-in must be enabled in Firebase","auth/invalid-email":"ID: 3–16 letters, digits or _"};
+const LG_ERR={"auth/invalid-credential":"Wrong ID or password","auth/wrong-password":"Wrong password","auth/user-not-found":"No such ID","auth/invalid-login-credentials":"Wrong ID or password",
+  "auth/email-already-in-use":"That ID is already taken","auth/weak-password":"Password must be 6+ characters","auth/too-many-requests":"Too many attempts — try again later","auth/network-request-failed":"An internet connection is required","auth/operation-not-allowed":"(Admin) Email/password sign-in must be enabled in Firebase","auth/invalid-email":"ID: 3–16 letters, digits or _"};
 function loginPw(signup){const id=(($("#lgId")||{}).value||"").trim(),pw=($("#lgPw")||{}).value||"";
   if(!/^[A-Za-z0-9_]{3,16}$/.test(id)){lgMsg("ID: 3–16 letters, digits or _",true);return;}if(pw.length<6){lgMsg("Password must be 6+ characters",true);return;}
   lgMsg(signup?"Signing up…":"Logging in…");
@@ -8434,13 +8438,13 @@ function loginPw(signup){const id=(($("#lgId")||{}).value||"").trim(),pw=($("#lg
     try{if(signup){const r=await A.createUserWithEmailAndPassword(idMail(id),pw);try{await r.user.updateProfile({displayName:id});}catch(e){}}else await A.signInWithEmailAndPassword(idMail(id),pw);
       try{localStorage.removeItem("dd-guest");}catch(e){}toast(signup?`${id} — signed up. Saves now go to the cloud`:`${id} — logged in`);}
     catch(e){const c=(e&&e.code)||String(e);lgMsg(LG_ERR[c]||("Failed: "+c),true);}
-  }).catch(()=>lgMsg("Can't reach the login server — check your internet connection",true));}
+  }).catch(()=>lgMsg("Can't reach the login server — an internet connection is required",true));}
 function renderLoginChip(){}
 function loginGo(){if(!FB_CFG)return;fbLoad().then(()=>{
   if(window.deskApi||ITCH){loginCode();return;}   // PC 앱 안에서는 구글 팝업이 막힌다 → 코드 방식
   const p=new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(p).then(()=>{toast("Logged in — saves now go to the cloud");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{const c=(e&&e.code)||String(e);console.warn("login",e);if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;LOGIN.lastErr=c;toast("Google sign-in failed ("+c+") — signing in through the browser");loginCode();});
-}).catch(e=>{LOGIN.lastErr="load";toast("Can't reach the login server (Google) — check your internet connection");});}
+}).catch(e=>{LOGIN.lastErr="load";toast("Can't reach the login server (Google) — an internet connection is required");});}
 function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";const r=crypto.getRandomValues(new Uint8Array(8));for(const x of r)c+=A[x%A.length];LOGIN.code=c;
   const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?c=${c}`;
   /* 코드는 보이지 않는다: 브라우저(크롬)에서 구글 로그인 페이지를 바로 열고, 끝나면 이 화면이 저절로 넘어간다 */
@@ -8451,7 +8455,7 @@ function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ2345678
   LOGIN.poll=setInterval(async()=>{if(Date.now()-t0>10*60e3||LOGIN.code!==c){clearInterval(LOGIN.poll);return;}
     try{const ref=firebase.firestore().doc(`linkSessions/${c}`);const d=await ref.get();if(!d.exists)return;const tok=d.data().idToken;if(!tok)return;clearInterval(LOGIN.poll);
       await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(tok));try{await ref.delete();}catch(e){}
-      try{localStorage.removeItem("dd-guest");}catch(e){}LOGIN.code=null;UI.closeModal();toast("Logged in — saves now go to the cloud");}catch(e){const w=$("#lgWait");if(w)w.textContent="Couldn't get the sign-in — try again ("+(e&&e.code||"error")+")";}
+      try{localStorage.removeItem("dd-guest");}catch(e){}LOGIN.code=null;UI.closeModal();toast("Logged in — saves now go to the cloud");}catch(e){const w=$("#lgWait");if(w)w.textContent="Couldn't get the sign-in ("+(e&&e.code||"error")+")";}
   },2000);});}
 /* 시작할 때: 로그인 기능이 켜져 있으면 조용히 불러와 지난 로그인을 되살린다 */
 if(loginOn())setTimeout(()=>{fbLoad().catch(()=>{});},300);
@@ -8512,7 +8516,7 @@ async function mpEnter(){const db=await mpDB();MP.on=true;
 function mpLobbyRender(){if(!MP.on||MP.started)return;const ps=Object.entries(MP.players).sort((a,b)=>a[1].t-b[1].t),host=MP.meta&&MP.meta.host;
   const n=ps.length,area=n<=1?1:3*(n-1);
   const html=`${winHead("Lobby · room "+MP.code)}<div class="wbody">
-    <div class="tile" style="text-align:center"><div class="note">Room code — give it to your friends</div><div style="font:800 30px/1.2 monospace;letter-spacing:.25em;color:#ffe2a0;user-select:text;-webkit-user-select:text">${MP.code}</div></div>
+    <div class="tile" style="text-align:center"><div class="note">Room code</div><div style="font:800 30px/1.2 monospace;letter-spacing:.25em;color:#ffe2a0;user-select:text;-webkit-user-select:text">${MP.code}</div></div>
     <div class="mplist">${[0,1,2,3].map(i=>{const p=ps[i];return p?`<div class="mpp" style="border-color:${MP_COLS[i]}"><b style="color:${MP_COLS[i]}">●</b> ${esc(p[1].name)}${p[0]===host?" <small>host</small>":""}${p[0]===MP.uid?" <small>(me)</small>":""}<small style="color:${p[1].ai?"#9fd08a":"#e8a79a"}">${p[1].ai?"Claude ✓":"Claude ✗"}</small><span>${p[0]===host?"":p[1].ready?"Ready":"Not ready"}</span></div>`:`<div class="mpp empty">Empty seat</div>`;}).join("")}</div>
     <p class="note">Everyone's Claude takes turns commanding the Lord of the Dead — one decision at a time, each on their own API.<br>${n} players → world about ${area}× the solo size · ${n*9} Dead forts · one Throne of the Dead (${n} players' share)</p>
     <div class="mpchat" id="mpChat">${MP.chat.map(c=>`<div><b>${esc(c.n)}</b> ${esc(c.m)}</div>`).join("")||"<div class=\"note\">Chat appears here</div>"}</div>
@@ -8674,7 +8678,7 @@ async function mpSend(slot,msg){const uid=mpUidOf(slot);if(!uid){toast("That kin
 async function mpAid(slot,kind,amt){if(!S)return;if(S.res[kind]<amt){toast(kind==="gold"?"Not enough gold":"Not enough food");return;}
   if(await mpSend(slot,{t:"aid",kind,amt})){S.res[kind]-=amt;logMsg(`${mpOwnerName(slot)}To ${kind==="gold"?"Gold":"Food"} ${fmtN(amt)} sent.`,"gold");renderTop();UI.dirty=true;}}
 function mpSendArmy(armyId,slot){const a=armyById(armyId),c=siteById(`p${slot}_capital`);if(!a||a.side!==0||!c)return;
-  if(armyGens(a).includes("king")){toast("The king can't stay in another's kingdom — send the army without him");return;}
+  if(armyGens(a).includes("king")){toast("The king can't stay in another's kingdom. Only the army can go");return;}
   a.mission="aid";a.target=c.id;a.path=null;setDest(a,c.x,c.z+10);logMsg(`${armyName(a)} marches to aid ${mpOwnerName(slot)}'s kingdom.`);UI.closeModal();UI.dirty=true;}
 /* 원군이 동료 왕도에 닿았다: 병력은 그 왕국 주둔군이 된다 */
 function mpAidArrive(a){const s=siteById(a.target);if(!s||s.kind!=="pcapital")return false;const slot=s.owner;
@@ -8862,7 +8866,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">Battle practice<small>Straight to the battlefield — your game stays as it is</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">Load save file<small>Continue from an exported .json file</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.149 · What's new</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.150 · What's new</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
@@ -8916,7 +8920,7 @@ UI.inspect=s=>{const u=U[s.t];toast(`${u.n} ${s.alive} — ${u.d}`);};
 
 /* 길잡이를 할지 묻는다: 시작하고 조금 둘러본 뒤 — 창이 열려 있으면 닫힐 때까지 기다린다 */
 function tutAsk(ms){setTimeout(function chk(){if(!S||!S.guideAsk||S.title||S.practice)return;if(UI.modalOpen||BT||!(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")){setTimeout(chk,3000);return;}
-  S.paused=true;UI.openModal(`${winHead("Guide",false)}<div class="wbody"><p class="story" style="font-size:16px">Would you like a <b>guide</b> to walk you through the first week, one task at a time?</p><p class="note">Touring the Palace → map and ministers → building and recruiting → villages, spies and diplomacy → sparring: it tells you each task and highlights what to click. Recommended for first-time kings. You can turn it on or off later in Settings.</p></div><div class="wfoot"><button class="b ghost" data-a="tutNo">I'll manage alone</button><button class="b gold" data-a="tutYes">With the guide</button></div>`,{narrow:true,blocking:true});},ms);}
+  S.paused=true;UI.openModal(`${winHead("Guide",false)}<div class="wbody"><p class="story" style="font-size:16px">Would you like a <b>guide</b> to walk you through the first week, one task at a time?</p><p class="note">Touring the Palace → map and ministers → building and recruiting → villages, spies and diplomacy → sparring: it tells you each task. You can turn it on or off later in Settings.</p></div><div class="wfoot"><button class="b ghost" data-a="tutNo">I'll manage alone</button><button class="b gold" data-a="tutYes">With the guide</button></div>`,{narrow:true,blocking:true});},ms);}
 
 /* ════════ 저장 관리: 자동 백업 · 파일로 내보내기/가져오기 ════════ */
 // 닷새마다 그 슬롯의 판을 백업해 둔다 (최근 3개) — 잘못 고른 선택·무너진 판을 되돌릴 수 있게
@@ -8925,7 +8929,7 @@ function backupList(n){try{return JSON.parse(localStorage.getItem(bakKey(n))||"[
 function backupTick(){return;if(!S||S.practice||S.title)return;const d=S.day|0;if(d<2||d%5!==0)return;const L=backupList(S.slot);if(L.some(b=>b.day===d))return;
   try{L.unshift({day:d,at:Date.now(),snap:snapshotState()});localStorage.setItem(bakKey(S.slot),JSON.stringify(L.slice(0,3)));}catch(e){try{localStorage.setItem(bakKey(S.slot),JSON.stringify(L.slice(0,1)));}catch(e2){}}}
 function loadSnap(raw,label){let s=null;try{s=typeof raw==="string"?JSON.parse(raw):raw;}catch(e){}
-  if(!s||s.v!==2||!s.sites||!s.res){toast("Couldn't read the save file — make sure it's a Deep Dark save.");return false;}
+  if(!s||s.v!==2||!s.sites||!s.res){toast("Couldn't read the save file — it doesn't look like a Deep Dark save.");return false;}
   if(s.over){toast("That game is already over.");return false;}
   s.slot=(S&&S.slot)||s.slot||1;s.skin=s.skin||"ashen";s.kingWound=s.kingWound||0;
   if(typeof BT!=="undefined"&&BT){toast("Can't load during a battle.");return false;}

@@ -457,7 +457,7 @@ input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 #tpad [data-tp="s3"]{right:calc(202px + env(safe-area-inset-right));bottom:217px;width:52px;height:52px}
 #tpad [data-tp="s4"]{right:calc(133px + env(safe-area-inset-right));bottom:257px;width:52px;height:52px}
 #tpad [data-tp="q"]{right:calc(54px + env(safe-area-inset-right));bottom:265px;width:52px;height:52px}
-#tpad [data-tp="mount"]{right:calc(24px + env(safe-area-inset-right));bottom:163px;width:52px;height:52px}
+#tpad [data-tp="mount"]{right:calc(38px + env(safe-area-inset-right));bottom:150px;width:52px;height:52px}
 #tpad [data-tp="crouch"]{right:calc(46px + env(safe-area-inset-right));bottom:240px;width:52px;height:52px}
 #tpad [data-tp="e"]{display:none!important}   /* 들어가기는 가운데 아래 기존 버튼(이름표)이 맡는다 */
 #tpad .tp.cool{opacity:.55;filter:grayscale(.6)}
@@ -652,6 +652,8 @@ kbd{font-family:var(--f-body)!important}
 .setin{width:100%;box-sizing:border-box;margin:6px 0 8px;padding:8px 10px;background:#0d0c0b;color:var(--bone);border:1px solid var(--line-2);border-radius:2px;font:inherit}
 .set .note{margin:8px 0 0}.setcred{opacity:.6;margin:10px 0 0;font-size:11.5px}
 html[lang=en] .kh-row{grid-template-columns:54px 1fr}
+@media (max-height:520px){#btime{zoom:.72}}
+#notes{z-index:35}
 .tb{background:rgba(10,9,8,.74)}.tb.main{background:rgba(22,19,15,.8)}
 @media (max-height:520px){
   #title{padding:7vh 16px 3vh}.lgchip{zoom:.72;top:10px;right:12px}.ttl{font-size:clamp(34px,6.4vw,54px);margin:4px 0 2px}.tline{width:min(300px,50vw)}.tsub{margin:2px 0 0;font-size:11px}
@@ -778,13 +780,13 @@ const ICON={
 function touchTxt(str){
   /* 휴대폰: 어떤 키·버튼을 누르라는 말은 뺀다 — 버튼은 눈에 보이고, 사람은 알아서 누른다 */
   if(typeof COARSE==="undefined"||!COARSE)return str;
-  return String(str).replace(/<kbd>[^<]*<\/kbd>\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
-    .replace(/WASD ?(로 )?(이동)?/g,"").replace(/더블\s?클릭(해서|하면)?\s?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/우클릭\s?(끌기:?\s?회전|으로|로)?\s?/g,"").replace(/\s?\((우클릭|Tab|E)\)/g,"")
+  return String(str).replace(/<kbd>우클릭<\/kbd>하면/g,"길게 누르면").replace(/<kbd>[^<]*<\/kbd>(으로|로)?\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
+    .replace(/WASD ?(로 )?(이동)?/g,"").replace(/[^.>]*우클릭으로도 보낼 수 있다\.?/g,"").replace(/우클릭하면/g,"길게 누르면").replace(/\s?Shift로 질주\.?/g,"").replace(/Tab(으로|:)?\s?/g,"").replace(/(^|[\s·(,])[A-Z]로 (?=[가-힣])/g,"$1").replace(/(가서|다가가) E(?=[^A-Za-z]|$)/g,"$1").replace(/더블\s?클릭(해서|하면)?\s?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/우클릭\s?(끌기:?\s?회전|으로|로)?\s?/g,"").replace(/\s?\((우클릭|Tab|Ctrl|Shift|Space|[A-Z])\)/g,"")
     .replace(/Tab을 누르면 /g,"").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1").replace(/(^|[\s·(])E (?=[가-힣])/g,"$1")
     .replace(/[,.]? ?(또는|돌아올 때도) M(?=[.\s,)]|$)/g,"")
     .replace(/(^|[\s·(])(Ctrl|Shift|Space|Alt|[A-Z]) (?=[가-힣])/g,"$1")
     .replace(/(을|를) 클릭(?=\s?→)/g,"").replace(/(을|를) 클릭(해서|하면|하거나)?\s?/g,"$1 ").replace(/\s?클릭(해서|하면|하거나)?\s?/g," ")
-    .replace(/ +([·,.→—])/g," $1").replace(/^(\s*)[·—]\s*/,"$1").replace(/ {2,}/g," ")).join("");
+    .replace(/(숫자 )?5~9로 /g,"").replace(/\s?\(\)/g,"").replace(/ +([·,.→—])/g," $1").replace(/^(\s*)[·—]\s*/,"$1").replace(/ {2,}/g," ")).join("");
 }
 function fixJosa(str){
   str=touchTxt(str);
@@ -2352,7 +2354,7 @@ function bindInput(){
     // Alt: 한 번 누르면 커서 모드(마우스로 버튼 누르기), 또 누르면 시점 모드(마우스로 화면 돌리기)
     if(e.key==="Alt"){e.preventDefault();if(!e.repeat&&E.wantLock&&!E.soft&&!(typeof UI!=="undefined"&&UI.modalOpen)){const on=document.pointerLockElement!==c;E.camWant=on;camLock(on);}return;}E.keys.add(keyName(e));if(e.key.startsWith("Arrow")||e.key===" ")e.preventDefault();});
   addEventListener("keyup",e=>{if(e.key==="Alt"){e.preventDefault();return;}E.keys.delete(keyName(e));E.keys.delete(e.key.toLowerCase());});
-  addEventListener("blur",()=>{E.keys.clear();if(E.free){E.freeBack=E.free.yaw;E.free=null;}if(typeof UI!=="undefined"&&(UI.mode==="capital"||UI.mode==="palace")&&typeof toast==="function")setTimeout(()=>{if(!document.hasFocus())toast("화면을 한 번 클릭하면 조작이 돌아온다");},150);});
+  addEventListener("blur",()=>{E.keys.clear();if(E.free){E.freeBack=E.free.yaw;E.free=null;}if(typeof UI!=="undefined"&&(UI.mode==="capital"||UI.mode==="palace")&&typeof toast==="function")setTimeout(()=>{if(!document.hasFocus())toast("화면을 한 번 누르면 조작이 돌아온다");},150);});
 }
 function bindJoystick(){
   const base=$("#joy"),knob=$("#joyKnob");if(!base)return;let id=null;
@@ -3708,7 +3710,7 @@ function placeGenerals(){
 function palSpots(){
   const pet=S.court&&S.court.pet.length;
   const L=[
-    {id:"throne",name:PAL.sit?"왕좌에서 일어난다":"왕좌",sub:PAL.sit?"E 또는 WASD로 일어난다":(pet?`알현 대기 ${pet}건`:"왕좌에 앉는다 · 알현"),x:0,z:-19.4,act:()=>{if(PAL.sit){PAL.sit=false;renderPrompt();return;}PAL.sit=true;PAL.pos.x=0;PAL.pos.z=-20.9;E.tp.yaw=Math.PI;E.tp.pitch=0.22;E.tp.dd=6.5;E.tp.snap=true;UI.bannerSay("왕좌에 앉았다 — E나 WASD로 일어난다");openPetitions();const sp=PAL.spots.find(s=>s.id==="throne");if(sp){sp.name="왕좌에서 일어난다";sp.sub="E 또는 WASD로 일어난다";}renderPrompt();}},
+    {id:"throne",name:PAL.sit?"왕좌에서 일어난다":"왕좌",sub:PAL.sit?"움직이면 일어난다":(pet?`알현 대기 ${pet}건`:"왕좌에 앉는다 · 알현"),x:0,z:-19.4,act:()=>{if(PAL.sit){PAL.sit=false;renderPrompt();return;}PAL.sit=true;PAL.pos.x=0;PAL.pos.z=-20.9;E.tp.yaw=Math.PI;E.tp.pitch=0.22;E.tp.dd=6.5;E.tp.snap=true;UI.bannerSay("왕좌에 앉았다. 움직이면 일어난다");openPetitions();const sp=PAL.spots.find(s=>s.id==="throne");if(sp){sp.name="왕좌에서 일어난다";sp.sub="움직이면 일어난다";}renderPrompt();}},
     {id:"door",name:"성채 마당으로",sub:"밖으로 나간다",x:0,z:22.6,act:()=>leavePalace()},
     {id:"table",name:"작전 탁자",sub:"원정 편성",x:-17,z:3.6,act:()=>UI.openModal(councilModal())},
     {id:"armor",name:"왕의 갑옷걸이",sub:"옷장",x:6.4,z:-18.5,act:()=>UI.openModal(wardrobeModal())},
@@ -3729,7 +3731,7 @@ function enterPalace(){if(regentOn())setTimeout(()=>UI.bannerSay(`섭정 ${regen
   E.onTap=()=>{if(COARSE&&PAL.near)PAL.near.act();};E.onDragStart=null;E.onHover=null;   // 데스크톱은 E로만 (클릭은 시점 잠금)
   E.onFrame=dt=>{tickWorld(dt);palTick(dt);uiTick(dt);};
   UI.mode="palace";showCapitalHUD();
-  if(!UI.palHint){UI.palHint=true;UI.bannerSay("왕궁 대전 — 신하에게 다가가 E · 왕좌에서 알현 · 서쪽 문 너머 작전실");}
+  if(!UI.palHint){UI.palHint=true;UI.bannerSay("왕궁 대전 — 신하에게 다가가 말을 건다 · 왕좌에서 알현 · 서쪽 문 너머 작전실");}
 }
 function leavePalace(){E.tp.clampFn=null;E.tp.ceil=null;CAP.pos={x:0,z:KEEP.z+17};CAP.face=0;enterCapital();E.tp.yaw=Math.PI;E.tp.snap=true;}
 function palTick(dt){if(typeof tutPalTick==="function")tutPalTick(dt);
@@ -4286,7 +4288,7 @@ function onDay(){
   S.res.food+=e.food;S.res.gold+=e.gold;
   /* 병사가 백성의 60%를 넘으면 들판이 비고 집집마다 아들을 잃었다 — 민심이 매일 깎인다 */
   {const sol=soldiersAll();if(sol>S.civ*0.6){S.morale=clamp(S.morale-1.5,0,100);if(!(S.draftWarnD>S.day-4)){S.draftWarnD=S.day;logMsg(`징병이 지나치다 — 병사 ${fmtN(sol)}명이 백성 ${fmtN(S.civ)}명의 60%를 넘었다. 민심이 매일 깎이고 일손이 모자라 농장·시장이 덜 돈다.`,"bad");}}
-   else if(laborK()<1&&!(S.laborWarnD>S.day-5)){S.laborWarnD=S.day;logMsg(`일손이 모자란다 — 백성이 줄어 농장·시장이 ${Math.round(laborK()*100)}%만 돈다. 주거지를 올리고 이주를 장려하라.`,"bad");}}
+   else if(laborK()<1&&!(S.laborWarnD>S.day-5)){S.laborWarnD=S.day;logMsg(`일손이 모자란다 — 백성이 줄어 농장·시장이 ${Math.round(laborK()*100)}%만 돈다. 주거지와 이주민이 필요하다.`,"bad");}}
   /* 마을 몫은 마을마다 쌓였다가 사흘마다 수레로 들어온다 */
   S.vAcc=S.vAcc||{};for(const v of villagesOwned()){const r=vilEarn(v);const a=S.vAcc[v.id]=S.vAcc[v.id]||{g:0,f:0};a.g+=r.g;a.f+=r.f;}
   if((S.day|0)%3===0){let G=0,F=0;const parts=[];for(const [id,a] of Object.entries(S.vAcc)){const s=siteById(id);if(!s||!(a.g||a.f))continue;if(S.sites[id].state!=="ok"){continue;}G+=a.g;F+=a.f;parts.push(`${s.name} 금화 ${a.g}·식량 ${a.f}`);}
@@ -4300,7 +4302,7 @@ function onDay(){
   S.morale=clamp(S.morale+(S.morale<60?0.4:0),0,100);
   // 민심의 무게: 낮으면 탈영·소요, 높으면 의용군
   if(S.morale<30&&S.garrison.length){const c=pick(S.garrison);const n=Math.min(c.men-10,ri(4,9));if(n>0){c.men-=n;logMsg(`민심이 바닥이다. ${U[c.t].n} 중대에서 ${n}명이 밤에 탈영했다.`,"bad");}}
-  if(S.morale<20&&S.day%3===0){const g=Math.min(S.res.gold,ri(80,160));S.res.gold-=g;S.civ=Math.max(300,S.civ-ri(20,50));logMsg(`성 안에서 소요가 일었다. 창고가 털려 금화 ${g}을(를) 잃고 백성이 떠났다. 민심을 돌려라 — 축제·축복·승리.`,"bad");}
+  if(S.morale<20&&S.day%3===0){const g=Math.min(S.res.gold,ri(80,160));S.res.gold-=g;S.civ=Math.max(300,S.civ-ri(20,50));logMsg(`성 안에서 소요가 일었다. 창고가 털려 금화 ${g}을(를) 잃고 백성이 떠났다. 축제, 축복, 승리가 민심을 돌린다.`,"bad");}
   if(S.morale>=80&&S.day%5===0&&S.civ>600){S.civ-=100;S.garrison.push({t:"militia",men:100});logMsg("민심이 높아 의용군 한 중대(민병 100)가 스스로 창을 들었다.","gold");}
   // 마을 인구 증가는 vilDay에서 한 번만 (상한도 그쪽이 정한다)
   // 훈련
@@ -4312,7 +4314,7 @@ function onDay(){
   if(S.kingWound>0&&--S.kingWound===0){logMsg("왕의 상처가 아물었다.");try{KC.max=kingMaxHp();}catch(e){}}
   weatherDay();courtDay();vilDay();realmDay();tradeDay();pactDay();migrDay();wallDay();
   // 위험 신호: 미리 알린다
-  {const e2=econ();e2.food+=e2.vf;if(e2.food<0&&S.res.food+e2.food*3<0&&S.res.food>0&&!(S.foodWarnD>S.day-3)){S.foodWarnD=S.day;logMsg(`식량이 사흘 안에 바닥난다 (하루 ${e2.food}). 농장을 올리거나 병력을 줄이거나 식량을 사라.`,"bad");}
+  {const e2=econ();e2.food+=e2.vf;if(e2.food<0&&S.res.food+e2.food*3<0&&S.res.food>0&&!(S.foodWarnD>S.day-3)){S.foodWarnD=S.day;logMsg(`식량이 사흘 안에 바닥난다 (하루 ${e2.food}). 농장을 올리거나 병력을 줄이거나 식량을 사야 한다.`,"bad");}
    if((S.civ<700||S.morale<25)&&typeof hintOnce==="function")hintOnce("danger");}if(typeof gearDay==="function")gearDay();if(typeof campaignDay==="function")campaignDay();if(S.debt>0){S.debt*=1.10;if(S.debt>2500){S.morale=clamp(S.morale-2,0,100);if(S.day%3===0)logMsg(`빚이 ${fmtN(Math.round(S.debt))}에 이르렀다. 상인들이 등을 돌리고 민심이 흔들린다.`,"bad");}}campDay();rebuildDay();fatigueDay();eliteDay();techDay();
   for(const g of S.gens)if(g.status==="wounded"&&--g.wound<=0){g.status="ready";logMsg(`${genById(g.id).name}이(가) 부상에서 회복했다.`);}
   // 망자 요새 성장 (멀티: 방장만 — 손님은 방장 세계를 받는다)
@@ -4656,7 +4658,7 @@ function resolveSpy(op){
   } else if(Math.random()<0.5){
     /* 절반은 들키기 전에 눈치채고 빈손으로 돌아온다 — 첩자를 잃지 않는다 */
     const I=S.intel[s.id]||{found:[]};I.alarm=S.day+3;S.intel[s.id]=I;spyLeave(op);
-    logMsg(`${s.name}의 경계가 삼엄해 첩자가 들어가지 못하고 돌아온다. 며칠 뒤 다시 보내라.`,"bad");UI.dirty=true;
+    logMsg(`${s.name}의 경계가 삼엄해 첩자가 들어가지 못하고 돌아온다. 며칠 뒤에 다시 보낼 수 있다.`,"bad");UI.dirty=true;
   } else {
     S.spy.agents--;S.spy.ops=S.spy.ops.filter(o=>o!==op);
     const I=S.intel[s.id]||{found:[]};I.alarm=S.day+6;S.intel[s.id]=I;
@@ -4680,7 +4682,7 @@ function spyReportHtml(id,live){
     ${s.kind==="village"?`<p class="rp">마을이 버틸 날: 약 ${I.doom}일</p>`:`<p class="rp">새 망자가 약 ${s.rate}일마다 합류한다. 망자의 군주가 다음 출격을 명하기까지 약 ${Math.max(1,I.lord)}일.</p>`}
     ${weakFound?`<div class="eyebrow" style="margin:8px 0 4px;color:#6b5530">찾아낸 약점 (공격 시 적용)</div>${weakFound}`:""}
     ${(I.found||[]).length===3?`<p class="rp"><b>완벽한 정찰</b> — 약점을 모두 알기에 공략전에서 적 전체가 15% 줄어든 채 싸운다.</p>`:""}
-    ${unknown>0?`<p class="rp" style="opacity:.75">아직 찾지 못한 약점 ${unknown}곳. ${op&&op.phase==="in"?"첩자가 아직 현지에 있다 — 직접 잠입해서 찾아라.":"첩자를 다시 보내 잠입하면 찾을 수 있다."}</p>`:""}
+    ${unknown>0?`<p class="rp" style="opacity:.75">아직 찾지 못한 약점 ${unknown}곳. ${op&&op.phase==="in"?"첩자가 아직 현지에 있다. 직접 잠입할 수 있다.":"첩자를 다시 보내 잠입하면 찾을 수 있다."}</p>`:""}
     ${age>INTEL_FRESH?`<p class="rp" style="color:#8a2a1a">오래된 정보다. 지금은 다를 수 있다.</p>`:""}
     ${live&&AI.ok()?`<p class="rp story" id="spyFlav"><span class="spin"></span></p>`:""}
   </div>`;
@@ -5576,18 +5578,18 @@ function tutNowTick(){let el=$("#tutNow");if(!el){el=document.createElement("div
 /* ════════ 처음 마주칠 때 한 번 뜨는 안내 카드 (게임을 멈추지 않는다) ════════ */
 const HINTS={
   tactic:["적의 계략","망자는 전투마다 계략을 하나 쓴다. 척후가 외친 말과 왼쪽 위 조언 창을 보고 대응하라 — 협공이면 측면에 창병, 궁병 사냥이면 궁병 곁에 보병, 쐐기면 노리는 부대를 빼거나 받친다."],
-  map:["세계 지도 보는 법","파란 깃발은 아군, 빨간 것은 망자다. '?'는 안개 — 클릭해서 첩자를 보내면 정체를 안다. 거점을 누르면 오른쪽에 정보가 뜨고, 군대를 고른 뒤 땅이나 거점을 우클릭하면 그리로 보낸다. 왕궁으로 돌아갈 땐 M."],
+  map:["세계 지도 보는 법","파란 깃발은 아군, 빨간 것은 망자다. '?'는 안개에 가린 곳으로, 첩자를 보내면 정체를 안다. 군대를 고르고 갈 곳을 정하면 그리로 간다."],
   spy:["첩자가 도착했다","첩자는 요새에 3일 머문다. 그동안 '잠입 정찰'로 직접 들어가 약점(최대 3개)을 찾을 수 있다 — 약점 하나마다 공략전에서 적이 줄어든다. 3개를 다 찾으면 적 전체 -15%. 원정 편성 때 진입 방향(정면·측면·후방)도 고를 수 있다."],
   neutral:["중립 세력","용병단·나무꾼 같은 중립 세력은 군대를 보내 포섭한다. 그들이 요구하는 병력이나 금화를 채우면 우리 편이 되어 병력을 내준다. 모자라면 군대는 그냥 돌아온다."],
   fort:["망자의 요새","요새마다 성격이 다르다(오른쪽 붉은 칸). 요새가 서 있는 한 망자는 끝없이 늘어난다. 첩자로 병종을 보고, 상성에 맞는 군대로 쳐라. 하나 무너뜨릴 때마다 대습격도 작아진다."],
   realm:["이웃 왕국","관계 40이면 교역·조약, 70이면 동맹 — 원군을 빌릴 수 있다. 사절은 무료(5일마다). 그들 영토에 군대를 오래 세워 두면 관계가 떨어진다."],
-  deploy:["전투 배치","푸른 구역 안에서 부대를 끌어 자리를 잡는다. 궁병은 뒤나 언덕에, 창병은 기병 앞에. 왼쪽 위 장군의 조언을 보고 '전투 개시'를 누르면 시간이 흐른다 — 그 전엔 멈춰 있다."],
+  deploy:["전투 배치","푸른 구역 안에서 부대를 끌어 자리를 잡는다. 궁병은 뒤나 언덕에, 창병은 기병 앞에. 전투를 개시하기 전까지 시간은 멈춰 있다."],
   wall:["성벽 방어전","성은 원형 성벽으로 둘러싸여 있고 북쪽에 성문이 있다. 궁병은 성벽 위 통로에서 쏘고, 성벽 가까이 선 보병·창병은 아래 망자에게 돌을 던진다. 망자는 사다리를 걸고 성벽을 부순다. 성문·성벽이 뚫리면 안쪽 보병·창병·기병이 알아서 틈을 막으러 간다. 성문이 부서지면 그리로 몰려온다. '성문 열기'나 돌격(G)으로 출격할 수 있다. 상단에 성문·성벽 체력이 보인다."],
   reinf:["원군이 온다","근처로 오던 아군 군대가 전투 중에 도착한다. 버티면 원군이 망자의 등이나 옆구리를 친다."],
   camp:["야영","군대를 빈 땅에 보내면 야영한다. 머무는 동안 병력과 피로가 회복된다. 피로가 높으면 전투력이 떨어진다(피로 100이면 60%)."],
-  groups:["병종별 지휘","아래 지휘판에서 보병·창병·궁병·기마병·전군을 따로 부린다. 숫자 5~9로 병종을 고르면 그 부대들이 밝게 빛나고 카드에 '지휘 중'이 뜬다 — G 돌격, H 후퇴, J 기술은 그 병종에게만 간다. 버튼을 바로 눌러도 된다. 명령이 없으면 부대는 알아서 상성 맞는 적에게 간다."],
+  groups:["병종별 지휘","아래 지휘판에서 보병·창병·궁병·기마병·전군을 따로 부린다. 숫자 5~9로 병종을 고르면 그 부대들이 밝게 빛나고 카드에 '지휘 중'이 뜬다 — G 돌격, H 후퇴, J 기술은 그 병종에게만 간다. 명령이 없으면 부대는 알아서 상성 맞는 적에게 간다."],
   skills:["병종 기술","병종마다 기술이 하나씩 있다. 보병은 밀어붙이기, 창병은 투창, 궁병은 불화살, 기마병은 측면 돌격, 전군은 함성. 쓰고 나면 버튼에 다시 쓸 때까지 남은 초가 뜬다."],
-  musou:["무쌍난무 준비","기세가 가득 찼다 — 4를 누르면 몇 초 동안 무적으로 회전하며 주위 망자를 쓸어 버린다. 기세는 적을 베거나, 공격을 딱 맞춰 막거나(B를 맞기 직전에), 구르기로 아슬아슬하게 피하면 찬다."],
+  musou:["무쌍난무 준비","기세가 가득 찼다 — 무쌍난무를 쓰면 몇 초 동안 무적으로 회전하며 주위 망자를 쓸어 버린다. 기세는 적을 베거나, 공격을 맞기 직전에 막거나, 구르기로 아슬아슬하게 피하면 찬다."],
   warmap:["작전도","Tab을 누르면 큰 작전도가 펼쳐지고 시간이 느려진다. 부대를 클릭하거나 끌어서 고르고, 우클릭으로 이동·공격을 명령한다. 다시 Tab으로 닫는다."],
   hero:["장군이 이끄는 전투","장군이 이끄는 전투는 전체 시점으로 지휘한다. 장군은 근위대와 함께 알아서 싸우고, Q로 장군 능력을 쓴다."],
   duel:["대련 요령","장군은 같은 기술을 되풀이하면 읽고 막는다. 베기·찌르기·기술을 섞고, 막기(B)를 공격 직전에 맞추면 상대가 비틀거린다. 연타만 하면 경직 없이 받아친다."],
@@ -5611,17 +5613,18 @@ function hintNext(){let el=$("#hint");if(!el){el=document.createElement("div");e
   clearTimeout(hintOnce._t);hintOnce._t=setTimeout(hintNext,ms);}
 // 도움말: 조작법·수치 설명·길잡이 목록을 한 창에
 function helpModal(tab){tab=tab||UI.helpTab||"keys";UI.helpTab=tab;
-  const tabs=[["keys","조작법"],["battle","전투 지휘"],["terms","수치 설명"],["guide","길잡이 목록"],["lose","이기고 지는 법"]];
+  if(COARSE&&tab==="keys")tab=UI.helpTab="battle";
+  const tabs=[...(COARSE?[]:[["keys","조작법"]]),["battle","전투 지휘"],["terms","수치 설명"],["guide","길잡이 목록"],["lose","이기고 지는 법"]];
   let body="";
   if(tab==="keys")body=controlsModal().replace(/^[\s\S]*?<div class="wbody">/,"").replace(/<\/div><div class="wfoot">[\s\S]*$/,"");
   else if(tab==="terms")body=glossaryModal().replace(/^[\s\S]*?<div class="wbody">/,"").replace(/<\/div><div class="wfoot">[\s\S]*$/,"");
   else if(tab==="battle"){const t=(n,d)=>`<div class="tile"><div class="hd"><span class="nm">${n}</span></div><div class="ds">${d}</div></div>`;
     body=t("흐름","배치(부대를 끌어 자리 잡기·진형) → 개전 → 명령이 없으면 부대가 알아서 상성 맞는 적에게 간다. 이길 때까지 병종 지휘판과 왕(또는 장군)의 칼로 판을 바꾼다.")
-     +t("병종별 지휘 (5~9 · G H J K)","5 보병 · 6 창병 · 7 궁병 · 8 기마병 · 9 전군. 숫자를 누르면 그 병종 부대가 밝게 빛나고 카드에 <b>지휘 중</b>이 뜬다. G 돌격 · H 후퇴 · J 첫째 기술 · K 둘째 기술은 지휘 중인 병종에게만 간다. 카드의 버튼을 바로 눌러도 된다.")
+     +t("병종별 지휘",COARSE?"지휘판에서 병종을 고르면 돌격, 후퇴, 기술이 그 병종에게만 간다. 전군을 고르면 모두에게 간다.":"5 보병 · 6 창병 · 7 궁병 · 8 기마병 · 9 전군. 숫자를 누르면 그 병종 부대가 밝게 빛나고 카드에 <b>지휘 중</b>이 뜬다. G 돌격 · H 후퇴 · J 기술은 지휘 중인 병종에게만 간다.")
      +t("병종 기술",GROUPS.map(G=>`${G.n}, ${G.sk}: ${G.skd} (${G.cd}초마다)`).join("<br>"))
-     +t("왕·장군의 칼","우클릭 베기 · R 찌르기 · Ctrl 구르기 · B 막기(맞기 직전에 누르면 패리 → 반격 ×2) · 1 회오리 · 2 함성 · 3 돌진 · 4 무쌍난무(기세가 차면). 박자 맞춰 베면 연속기가 빨라지고 세진다. 적 병사 사이는 뚫고 지나가지 못한다.")
-     +t("장군이 이끄는 전투","장군이 이끄는 전투는 전체 시점으로만 지휘한다. 장군은 근위대와 함께 알아서 싸우고, Q로 장군 능력을 쓴다. 왕이 직접 나선 전투에서만 V로 왕의 시점에 들어간다.")
-     +t("작전도 (Tab)","큰 작전도가 펼쳐지고 시간이 느려진다. 클릭·끌기로 부대를 고르고 우클릭으로 이동·공격. V는 전체 시점.")
+     +t("왕·장군의 칼",COARSE?"막기를 맞기 직전에 맞추면 패리가 되어 반격이 2배로 들어간다. 박자 맞춰 베면 연속기가 빨라지고 세진다. 기세가 차면 무쌍난무를 쓸 수 있다. 적 병사 사이는 뚫고 지나가지 못한다.":"우클릭 베기 · R 찌르기 · Ctrl 구르기 · B 막기(맞기 직전에 누르면 패리 → 반격 ×2) · 1 회오리 · 2 함성 · 3 돌진 · 4 무쌍난무(기세가 차면). 박자 맞춰 베면 연속기가 빨라지고 세진다. 적 병사 사이는 뚫고 지나가지 못한다.")
+     +t("장군이 이끄는 전투",COARSE?"장군이 이끄는 전투는 전체 시점으로만 지휘한다. 장군은 근위대와 함께 알아서 싸운다. 왕의 시점은 왕이 직접 나선 전투에만 있다.":"장군이 이끄는 전투는 전체 시점으로만 지휘한다. 장군은 근위대와 함께 알아서 싸우고, Q로 장군 능력을 쓴다. 왕이 직접 나선 전투에서만 V로 왕의 시점에 들어간다.")
+     +(COARSE?"":t("작전도 (Tab)","큰 작전도가 펼쳐지고 시간이 느려진다. 클릭·끌기로 부대를 고르고 우클릭으로 이동·공격. V는 전체 시점."))
      +t("성벽 방어전","왕궁은 반원 성벽(뒤는 본성과 산), 마을은 사방을 둘러싼 원형 울타리다. 궁병은 성벽 위에서 쏜다(내려가도 다시 올라간다, 궁병 후퇴 = 성벽으로). 성벽 위 보병·창병은 돌을 던진다. 성문이 부서지면 그리로 몰려온다.")
      +t("요새 공략","성은 지키는 쪽이 훨씬 유리하다. 보병이 주인공 — 방패를 이고 사다리를 가장 빨리·덜 떨어지며 오르고, 넘어가면 방패로 밀어붙인다. 창병 한 무리가 충차로 성문을 치고, 투석기 둘이 성벽을 깬다. 궁병은 성벽 밖에서 성벽 위와 바로 안쪽만 쏜다. 기병은 뚫릴 때까지 기다렸다가 틈으로 들어간다. 성벽 위 망자는 불단지·뼈창을 던진다.")
      +t("궁병의 시야","성벽 위 궁병은 자기 앞쪽 바깥만 쏜다 — 성 반대편은 성벽에 가려 못 쏜다. 보이는 적이 없으면 성벽을 따라 적이 있는 쪽으로 옮겨 간다. 고르게 세우면 사방을 막지만 한 곳의 화력은 약해지고, 몰아 세우면 다른 쪽이 비어 망자가 그쪽 사다리로 넘어온다.")+t("망자의 계략","트롤이 맨 앞에 서고 나머지 망자는 그 뒤에 숨어 걸음을 맞춰 온다 — 트롤이 부딪히거나 성벽에 닿으면 일제히 덮친다. 궁병·투창으로 트롤을 먼저 쓰러뜨려라. 성벽에선 트롤이 성벽 한 곳을 깨고, 오크·늑대가 성문을 부수고, 구울·고블린이 사다리로 넘어온다(성벽 위 궁병이 지키면 밀려 떨어진다). 망자 투석기는 성문을 열고 기병을 내보내 부숴라. 망자의 군주(Claude)가 전투마다 계략을 고르고 지난 싸움을 기억한다. 척후가 개전 7초쯤 계략을 알린다. 대습격은 사흘 전에 병력 구성과 방향을 알려 준다.")
@@ -5655,7 +5658,7 @@ function warBoardModal(){const row=(a,t,sub,cls="")=>`<button class="qrow wb ${c
 
 /* ── 전투 종류마다 처음 한 번: 이 싸움이 어떻게 돌아가는지 ── */
 const BATTLE_INTRO={
-  field:["들판의 회전","망자는 우리보다 훨씬 많다. 대신 우리 병사 한 명 한 명은 망자보다 훨씬 강하다 — 수는 지휘로 이긴다.<br><br><b>상성</b> 창병 → 트롤·늑대 · 궁병 → 구울·고블린 · 기병 → 강령술사·고블린 · 보병 → 오크<br><b>지휘</b> 5~9로 병종(보병·창병·궁병·기병·전군)을 고르고 G 돌격 · H 후퇴 · J·K 병종 기술. 부대를 끌어 골라 우클릭으로 옮길 수도 있다.<br><b>무너짐</b> 사기가 바닥난 부대는 달아난다. 장군·왕 곁의 부대는 잘 버틴다."],
+  field:["들판의 회전","망자는 우리보다 훨씬 많다. 대신 우리 병사 한 명 한 명은 망자보다 훨씬 강하다 — 수는 지휘로 이긴다.<br><br><b>상성</b> 창병 → 트롤·늑대 · 궁병 → 구울·고블린 · 기병 → 강령술사·고블린 · 보병 → 오크<br><b>지휘</b> 5~9로 병종(보병·창병·궁병·기병·전군)을 고르고 G 돌격 · H 후퇴 · J 병종 기술. 부대를 끌어 골라 우클릭으로 옮길 수도 있다.<br><b>무너짐</b> 사기가 바닥난 부대는 달아난다. 장군·왕 곁의 부대는 잘 버틴다."],
   siege:["왕궁 방어전","왕궁은 반원 성벽으로 둘러싸여 있고 뒤는 본성과 산이다.<br><br><b>궁병</b> 성벽 위에서 쏜다. 성벽에 가려 반대편은 못 쏘니, 적이 몰리는 쪽으로 옮겨 세워라.<br><b>보병·창병</b> 성 안에서 기다리다 사다리로 넘어온 적과 무너진 틈을 막는다. 성벽 가까이 선 병사는 아래로 돌을 던진다.<br><b>망자</b> 사다리·트롤·투석기로 온다. 사다리 꼭대기에 닿은 적은 먼저 성벽 위 궁병을 덮친다. 투석기 돌에 맞은 성벽은 금이 가다 무너진다 — '성문 열기(출격)'로 나가 투석기를 부술 수 있다.<br><b>함락</b> 성 안에 들어온 망자가 남은 수비대보다 확실히 강한 채 20초가 지나면 성이 넘어간다."],
   vsiege:["마을 방어전","마을은 둥근 울타리로 사방이 둘러싸여 있다. 망자는 사방에서 에워싸거나, 궁병이 적은 쪽을 골라 몰려온다.<br><br><b>궁병</b> 울타리 위에서 앞쪽만 쏜다. 고르게 세우면 사방을 막지만 한 곳은 약하고, 한쪽에 모으면 반대편이 빈다 — 적이 오는 쪽을 보고 옮겨라.<br><b>보병·창병</b> 마을 가운데서 기다리다 넘어오거나 뚫고 들어온 적을 친다."],
   fort:["요새 공략","성은 지키는 쪽이 훨씬 유리하다 — 병력이 넉넉해야 한다.<br><br><b>보병이 주인공</b> 방패를 이고 사다리를 가장 빨리, 덜 떨어지며 오르고, 넘어가면 방패로 밀어붙인다. 창병은 느리고 잘 떨어진다.<br><b>충차</b> 창병 한 무리가 밀어 성문을 친다. <b>투석기</b> 둘이 성벽을 깬다. <b>궁병</b> 성벽 밖에서 성벽 위와 바로 안쪽만 쏜다. <b>기병</b> 성문·성벽이 뚫릴 때까지 기다렸다가 틈으로 들어간다.<br><b>조심</b> 성벽 위 망자가 사다리·충차 아래로 불단지를 쏟고 뼈창을 던진다. 불길 속에 오래 서 있지 마라."],
@@ -5676,7 +5679,7 @@ const FIRST_WIN={
   armies:"우리 군대 — 지도 위에 나가 있는 군대 목록. 군대마다 지도에서 보기·명령을 내린다. 피로가 쌓이면 전투력이 떨어진다 — 빈 땅에 세우면 야영하며 회복한다.",
   gens:"장군 — 장군마다 상시 효과와 전장 능력(Q)이 있다. 원정에 붙이면 그 장군이 군대를 이끈다. 다치면 며칠 쉬고, 전사하면 돌아오지 않는다.",
   chron:"연대기 — 지금까지 일어난 일의 기록. 놓친 소식은 여기서 다시 본다.",
-  warboard:"전황 — 다음 대습격 날, 요새마다 첩보, 지금 해야 할 일을 한눈에. 줄을 누르면 그곳으로 간다.",
+  warboard:"전황 — 다음 대습격 날, 요새마다 첩보, 지금 해야 할 일. 줄을 고르면 그곳으로 간다.",
   wardrobe:"옷장 — 왕의 갑주를 갈아입는다. 잠긴 갑주는 무예·갑옷 단계·토너먼트·명성으로 열린다. 능력치는 대장간에서 벼린다.",
   forge:"대장간 — 왕의 검과 갑옷을 단계마다 벼린다(체력·피해 상승, 다음 단계엔 무예가 필요). 주둔군 병력 보충도 여기서.",
   treasury:"재무대신 — 세금 정책. 세금을 올리면 금화가 늘고 민심이 매일 깎인다. 민심이 0이 되면 왕국이 무너진다.",
@@ -5916,7 +5919,7 @@ function startPrologue(){if(S&&!S.title&&!S.practice)saveGame();
   startBattle({kind:"siege",foeArmy:foe,foes:foe.comps,title:"프롤로그 — 선왕의 마지막 밤"});
   setTimeout(()=>{if(WAR)beginBattle(true);},60);
   setTimeout(()=>UI.bannerSay("망자가 아스테라 성벽을 두드린다 — 성문을 지켜라. 당신이 왕이다."),1500);
-  setTimeout(()=>UI.bannerSay(COARSE?"망자가 성문에 붙으면 그리로 가라":"WASD 이동 · 클릭 베기 · 아래 지휘판으로 병종에 명령 — 망자가 성문에 붙으면 그리로"),7000);}
+  setTimeout(()=>UI.bannerSay("망자가 성문에 붙으면 그리로 가라"),7000);}
 function prologueEnd(){UI.closeModal();UI.modalBlocking=false;BT=null;S=null;startNewGame(true);}
 /* 전투·잠입 화면으로 넘어가도 목표 막대·지금 할 일이 남아 있지 않게 */
 setInterval(()=>{try{if(!S||BT||S.title||UI.mode==="battle"||UI.mode==="spy"){const g=$("#goalBar"),t=$("#tutNow");if(g)g.hidden=true;if(t)t.hidden=true;}}catch(e){}},300);
@@ -6094,7 +6097,8 @@ const WALL_T=()=>BT.wall?(wallWood()?2.4:3.2):2.4;   // 성벽 두께 — 궁병
 // 성벽 위 통로: 궁병은 성벽 꼭대기에 선다
 const wallCrew=s=>isRng(s.t)||!!s.wallThrow;   // 성벽 위에 서는 무리: 궁병(활·주술) + 망자 요새의 고블린 투척병
 function onWallTop(s){if(!BT.wall)return false;if(s.escTop&&s.side===BT.wallAtk){const w=wIn(s.x,s.z);return w>-0.4&&w<WALL_T()+0.8&&wallUp(s.x,s.z);}if(s.side!==BT.wallDef||!wallCrew(s))return false;const w=wIn(s.x,s.z);return w>-0.2&&w<WALL_T()+0.6&&wallUp(s.x,s.z);}
-const figY=(s,x,z)=>bH(x,z)+(onWallTop(s)?wallH()+0.25:0);
+/* 성벽 위 부대라도 병사 하나하나는 제 발밑이 성벽일 때만 성벽 높이에 선다 (성벽 밖으로 밀려난 병사가 허공에 뜨지 않게) */
+const figY=(s,x,z)=>{const g=bH(x,z);if(!onWallTop(s))return g;const w=wIn(x,z);if(w<-0.8||w>WALL_T()+1||!wallUp(x,z)){BT.fpN=(BT.fpN||0)+1;return g;}return g+wallH()+0.25;};
 function setRad(s,off){const p=wPt(wAng(s.x,s.z),off);s.x=p.x;s.z=p.z;}
 function wallStep(dt){
   const W=BT.wall;if(!W)return;const T=WALL_T();
@@ -6154,7 +6158,7 @@ function bMove(x,z){if(BT.remote){mpBatSend({c:"move",ids:[...BT.sel],x:+x.toFix
     // 성벽 건너편으로 가라면: 성문·뚫린 곳을 지나서 간다. 지날 곳이 없으면 성벽 앞까지만 간다
     if(BT.wall&&(wIn(s.x,s.z)>0)!==(wIn(s.tx,s.tz)>0)&&segUp(segAt(s.tx,s.tz))){const fin={x:s.tx,z:s.tz},p=viaBreach(s,fin.x,fin.z);
       if(p){s.wp=fin;s.tx=clamp(p.x,-118,118);s.tz=clamp(p.z,-83,83);}
-      else{const sd=wIn(s.x,s.z)>0?1:-1,q=wPt(wAng(fin.x,fin.z),sd*(sqR(s)+3));s.tx=clamp(q.x,-118,118);s.tz=clamp(q.z,-83,83);if(!BT.wallSaid||BT.t-BT.wallSaid>8){BT.wallSaid=BT.t;bSay(BT.wallAtk===s.side?"성벽이 막고 있다 — 성 안으로는 사다리(돌격 G)나 성문·무너진 틈으로 들어간다.":"성벽이 막고 있다 — 밖으로 나가려면 성문을 연다.");}}}}
+      else{const sd=wIn(s.x,s.z)>0?1:-1,q=wPt(wAng(fin.x,fin.z),sd*(sqR(s)+3));s.tx=clamp(q.x,-118,118);s.tz=clamp(q.z,-83,83);if(!BT.wallSaid||BT.t-BT.wallSaid>8){BT.wallSaid=BT.t;bSay(BT.wallAtk===s.side?"성벽이 막고 있다 — 성 안으로는 사다리(돌격)나 성문·무너진 틈으로 들어간다.":"성벽이 막고 있다 — 밖으로 나가려면 성문을 연다.");}}}}
   BT.fx.push({k:"ring",x,z,t0:BT.t,dur:0.7,col:"#9fc0ee"});
 }
 function bAttack(t){if(BT.remote){mpBatSend({c:"atk",ids:[...BT.sel],tg:t.id});for(const s of bSelected()){s.target=t.id;}return;}for(const s of bSelected()){if(s.buff.wall&&!isRng(s.t))continue;s.follow=null;s.orderT=BT.t;s.holdT=0;s.state="attack";s.target=t.id;s.flank=null;}BT.fx.push({k:"ring",x:t.x,z:t.z,t0:BT.t,dur:0.7,col:"#d0503f"});}
@@ -6174,7 +6178,7 @@ function bForm(f){const sel=bSelected();if(!sel.length){bSay("진형을 바꿀 �
 function bHold(){const sel=bSelected();if(!sel.length)return;const v=!sel.every(s=>s.hold);for(const s of sel){s.hold=v;if(v){s.state="idle";s.target=null;s.tx=s.x;s.tz=s.z;}}}
 function bAbility(){
   const B=BT;const _cd0=B.abCd;setTimeout(()=>{if(BT===B&&B.abCd>_cd0+1){if(hasPerk("abCd15"))B.abCd=Math.max(5,B.abCd-15);else if(hasPerk("abCd10"))B.abCd=Math.max(5,B.abCd-10);}},0);if(B.phase!=="battle"||B.abCd>0||B.genDead||!B.gen)return;if(S&&S.tut)S.tut.genAb=true;
-  const g=B.gen;setTimeout(()=>{if(BT===B&&B.abCd>0&&typeof tipOnce==="function")tipOnce("gen_"+g.id,`장군 능력 — ${g.ab||"왕의 함성"}`,`${g.abd||"모든 부대 사기가 크게 오르고 10초 동안 힘이 난다."}<br><b>다시 쓰기</b> ${Math.round(B.abCd)}초 뒤 (버튼에 남은 초가 뜬다)`);},50);
+  const g=B.gen;setTimeout(()=>{if(BT===B&&B.abCd>0&&typeof tipOnce==="function")tipOnce("gen_"+g.id,`장군 능력 — ${g.ab||"왕의 함성"}`,`${g.abd||"모든 부대 사기가 크게 오르고 10초 동안 힘이 난다."}<br><b>다시 쓰기</b> ${Math.round(B.abCd)}초 뒤`);},50);
   if(g.id==="king"){for(const s of bOurs())if(act(s)&&s.state!=="rout"){s.buff.rally=10;s.morale=Math.min(100,s.morale+35);}B.abCd=g.cd;bSay(`${S.ruler}: "아스테라를 위하여!"`);sfx("horn");if(BR.king){const R=BR.king.userData.rig;if(BR.king.userData.hero)R.cheer=true;else R.attack=1;}}
   else if(g.id==="eorin"){for(const s of bOurs())if(act(s)&&U[s.t].tags.includes("cavalry"))s.buff.horn=10;B.abCd=g.cd;bSay("돌격 나팔이 울린다!");}
   else if(g.id==="hadrik"){let tg=bSelected().filter(s=>baseT(s.t)==="inf"||baseT(s.t)==="spear");if(!tg.length)tg=bOurs().filter(s=>act(s)&&(baseT(s.t)==="inf"||baseT(s.t)==="spear"));
@@ -6783,7 +6787,7 @@ function renderBattle(dt){
         if(f.hy>0||f.vy>0){f.vy-=22*dt;f.hy=Math.max(0,(f.hy||0)+f.vy*dt);if(f.hy<=0){f.vy=0;f.hy=0;f.downT=VAT_T.value+0.7;}}
         // 성벽: 인형도 성벽을 뚫지 못한다. 바깥 망자는 성벽 앞에서 멈추고(앞줄은 성벽을 두드린다), 성벽 위 궁병은 통로 안에 머문다
         let wallHit=false;f.wh=false;if(B.wall&&!(s.climbing&&(f.cst==="up"||f.cst==="fall"))){const w=wIn(f.x,f.z),T=WALL_T(),rr=f._r||0.4;if(wallUp(f.x,f.z)){
-          if(s.onWall&&s.side===B.wallDef&&wallCrew(s)&&onWallTop(s)){if(w<0.4||w>T-0.4){const a2=wAng(f.x,f.z),q=wPt(a2,clamp(w,0.4,T-0.4));f.x=q.x;f.z=q.z;}}
+          if(((s.onWall&&s.side===B.wallDef&&wallCrew(s))||s.escTop)&&onWallTop(s)){if(w<0.4||w>T-0.4){const a2=wAng(f.x,f.z),q=wPt(a2,clamp(w,0.4,T-0.4));f.x=q.x;f.z=q.z;}}
           else if(wIn(s.x,s.z)<0){if(w>-rr-0.3){const q=wPt(wAng(f.x,f.z),-rr-0.3);f.x=q.x;f.z=q.z;}if(s.side===B.wallAtk&&!s.engaged&&w>-rr-1.2&&s.state!=="rout"&&s.state!=="move"&&canBash(s,segAt(f.x,f.z)))wallHit=f.wh=true;}
           else if(w<T+rr+0.3){const q=wPt(wAng(f.x,f.z),T+rr+0.3);f.x=q.x;f.z=q.z;}}}
         // 떨림 방지: 걷기/서기를 문턱 두 개(0.5/0.15)로 나누고, 동작은 최소 0.5초 유지한다
@@ -7059,7 +7063,7 @@ function battleKingControl(dt){
   // 왕이 직접 싸운다: 몸은 KC가 움직이고 친위대가 뒤따른다
   if(!BT.kingPos)BT.kingPos={x:r.x,z:r.z};KC.model=BR.king;
   kingStep(dt,{onCry:()=>{const big=hasPerk("cryBig");for(const q of bOurs())if(act(q)&&Math.hypot(q.x-BT.kingPos.x,q.z-BT.kingPos.z)<(big?60:40)){q.morale=Math.min(100,q.morale+(big?50:25));q.buff.rally=big?14:8;}bSay(`${S.ruler}: "물러서지 마라!" — 주변 아군 사기 +25`);},pos:BT.kingPos,h:bH,faceCam:!COARSE,collide:(x,z)=>{x=clamp(x,-118,118);z=clamp(z,-83,83);if(!(KC.musouT>0)){const p=bKingPush(x,z);x=p.x;z=p.z;}if(BT.wall){const k=BT.kingPos;const a0=wIn(k.x,k.z),a1=wIn(x,z);const T=WALL_T(),pad=KC.mounted?1.6:0.9;if(((a0>0)!==(a1>0)||(a1>-pad&&a1<T+pad))&&wallUp(x,z)&&!(a0>-pad&&a0<T+pad&&Math.abs(a1-T/2)>Math.abs(a0-T/2))){x=k.x;z=k.z;}}return {x,z};},model:BR.king,canAct:true,onStrike:bKingStrike});
-  if(KC.wantMount){KC.wantMount=false;if(KC.horse){if(KC.mounted){KC.mounted=false;KC.horsePos={x:BT.kingPos.x,z:BT.kingPos.z};bSay("말에서 내렸다.");}else{const hp=KC.horsePos||BT.kingPos;if(Math.hypot(hp.x-BT.kingPos.x,hp.z-BT.kingPos.z)<4){KC.mounted=true;bSay("말에 올랐다.");}else bSay("말이 멀리 있다 — 말 옆으로 가라.");}}}
+  if(KC.wantMount){KC.wantMount=false;if(KC.horse){if(KC.mounted){KC.mounted=false;KC.horsePos={x:BT.kingPos.x,z:BT.kingPos.z};bSay("말에서 내렸다.");}else{const hp=KC.horsePos||BT.kingPos;if(Math.hypot(hp.x-BT.kingPos.x,hp.z-BT.kingPos.z)<4){KC.mounted=true;bSay("말에 올랐다.");}else bSay("말이 멀리 있다.");}}}
   if(!KC.mounted&&KC.horse&&KC.horsePos){KC.horse.visible=true;KC.horse.position.set(KC.horsePos.x,bH(KC.horsePos.x,KC.horsePos.z),KC.horsePos.z);animateHero(KC.horse,dt,0);}
   const k=BT.kingPos;if(!r.ghost&&act(r)&&r.state!=="rout"){r.state="move";r.target=null;r.hold=false;r.kingDrive=true;r.tx=clamp(k.x-Math.sin(KC.face)*3,-118,118);r.tz=clamp(k.z-Math.cos(KC.face)*3,-83,83);}
   // 두목은 왕을 알아본다: 14m 안이면 부대를 돌려 왕에게 덤빈다 (왕의 칼은 두목에게 2.2배)
@@ -7500,7 +7504,7 @@ function engineTick(dt){const B=BT;if(!B.engines)return;
       const inside=B.sq.filter(q=>act(q)&&q.side!==e.side&&wIn(q.x,q.z)>WALL_T()+2);
       if(inside.length&&Math.random()<0.3){const q=inside[Math.floor(Math.random()*inside.length)];tx=q.x+rnd(-4,4);tz=q.z+rnd(-4,4);}
       else{const near=B.wall.segs.filter(g=>g.hp>0&&!g.back).sort((a,b)=>angD(a.ac,wAng(e.x,e.z))-angD(b.ac,wAng(e.x,e.z)));wallSeg=e.side===0?near.slice(0,3).sort((a,b)=>a.hp/a.max-b.hp/b.max)[0]:near[Math.floor(Math.random()*Math.min(3,near.length))];if(!wallSeg)continue;const p=wPt(wallSeg.ac+rnd(-0.05,0.05),WALL_T()*0.5);tx=p.x;tz=p.z;}
-      launchStone(e,tx,tz,wallSeg);if(!B.engSaid&&e.side===1){B.engSaid=true;bSay("망자의 투석기가 성벽을 친다 — 성문을 열고 기병을 내보내 부숴라 (성문 열기)");}}
+      launchStone(e,tx,tz,wallSeg);if(!B.engSaid&&e.side===1){B.engSaid=true;bSay("망자의 투석기가 성벽을 친다 — 성문을 열고 기병을 내보내 부숴라");}}
     else{// 성벽 밖, 가장 빽빽한 망자 무리
       const fs=B.sq.filter(f=>act(f)&&f.side!==e.side&&wIn(f.x,f.z)<-2&&Math.hypot(f.x-e.x,f.z-e.z)<140);if(!fs.length){e.cd=2;continue;}
       let best=null,bs=-1;for(const f of fs){let sum=0;for(const g of fs)if(dd(f,g)<14)sum+=g.alive*(g.t==="troll"?3:1);if(sum>bs){bs=sum;best=f;}}
@@ -7657,7 +7661,7 @@ function renderSide(){
           <button class="b sm" data-a="vlevyArmy" data-id="${v.id}" data-a2="${a.id}" ${st.pop>=300&&S.res.gold>=40&&S.res.food>=25?"":"disabled"} title="마을 사람 100명이 민병이 되어 합류한다 (금화 40·식량 25)">마을 징병 합류 (인구 ${fmtN(st.pop)})</button></div></div>`;}).join("");})()}
         ${a.moving?(()=>{const lv=a.rush||0;const why=lv>=3?"최대 단계":S.res.gold<200?"금화가 모자란다":S.res.food<200?"식량이 모자란다":"";return `<div class="tile"><div class="hd"><span class="nm">강행군 ${lv?`${lv}단계 · 속도 +${lv*25}%`:""}</span><span class="note" style="margin-left:auto">금화 200 · 식량 200</span></div><div class="ds">수레를 더 붙이고 쉬는 시간을 줄인다. 단계마다 이번 행군 속도 +25% (최대 3단계, +75%). 도착하면 풀리고, 단계마다 병사 피로 +6.</div><button class="b sm gold" data-a="rush" data-id="${a.id}" ${why?"disabled":""}>${why||`강행군 ${lv+1}단계`}</button></div>`;})():""}
         ${a.safeUntil>nowD()?`<p class="note">퇴각 중 — 한동안 적에게 붙잡히지 않는다</p>`:""}
-        <div class="acts"><button class="b" data-a="retarget" data-id="${a.id}">목표 변경</button><button class="b" data-a="campT" data-id="${a.id}" title="지도의 아무 곳이나 눌러 보낸다. 우클릭으로도 보낼 수 있다">이동</button>${S.armies.some(x=>x.side===0&&x!==a)?`<button class="b" data-a="joinT" data-id="${a.id}">다른 군대와 합류</button>`:""}${a.mission!=="return"?`<button class="b" data-a="recall" data-id="${a.id}">귀환</button>`:""}</div></div>`;}
+        <div class="acts"><button class="b" data-a="retarget" data-id="${a.id}">목표 변경</button><button class="b" data-a="campT" data-id="${a.id}" title="지도에서 갈 곳을 고른다">이동</button>${S.armies.some(x=>x.side===0&&x!==a)?`<button class="b" data-a="joinT" data-id="${a.id}">다른 군대와 합류</button>`:""}${a.mission!=="return"?`<button class="b" data-a="recall" data-id="${a.id}">귀환</button>`:""}</div></div>`;}
     else html=`${winHead("망자의 군세")}<div class="body"><h2>망자의 군세</h2><dl class="kv"><dt>행동</dt><dd>${esc(missionName(a))}</dd>${a.moving?`<dt>도착</dt><dd>약 ${eta}일</dd>`:""}</dl>${forceHtml("병력 (정찰 추정)",a.comps,true)}
       <div class="acts"><button class="b red" data-a="compose" data-t="army:${a.id}">요격 원정</button></div></div>`;
   }
@@ -7685,7 +7689,7 @@ function kingdomModal(){
     <div class="acts">${[500,1000].map(v=>`<button class="b sm" data-a="sellFood" data-v="${v}" ${S.res.food<v+300||S.grainSold===(S.day|0)?"disabled":""}>식량 ${v} → 금화 ${Math.round(v*0.3)}</button>`).join("")}</div>
     <div class="ds" style="margin-top:6px">곡식을 사들인다 — 파는 값의 두 배를 치른다. 오늘 ${S.grainBought===(S.day|0)?"이미 샀다":"한 번 살 수 있다"}.</div>
     <div class="acts">${[500,1000].map(v=>`<button class="b sm" data-a="buyFood" data-v="${v}" ${S.res.gold<Math.round(v*0.6)||S.grainBought===(S.day|0)?"disabled":""}>금화 ${Math.round(v*0.6)} → 식량 ${v}</button>`).join("")}</div></div>
-${visitList(["market","farm","homes"])}<p class="note">빚은 금화 3,000까지. 상단·교역·전리품으로 갚아라.</p>`;
+${visitList(["market","farm","homes"])}<p class="note">빚은 금화 3,000까지. 상단, 교역, 전리품으로 갚는다.</p>`;
   else if(t==="recruit")body=`<p class="note" style="margin:0">한 중대는 100명. 징병하면 백성 100명이 병사가 된다.</p>${visitList(["barracks","range","stable","chapel"])}<div class="grid2">${OURS.map(k=>{const u=U[k],why=canRecruit(k);
     return `<div class="tile ${u.need&&!S.bld[u.need]?"locked":""}"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(k)}일</span></div>
       <div class="ds">${u.d}</div>
@@ -7820,7 +7824,7 @@ function battlePromptModal(c){
 // 적 병종마다 무엇으로 맞서야 하는지
 const BEST_VS={ghoul:["archer","inf"],goblin:["archer","cav"],orc:["inf","priest"],troll:["spear"],wolf:["spear","inf"],necro:["cav","priest"]};
 function matchupHtml(foes){const ts=[...new Set(foes.filter(c=>c.men>0).map(c=>c.t))];if(!ts.length)return "";
-  return `<div class="tile"><div class="eyebrow" style="margin-bottom:4px">상성 — 맞는 병종을 붙여라</div>${ts.map(t=>`<div class="frow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span>${U[t].n} <span class="note" style="margin-left:auto">← ${BEST_VS[t].map(o=>U[o].n).join(" · ")} (최대 ${Math.max(...BEST_VS[t].map(o=>counter(o,t))).toFixed(1)}배)</span></div>`).join("")}
+  return `<div class="tile"><div class="eyebrow" style="margin-bottom:4px">상성</div>${ts.map(t=>`<div class="frow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span>${U[t].n} <span class="note" style="margin-left:auto">← ${BEST_VS[t].map(o=>U[o].n).join(" · ")} (최대 ${Math.max(...BEST_VS[t].map(o=>counter(o,t))).toFixed(1)}배)</span></div>`).join("")}
     <p class="note" style="margin:6px 0 0">측면 ×1.35 · 후방 ×2 · 기병 돌격 ×2.8 (창벽을 세운 창병에는 막힌다) · 언덕 위 궁병 ×1.25</p></div>`;}
 function battleResultModal(res,c,after,genNote){if(S&&S.prologue)UI.proWin=!!res.win;
   return `${winHead("전투 결과",false)}<div class="wbody"><div><div class="eyebrow">${esc(c.title)} · ${Math.floor(res.time/60)}분 ${Math.round(res.time%60)}초</div><h2>${res.win?"승리":res.retreat?"퇴각":"패배"}</h2></div>
@@ -7955,14 +7959,14 @@ document.addEventListener("click",e=>{
     case"ajoinTo":{const a=armyById(+b.dataset.id),t=armyById(+b.dataset.t);if(a&&t&&assignTarget(a,{kind:"army",id:t.id})){a.moving=true;logMsg(`${armyName(a)}이(가) ${armyName(t)}에 합류하러 간다.`);}UI.closeModal();UI.openModal(armiesModal());break;}
     case"arecall":{const ar=armyById(+b.dataset.id);if(ar){goHome(ar);UI.openModal(armiesModal());syncArmies();}break;}
     case"aview":{const ar=armyById(+b.dataset.id);if(ar){UI.closeModal();if(UI.mode!=="map")openMap();selectObj({kind:"army",id:ar.id});E.ctrl.set(ar.x,ar.z,140);}break;}
-    case"campT":startTargeting({mode:"camp",army:+b.dataset.id},"갈 곳을 지도에서 누른다 (우클릭으로도 보낼 수 있다)");break;
+    case"campT":startTargeting({mode:"camp",army:+b.dataset.id},"갈 곳을 지도에서 고른다");break;
     case"diplo":UI.openModal(diploModal(b.dataset.id));break;
     case"pact":{const ok=proposePact(realmById(b.dataset.id));toast(ok?"조약을 맺었다!":"거절당했다.");UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();break;}
     case"trade":if(startTrade(realmById(b.dataset.id))){UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();}break;
     case"envoy":if(sendEnvoy(realmById(b.dataset.id))){UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();}break;
     case"gift":if(realmGift(realmById(b.dataset.id),+b.dataset.v)){UI.openModal(diploModal(b.dataset.id));renderTop();saveGame();}break;
     case"askAid":if(realmAsk(realmById(b.dataset.id))){UI.openModal(diploModal(b.dataset.id));renderTop();UI.dirty=true;saveGame();}break;
-    case"settlers":{const n=settlers();if(n){toast(`${n}명이 정착했다.`);UI.openModal(kingdomModal());renderTop();saveGame();}else toast(S.civ>=popCap()?"주거지가 가득 찼다. 주거지를 올려라.":"금화가 부족하다.");break;}
+    case"settlers":{const n=settlers();if(n){toast(`${n}명이 정착했다.`);UI.openModal(kingdomModal());renderTop();saveGame();}else toast(S.civ>=popCap()?"주거지가 가득 찼다.":"금화가 부족하다.");break;}
     case"vfill":if(moveToVillage(b.dataset.id,200)){UI.openModal(villageModal(b.dataset.id));renderTop();saveGame();}else toast("왕궁 백성이 300명 이상 남아야 하고 식량 40이 든다.");break;
     case"vmove":if(moveVillagers(b.dataset.id,200)){UI.openModal(villageModal(b.dataset.id));renderTop();saveGame();}else toast("마을 인구가 너무 적거나 왕궁 주거지가 가득 찼다.");break;
     case"joinT":startTargeting({mode:"join",army:+b.dataset.id},"합류할 아군 군대를 지도에서 누른다");break;
@@ -8090,7 +8094,7 @@ document.addEventListener("click",e=>{
     case"mpArmyTo":mpSendArmy(+b.dataset.id,+b.dataset.k);break;
     case"practice":gateThen(()=>UI.openModal(practiceModal()));break;
     case"mouseMode":E.soft=b.dataset.v==="soft";try{localStorage.setItem("dd-mouse",E.soft?"soft":"lock");}catch(e){}E.wantLock=!E.soft&&(UI.mode==="capital"||UI.mode==="palace");if(E.soft&&document.pointerLockElement)document.exitPointerLock();UI.openModal(settingsModal());break;
-    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("sk-ant- 로 시작하는 API 키를 넣어라.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok&&!gateGo())toast(S&&S.title?"Claude와 연결됐다":"Claude와 연결됐다 — 망자의 군주가 이제 Claude로 움직인다");});break;}
+    case"apiKeySave":{const k=(($("#apiKeyIn")||{}).value||"").trim();if(!/^sk-ant-/.test(k)){toast("sk-ant-로 시작하는 API 키가 필요하다.");break;}try{localStorage.setItem("dd-apikey",k);}catch(e){}AI.sample=deskSample(k);AI.off=false;AI.checked=false;UI.closeModal();claudeGate().then(ok=>{if(ok&&!gateGo())toast(S&&S.title?"Claude와 연결됐다":"Claude와 연결됐다 — 망자의 군주가 이제 Claude로 움직인다");});break;}
     case"lang":setLang(LANG==="en"?"ko":"en");break;
     case"apiKeyDel":try{localStorage.removeItem("dd-apikey");}catch(e){}AI.sample=null;AI.checked=false;UI.closeModal();UI.aiStatus();toast(S&&S.title?"저장된 키를 지웠다.":"키를 지웠다 — 다시 넣기 전까지 망자는 기본 규칙으로 움직인다.");break;
     case"gateSkip":UI.gateSkip=true;UI.closeModal();if(!gateGo())toast("임시: 망자의 군주가 기본 규칙으로 움직인다.");break;
@@ -8239,24 +8243,24 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
   ["성벽을 올린다","20일째 대습격이 왕궁으로 온다. 성벽 단계마다 방어전 아군 피해 -12%, 궁병이 성벽 위에서 내려쏜다.","내정 → 건설 → 성벽 (하루 걸린다)",S.bld.walls>0||!!(S.bq&&S.bq.walls)],
   ["정예 중대를 키운다","★★ 중대를 7일 더 단련하면 정예가 된다 — 정예보병·정예창병·정예궁병·정예기마병. 비싸고 느리지만 전투를 뒤집는다.","중대를 두 번 단련(★★)한 뒤, 내정 → 주둔군 탭 → 정예화 (금화 700·식량 250)",allComps().some(c=>c.elite||c.eliteT>0)],
   ["요새를 친다","요새가 서 있는 한 망자는 끝없이 온다. 첩자로 배치를 보고, 상성에 맞춰 군대를 짜서 가장 가까운 요새 모르가쉬부터.","원정 → 요새 선택 → 장군·병력 고르기. 왕이 직접 가면 더 세다",S.armies.some(a=>a.side===0&&a.mission==="attack")||razedForts()>=1],
-  ["전장에서 장군 기술을 쓴다","장군마다 고유 기술이 있다 — 왕의 함성(사기), 에오린의 돌격, 하드릭의 방패벽… 전투의 흐름을 뒤집는 한 수.","전투 중 Q (또는 하단 기술 버튼). 재사용 대기 있음",!!T.genAb],
+  ["전장에서 장군 기술을 쓴다","장군마다 고유 기술이 있다 — 왕의 함성(사기), 에오린의 돌격, 하드릭의 방패벽… 전투의 흐름을 뒤집는 한 수.","전투 중에 쓴다 (Q)",!!T.genAb],
 ].map((it,i)=>{if((T.skip2||[]).includes(i))it[3]=true;return it;});}
   // [제목, 왜 하는가, 어떻게, 완료 조건]
   return [
   ["왕궁을 걸어 본다","왕은 직접 움직이는 몸이다. 첫 7일은 망자가 오지 않으니 성 안을 익혀 두자.",(COARSE?"성 안을 걸어 다니며 건물들을 둘러본다":"WASD 이동 · Shift 달리기 · Alt로 시점 모드(마우스로 화면 돌리기)·커서 모드를 바꾼다 · 건물 앞에서 E로 문을 연다"),(T.walk||0)>25],
   ["허수아비를 벤다","무예가 오르면 왕의 체력과 피해가 는다. 전장에서 왕이 오래 버틸수록 병사 사기도 산다.","남서쪽 훈련장 허수아비를 벤다(우클릭). 연속으로 맞히면 더 많이 오른다",(S.kingSkill||0)>0],
-  ["전쟁 탁자에서 지도를 편다","왕국 전체는 지도에서 다스린다. 마을·요새·이웃 왕국이 거기 있다.","대전 앞 탁자에서 E, 또는 M. 돌아올 때도 M",!!UI.mapSeen],
-  ["왕궁 대전에 들어가 신하를 만난다","대전 안에 왕국을 움직이는 신하들이 있다. 재상(건설·징병), 재무대신(세금), 첩보대장(첩자), 대사제(축복), 시종장(백성의 청원), 작전 탁자, 옷장, 그리고 장군들.","대전 큰 문으로 걸어 들어간다. 신하 앞에서 E. 시종장은 백성의 청원(알현)을 모아 둔다 — 시종장 앞에서 E나 왕좌에 앉아 그 청을 듣는다",!!(T.palace&&T.court)],
-  ["재무대신과 세금을 정한다","세금은 금화와 민심 사이의 저울이다. 초반엔 민심을 지키는 쪽이 백성이 빨리 는다.","대전 안 오른쪽 재무대신 벨라 앞에서 E → 세금 정책",!!(T.court&2)],
+  ["전쟁 탁자에서 지도를 편다","왕국 전체는 지도에서 다스린다. 마을·요새·이웃 왕국이 거기 있다.","대전 앞 전쟁 탁자, 또는 M",!!UI.mapSeen],
+  ["왕궁 대전에 들어가 신하를 만난다","대전 안에 왕국을 움직이는 신하들이 있다. 재상(건설·징병), 재무대신(세금), 첩보대장(첩자), 대사제(축복), 시종장(백성의 청원), 작전 탁자, 옷장, 그리고 장군들.","대전 큰 문으로 걸어 들어가 신하에게 말을 건다. 시종장은 백성의 청원(알현)을 모아 둔다. 시종장에게 가거나 왕좌에 앉으면 그 청을 듣는다",!!(T.palace&&T.court)],
+  ["재무대신과 세금을 정한다","세금은 금화와 민심 사이의 저울이다. 초반엔 민심을 지키는 쪽이 백성이 빨리 는다.","대전 안 오른쪽 재무대신 벨라 → 세금 정책",!!(T.court&2)],
   ["건물을 한 단계 올린다","건물 단계가 곧 징병 속도·세금·식량·인구다. 금화가 남으면 먼저 여기에 쓴다.","아래 '내정' → 건설. 농장(식량)·시장(금화)·주거지(백성)부터",bldSum>T.bld0||!!(S.bq&&Object.keys(S.bq).length)],
   ["병사를 징병한다","주둔군이 곧 왕궁의 방패다. 훈련엔 며칠이 걸리니 공격이 오기 전에 미리.","병영 문(E) 또는 내정 → 징병. 보병, 창병, 궁병을 고루 뽑는다",S.queue.length>0||S.garrison.length>8],
   ["사건에 답한다","세상은 가만있지 않는다. 상인·피난민·척후대·늑대… 사건이 오면 게임이 멈추고 선택지를 묻는다. 군대를 보내야 하는 사건은 '지도에서 본다'를 누르면 지도로 가서 군대를 고르게 된다. 급하지 않으면 '하루 뒤에 다시 듣는다'로 미룰 수 있다.","잠시 뒤 어부들이 찾아온다. 선택지 하나를 고르면 된다",!!T.evDone],
   ["중대를 단련한다","갓 뽑은 중대는 약하다. 단련으로 ★을 달면 공격·방어가 오르고, ★★이면 정예(보병·창병·궁병·기마병)로 키울 수 있다.","내정 → 징병 탭의 '부대 단련' 목록에서 중대 하나를 단련 (금화 70·식량 30·2일). 병영 문(E)에서도 된다. 정예화는 주둔군 탭",S.garrison.some(c=>(c.vet||0)>0||c.drill>0||c.elite||c.eliteT>0)],
-  ["마을에 투자한다","마을 인구가 세금과 식량, 그리고 마을 징병의 바탕이다. 광산·세관은 매일 금화를 더 준다.","금빛으로 깜빡이는 광산·강변 마을을 클릭 → 마을 관리 → 광산 확장/세관. 마을 징병이나 성벽을 쌓아도 된다",villagesOwned().some(v=>{const st=S.sites[v.id];return st.mine||st.toll||st.mineT||st.tollT||(st.vgar&&st.vgar.length)||(st.vq&&st.vq.length)||st.wallQ;})],
+  ["마을에 투자한다","마을 인구가 세금과 식량, 그리고 마을 징병의 바탕이다. 광산·세관은 매일 금화를 더 준다.","광산이나 강변 마을 → 마을 관리 → 광산 확장/세관. 마을 징병이나 성벽을 쌓아도 된다",villagesOwned().some(v=>{const st=S.sites[v.id];return st.mine||st.toll||st.mineT||st.tollT||(st.vgar&&st.vgar.length)||(st.vq&&st.vq.length)||st.wallQ;})],
   ["마을에 수비군을 보낸다","망자는 먼 마을부터 포위한다. 수비대가 있으면 며칠을 더 버티고, 원군이 갈 시간이 생긴다.","지도에서 마을 → 수비군 파견 (왕궁 주둔군에서 떼어 보낸다)",S.armies.some(a=>a.side===0&&a.mission==="guard")||SITES.some(s=>s.kind==="village"&&S.sites[s.id].vgar&&S.sites[s.id].vgar.length)],
-  ["요새에 첩자를 보낸다","적의 수와 병종을 알면 상성에 맞춰 군대를 짤 수 있다.","지도 북쪽의 요새 모르가쉬(처음부터 보인다)를 클릭 → 첩자. 안개 속 '?'는 클릭해서 첩자를 보내면 무엇인지 알아낸다",S.spy.ops.length>0||Object.keys(S.intel||{}).length>0],
-  ["이웃 왕국에 사절을 보낸다","관계 40이면 교역·조약, 70이면 원군을 빌릴 수 있다. 사절은 금화가 들지 않는다.","지도에서 이웃 수도 클릭 → 사절 파견. 5일마다 한 번",Object.values(S.realms||{}).some(r=>r.envD||r.pact||r.rel>=40)],
-  ["콜로세움에서 장군과 대련한다","대련은 무예와 장군 경험을 함께 올리고 금화도 준다.","서쪽 콜로세움 문에서 E → 장군을 고른다. 한 판을 끝내면(이기든 지든) 통과. 상대는 왕의 무예에 맞춰 힘을 조절한다",(S.duelDone||0)>0],
+  ["요새에 첩자를 보낸다","적의 수와 병종을 알면 상성에 맞춰 군대를 짤 수 있다.","지도 북쪽의 요새 모르가쉬(처음부터 보인다) → 첩자. 안개 속 '?'도 첩자를 보내면 무엇인지 알아낸다",S.spy.ops.length>0||Object.keys(S.intel||{}).length>0],
+  ["이웃 왕국에 사절을 보낸다","관계 40이면 교역·조약, 70이면 원군을 빌릴 수 있다. 사절은 금화가 들지 않는다.","지도에서 이웃 수도 → 사절 파견. 5일마다 한 번",Object.values(S.realms||{}).some(r=>r.envD||r.pact||r.rel>=40)],
+  ["콜로세움에서 장군과 대련한다","대련은 무예와 장군 경험을 함께 올리고 금화도 준다.","서쪽 콜로세움 → 장군을 고른다. 한 판을 끝내면(이기든 지든) 통과. 상대는 왕의 무예에 맞춰 힘을 조절한다",(S.duelDone||0)>0],
 ].map((it,i)=>{if((T.skip||[]).includes(i))it[3]=true;return it;});}
 function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(jb&&UI.mode!=="map")jb.hidden=true;}const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
   if(off||!(UI.mode==="capital"||UI.mode==="map"||UI.mode==="palace")){el.hidden=true;document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));return;}
@@ -8282,6 +8286,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.150","게임 안 문장 전체 점검: 누르라, 클릭하라 같은 지시와 재촉하는 말투를 설명문, 길잡이, 오류 안내까지 고쳤다 · 휴대폰에는 키보드와 마우스 이야기가 나오지 않는다. 도움말의 조작법 탭과 작전도 설명은 PC에만 보인다 · 성벽 위 부대에서 성벽 밖으로 밀려난 병사가 성벽 높이로 허공에 떠 있던 것 고침 · 휴대폰 전장에서 말 버튼이 화면 오른쪽 끝에 잘리던 것 고침 · 전투 결과 창 위에 알림 글이 겹쳐 표를 가리던 것 고침 · 낡은 문구 정리(둘째 기술, 임시 버튼 표시)"],
  ["0.9.149","안내 문구를 다른 게임처럼 짧게: 화면 아래 한 줄은 '목표'로, 어떤 버튼을 누르라거나 '(빛나는 버튼)' 같은 설명 없이 할 일만 적는다 · 대습격 막대의 '지금 징병하라' 같은 재촉을 없애고 전망만 보여 준다 · 설정 창 정리: 화면, 소리, 마우스, 언어, Claude, 게임, 저장 순서로 한 줄씩. 두 번씩 있던 음악 버튼과 전투 연습 버튼, 조작 설명 문단, 거의 쓰이지 않던 회전 감도를 뺐다 · 영어로 바꾸면 한국어로 시작한 판의 왕 이름도 영어로 바뀐다"],
  ["0.9.148","글씨체를 둘로 줄였다: 화면 글씨는 본고딕, 제목과 이야기 글은 본명조. 넓은 자간, 장식 서체(Cinzel), 고정폭 숫자를 없앴다 · 기술을 쓰면 그 부대가 잠깐 밝게 번쩍이고 발밑에 흙먼지가 인다. 이미 맞붙은 보병은 그 자리에서 적을 밀쳐 내고, 투창은 두 배로 날아가 땅에 꽂혀 남으며 맞은 적이 밀려난다. 함성과 측면 돌격에는 화면이 살짝 흔들린다 · 배치 화면에서 왕궁 지붕이 화면 아래 절반을 가리던 것 고침 · 휴대폰 첫 화면에서 메뉴가 부제와 겹치던 것 고침 · 첫 화면 메뉴 글씨가 밝은 배경에 묻히던 것 고침 · 도움말과 설정의 낡은 문구 정리"],
  ["0.9.147","AI가 만든 티 걷어내기: 금박 그라데이션 글씨, 빛나는 테두리, 마름모 장식, 금속 버튼을 없애고 어두운 판과 가는 테두리로 차분하게 · 병종 기술은 하나씩만(보병 밀어붙이기, 창병 투창, 궁병 불화살, 기마병 측면 돌격, 전군 함성). 같은 일을 하던 부대 능력(R)도 정리 · 불화살: 불붙은 화살이 높게 날아가 땅에 꽂히고, 꽂힌 자리마다 불꽃이 따로 타다 하나씩 꺼진다. 검은 연기와 불티가 오르고 불길 안 망자 몸에 불이 붙으며, 꺼진 뒤엔 그을음이 남는다 · 화살은 살대·촉·깃이 있는 화살로, 떨어진 화살은 몇 초 동안 땅에 꽂혀 있다 · 기술을 쓰면 발밑에 뜨던 색 고리를 없앴다 · 망자의 불단지는 화살이 아니라 단지로 날아간다 · 나무마다 크기·키·기울기·색이 다르다 · 집마다 회벽·지붕 색과 지붕 기울기, 굴뚝이 다르고 일부는 돌집 · 성벽에 기단, 띠돌, 버팀벽이 생기고 돌 색이 구간마다 조금씩 다르다 · 지도 위 행군: 병사마다 간격이 늘었다 줄고 좌우로 흔들리며 자기 발밑 땅을 딛는다 · 전장 정리: 왕 시점에선 중대 카드와 머리 위 이름표를 숨기고, 적 이름표는 병종 글자만, 왕 정보는 막대만, 병종 버튼·돌격 버튼 중복 제거, 휴대폰에선 중대 카드 숨김, 휴대폰 전장의 아군/망자 막대가 화면 가운데를 가리던 것 고침 · 왕궁 지도 이름표가 겹치던 것 고침 · 분수 물이 줄무늬로 보이던 것 고침 · 이모지 아이콘 제거"],
@@ -8450,13 +8455,13 @@ function glossaryModal(){const sk=kingSkill();const G=[
   ["빚","금고 탭에서 빌리면 하루 10% 이자가 붙는다. 2500을 넘기면 민심이 매일 깎인다"],
   ["왕의 기술",`무예가 오르면 열린다 — 1 회오리 베기(무예 10, 360도), 2 불굴의 외침(무예 25, 주변 아군 사기 +25·공격 +25%), 3 돌진 베기(무예 40, 일직선 꿰뚫기 ×2.5). 왕궁과 전장 왕 시점 모두에서 쓴다`],
   ["왕의 장비","왕궁 대장간에서 검(피해 +10%/단계)과 갑옷(체력 +12%·받는 피해 -5%/단계)을 벼린다. 단계마다 무예 8씩 더 필요하고 하루 걸린다. 최대 5단계"],
-  ["알현(청원)","대전의 시종장에게 백성·상인·귀족·수도사가 청을 올린다. 이삼일마다 하나. 시종장 앞에서 E(또는 왕좌에 앉아) 대기 중인 청원을 차례로 듣고 선택지를 고른다 — 금화·식량·백성·민심·병력이 오르내린다. 미뤄도 사라지지 않는다"],
+  ["알현(청원)","대전의 시종장에게 백성·상인·귀족·수도사가 청을 올린다. 이삼일마다 하나. 시종장에게 가거나 왕좌에 앉아 대기 중인 청원을 차례로 듣고 선택지를 고른다 — 금화·식량·백성·민심·병력이 오르내린다. 미뤄도 사라지지 않는다"],
   ["망자의 수","망자 한 명 한 명은 세지지 않는다. 대신 날이 갈수록 한 번에 쳐들어오는 수가 늘어난다 — 침공은 6일마다 한 중대씩, 대습격은 차례마다 20%씩 커진다. 요새를 무너뜨릴수록 대습격이 작아진다"],
   ["적장","공략전·방어전엔 망자 무리를 이끄는 적장(將)이 있다. 다가가면 출현을 알리고, 베면 망자 전군 사기 -22와 전리품. 적장은 주인공의 칼에 2.2배로 다친다"],
   ["작전도","전장 오른쪽 위 양피지 지도. Tab으로 크게 펼쳐 부대를 고르고(끌어서 상자 선택) 우클릭으로 이동·공격을 명한다. 고른 부대의 진군로가 먹 화살표로 그려진다. 위쪽 막대는 양군의 기세(병력×사기)"],
   ["적의 계략","망자는 전투마다 계략 하나를 쓴다 — 협공(좌우로 갈라 측면), 궁병 사냥(늑대·고블린이 우회해 궁병만), 쐐기(트롤·오크가 가장 약한 부대 하나로), 예비대(30%를 숨겼다 20초 뒤 옆구리로 투입), 거짓 후퇴(물러났다 사기 올려 되돌아옴), 성벽 깨기(트롤·오크가 가장 약한 성벽으로, 성벽 피해 +35%). 시작 7초 뒤 척후가 외치고 조언 창에 남는다"],
   ["망자의 군주","설정에서 Claude가 지휘하게 하면(시험판) 침공 목표·양동·대습격 구성·전투 계략을 Claude가 정한다. 지난 8번의 전투와 왕의 병력 구성을 보고 약한 곳을 노린다. 전투가 끝나면 사로잡은 전령이 속셈을 털어놓는다"],
-  ["왕의 검술","익히면 강해진다 — ① 박자: 앞 베기가 끝나갈 무렵 누르면 더 빠르고 30% 세게 이어지고(금빛 불티), 미리 연타하면 연격이 끊긴다 ② 완벽한 막기: 맞기 직전 0.25초 안에 B를 누르면 기력 소모 없이 튕겨 내고 다음 일격 ×2, 결투 상대는 비틀거린다 ③ 완벽한 회피: 구르기 무적 중에 공격을 흘리면 찰나가 멈추고 기력 +30, 다음 일격 ×2"],
+  ["왕의 검술","익히면 강해진다 — ① 박자: 앞 베기가 끝나갈 무렵 누르면 더 빠르고 30% 세게 이어지고(금빛 불티), 미리 연타하면 연격이 끊긴다 ② 완벽한 막기: 맞기 직전 0.25초 안에 막으면 기력 소모 없이 튕겨 내고 다음 일격 ×2, 결투 상대는 비틀거린다 ③ 완벽한 회피: 구르기 무적 중에 공격을 흘리면 찰나가 멈추고 기력 +30, 다음 일격 ×2"],
   ["타격감","왕의 칼이 박히면 피가 튀고 화면이 흔들리며 찰나 멈춘다. 막으면 불꽃이 튄다. 여러 명을 한꺼번에 벨수록 세다"],
   ["피로","원정·전투를 거듭하면 쌓인다. 피로 100이면 전투력 60%. 왕궁 주둔이나 야영(빈 땅에 군대 보내기)으로 푼다"],
   ["지역 할인","목장·깊은 숲·고원 마을을 가지고 있으면 기마병·궁병·창병 징병 금화가 싸진다"],
@@ -8486,9 +8491,9 @@ async function claudeGate(){
     if(r!=="timeout"){AI.fail(r);if(!AI.off&&r&&r.code==="rate_limited"){AI.checked=true;return true;}UI.gateWhy=r&&r.code?`(${r.code})`:"";}
     else UI.gateWhy="timeout";}
   UI.openModal(`${winHead("Claude 연결이 필요하다")}<div class="wbody"><p class="story" style="font-size:16px">Deep Dark의 망자의 군주는 <b>당신의 Claude</b>가 직접 지휘한다. 왕국의 약점을 읽고, 지난 전투를 기억하고, 매번 다른 침공을 짠다.</p>
-    <p class="note">${!AI.sample?"지금 화면에서는 Claude를 부를 수 없다. claude.ai에 로그인한 상태로 이 게임 페이지를 열어야 한다.":UI.gateWhy==="timeout"?"Claude의 대답을 25초 동안 기다렸지만 오지 않았다. 화면 위·아래에 허락 요청이 떠 있지 않은지 확인하고, 없으면 페이지를 새로고침한 뒤 다시 연결을 눌러라.":AI.off?"Claude 사용이 허락되지 않았다. 다시 연결을 누르고 허락 창에서 허락하라.":"Claude를 부르지 못했다 "+(UI.gateWhy||"")+" — 잠시 뒤 다시 연결을 눌러라."} 결정할 때마다 당신의 Claude 사용량이 조금 든다.</p>
+    <p class="note">${!AI.sample?"지금 화면에서는 Claude를 부를 수 없다. claude.ai에 로그인한 상태로 이 게임 페이지를 열어야 한다.":UI.gateWhy==="timeout"?"Claude의 대답을 25초 동안 기다렸지만 오지 않았다. 화면 위·아래에 허락 요청이 떠 있지 않은지 확인하고, 없으면 페이지를 새로고침한 뒤 다시 연결해 본다.":AI.off?"Claude 사용이 허락되지 않았다. 다시 연결한 뒤 허락 창에서 허락해야 한다.":"Claude를 부르지 못했다 "+(UI.gateWhy||"")+" — 잠시 뒤 다시 연결해 본다."} 결정할 때마다 당신의 Claude 사용량이 조금 든다.</p>
     ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?`<div class="tile" style="margin-top:10px"><div class="hd"><span class="nm">앱: 내 Claude API 키로 연결</span></div><div class="ds">앱은 claude.ai 화면 밖이라, 내 Anthropic API 키로 Claude를 부른다. 키는 이 컴퓨터에만 저장되고 망자의 군주가 결정할 때마다 API 사용료가 조금 든다(console.anthropic.com에서 발급).</div><input id="apiKeyIn" type="password" placeholder="sk-ant-…" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">키 저장하고 연결</button>${deskKey()?`<button class="b ghost" data-a="apiKeyDel">저장된 키 지우기</button>`:""}</div></div>`:""}
-    <div class="acts" style="margin-top:12px"><button class="b gold" data-a="gateRetry">다시 연결</button><button class="b ghost" data-a="gateSkip" title="출시 전까지만 있는 임시 버튼">Claude 없이 시작 (출시 전 임시)</button></div></div>`,{blocking:false});
+    <div class="acts" style="margin-top:12px"><button class="b gold" data-a="gateRetry">다시 연결</button><button class="b ghost" data-a="gateSkip">Claude 없이 시작</button></div></div>`,{blocking:false});
   return false;}
 /* 연결 창(API 키 등)을 거쳐 연결되면, 처음 누른 것(싱글플레이·START·이어 하기)으로 바로 들어간다 — 다시 누를 필요 없다 */
 function gateThen(fn){if(ITCH&&!UI.gateSkip&&!AI.ok()){UI.gateSkip=true;setTimeout(()=>toast("체험판: 망자의 군주는 기본 규칙으로 움직인다. 설정에서 Claude API 키를 넣으면 Claude가 직접 지휘한다."),2500);}if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){UI.gateNext=null;fn();return;}UI.gateNext=fn;claudeGate().then(ok=>{if(ok)gateGo();});}
@@ -8560,8 +8565,8 @@ function loginTitleHtml(){if(!loginOn())return "";const u=LOGIN.user;
     <button class="b gold lgbig" data-a="login"><b class="g">G</b> Google로 로그인</button>
     <button class="b ghost" data-a="guest">게스트로 시작 <small>— 이 기기에만 저장</small></button></div>`;}
 function lgMsg(t,bad){const m=$("#lgMsg");if(m){m.textContent=t;m.style.color=bad?"#ff8a7a":"#9fd08a";}else toast(t);}
-const LG_ERR={"auth/invalid-credential":"아이디나 비밀번호가 틀렸다","auth/wrong-password":"비밀번호가 틀렸다","auth/user-not-found":"없는 아이디다 — 회원가입을 눌러라","auth/invalid-login-credentials":"아이디나 비밀번호가 틀렸다",
-  "auth/email-already-in-use":"이미 있는 아이디다 — 다른 아이디를 쓰거나 로그인을 눌러라","auth/weak-password":"비밀번호는 6자 이상","auth/too-many-requests":"너무 여러 번 틀렸다 — 잠시 뒤에 다시","auth/network-request-failed":"인터넷 연결을 확인하라","auth/operation-not-allowed":"(관리자) Firebase에서 이메일/비밀번호 로그인을 켜야 한다","auth/invalid-email":"아이디는 영문·숫자·_ 3~16자"};
+const LG_ERR={"auth/invalid-credential":"아이디나 비밀번호가 틀렸다","auth/wrong-password":"비밀번호가 틀렸다","auth/user-not-found":"없는 아이디다","auth/invalid-login-credentials":"아이디나 비밀번호가 틀렸다",
+  "auth/email-already-in-use":"이미 있는 아이디다","auth/weak-password":"비밀번호는 6자 이상","auth/too-many-requests":"너무 여러 번 틀렸다 — 잠시 뒤에 다시","auth/network-request-failed":"인터넷 연결이 필요하다","auth/operation-not-allowed":"(관리자) Firebase에서 이메일/비밀번호 로그인을 켜야 한다","auth/invalid-email":"아이디는 영문·숫자·_ 3~16자"};
 function loginPw(signup){const id=(($("#lgId")||{}).value||"").trim(),pw=($("#lgPw")||{}).value||"";
   if(!/^[A-Za-z0-9_]{3,16}$/.test(id)){lgMsg("아이디는 영문·숫자·_ 3~16자",true);return;}if(pw.length<6){lgMsg("비밀번호는 6자 이상",true);return;}
   lgMsg(signup?"가입하는 중…":"로그인하는 중…");
@@ -8569,13 +8574,13 @@ function loginPw(signup){const id=(($("#lgId")||{}).value||"").trim(),pw=($("#lg
     try{if(signup){const r=await A.createUserWithEmailAndPassword(idMail(id),pw);try{await r.user.updateProfile({displayName:id});}catch(e){}}else await A.signInWithEmailAndPassword(idMail(id),pw);
       try{localStorage.removeItem("dd-guest");}catch(e){}toast(signup?`${id} — 가입했다. 저장이 클라우드에 올라간다`:`${id} — 로그인했다`);}
     catch(e){const c=(e&&e.code)||String(e);lgMsg(LG_ERR[c]||("실패: "+c),true);}
-  }).catch(()=>lgMsg("로그인 서버에 닿지 않는다 — 인터넷 연결을 확인하라",true));}
+  }).catch(()=>lgMsg("로그인 서버에 닿지 않는다 — 인터넷 연결이 필요하다",true));}
 function renderLoginChip(){}
 function loginGo(){if(!FB_CFG)return;fbLoad().then(()=>{
   if(window.deskApi||ITCH){loginCode();return;}   // PC 앱 안에서는 구글 팝업이 막힌다 → 코드 방식
   const p=new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(p).then(()=>{toast("로그인했다 — 저장이 클라우드에 올라간다");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{const c=(e&&e.code)||String(e);console.warn("login",e);if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;LOGIN.lastErr=c;toast("구글 로그인 실패 ("+c+") — 브라우저로 로그인한다");loginCode();});
-}).catch(e=>{LOGIN.lastErr="load";toast("로그인 서버(구글)에 닿지 않는다 — 인터넷 연결을 확인하라");});}
+}).catch(e=>{LOGIN.lastErr="load";toast("로그인 서버(구글)에 닿지 않는다 — 인터넷 연결이 필요하다");});}
 function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";const r=crypto.getRandomValues(new Uint8Array(8));for(const x of r)c+=A[x%A.length];LOGIN.code=c;
   const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?c=${c}`;
   /* 코드는 보이지 않는다: 브라우저(크롬)에서 구글 로그인 페이지를 바로 열고, 끝나면 이 화면이 저절로 넘어간다 */
@@ -8586,7 +8591,7 @@ function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ2345678
   LOGIN.poll=setInterval(async()=>{if(Date.now()-t0>10*60e3||LOGIN.code!==c){clearInterval(LOGIN.poll);return;}
     try{const ref=firebase.firestore().doc(`linkSessions/${c}`);const d=await ref.get();if(!d.exists)return;const tok=d.data().idToken;if(!tok)return;clearInterval(LOGIN.poll);
       await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(tok));try{await ref.delete();}catch(e){}
-      try{localStorage.removeItem("dd-guest");}catch(e){}LOGIN.code=null;UI.closeModal();toast("로그인했다 — 저장이 클라우드에 올라간다");}catch(e){const w=$("#lgWait");if(w)w.textContent="로그인을 받아 오지 못했다 — 다시 시도하라 ("+(e&&e.code||"오류")+")";}
+      try{localStorage.removeItem("dd-guest");}catch(e){}LOGIN.code=null;UI.closeModal();toast("로그인했다 — 저장이 클라우드에 올라간다");}catch(e){const w=$("#lgWait");if(w)w.textContent="로그인을 받아 오지 못했다 ("+(e&&e.code||"오류")+")";}
   },2000);});}
 /* 시작할 때: 로그인 기능이 켜져 있으면 조용히 불러와 지난 로그인을 되살린다 */
 if(loginOn())setTimeout(()=>{fbLoad().catch(()=>{});},300);
@@ -8647,7 +8652,7 @@ async function mpEnter(){const db=await mpDB();MP.on=true;
 function mpLobbyRender(){if(!MP.on||MP.started)return;const ps=Object.entries(MP.players).sort((a,b)=>a[1].t-b[1].t),host=MP.meta&&MP.meta.host;
   const n=ps.length,area=n<=1?1:3*(n-1);
   const html=`${winHead("대기실 · 방 "+MP.code)}<div class="wbody">
-    <div class="tile" style="text-align:center"><div class="note">방 코드 — 친구에게 알려 줘라</div><div style="font:800 30px/1.2 monospace;letter-spacing:.25em;color:#ffe2a0;user-select:text;-webkit-user-select:text">${MP.code}</div></div>
+    <div class="tile" style="text-align:center"><div class="note">방 코드</div><div style="font:800 30px/1.2 monospace;letter-spacing:.25em;color:#ffe2a0;user-select:text;-webkit-user-select:text">${MP.code}</div></div>
     <div class="mplist">${[0,1,2,3].map(i=>{const p=ps[i];return p?`<div class="mpp" style="border-color:${MP_COLS[i]}"><b style="color:${MP_COLS[i]}">●</b> ${esc(p[1].name)}${p[0]===host?" <small>방장</small>":""}${p[0]===MP.uid?" <small>(나)</small>":""}<small style="color:${p[1].ai?"#9fd08a":"#e8a79a"}">${p[1].ai?"Claude ✓":"Claude ✗"}</small><span>${p[0]===host?"":p[1].ready?"준비됨":"준비 중"}</span></div>`:`<div class="mpp empty">빈 자리</div>`;}).join("")}</div>
     <p class="note">망자의 군주는 모두의 Claude가 돌아가며 지휘한다 — 결정 하나씩 차례로 각자의 API로.<br>${n}명 → 세계 넓이 혼자일 때의 약 ${area}배 · 망자 요새 ${n*9}곳 · 망자의 왕좌 하나 (${n}명 몫)</p>
     <div class="mpchat" id="mpChat">${MP.chat.map(c=>`<div><b>${esc(c.n)}</b> ${esc(c.m)}</div>`).join("")||'<div class="note">대화가 여기에 뜬다</div>'}</div>
@@ -8809,7 +8814,7 @@ async function mpSend(slot,msg){const uid=mpUidOf(slot);if(!uid){toast("그 왕�
 async function mpAid(slot,kind,amt){if(!S)return;if(S.res[kind]<amt){toast(kind==="gold"?"금화가 모자라다":"식량이 모자라다");return;}
   if(await mpSend(slot,{t:"aid",kind,amt})){S.res[kind]-=amt;logMsg(`${mpOwnerName(slot)}에게 ${kind==="gold"?"금화":"식량"} ${fmtN(amt)}을(를) 보냈다.`,"gold");renderTop();UI.dirty=true;}}
 function mpSendArmy(armyId,slot){const a=armyById(armyId),c=siteById(`p${slot}_capital`);if(!a||a.side!==0||!c)return;
-  if(armyGens(a).includes("king")){toast("왕은 남의 왕국에 머물 수 없다 — 왕 없이 군대만 보내라");return;}
+  if(armyGens(a).includes("king")){toast("왕은 남의 왕국에 머물 수 없다. 군대만 보낼 수 있다");return;}
   a.mission="aid";a.target=c.id;a.path=null;setDest(a,c.x,c.z+10);logMsg(`${armyName(a)}이(가) ${mpOwnerName(slot)}의 왕국으로 원군을 간다.`);UI.closeModal();UI.dirty=true;}
 /* 원군이 동료 왕도에 닿았다: 병력은 그 왕국 주둔군이 된다 */
 function mpAidArrive(a){const s=siteById(a.target);if(!s||s.kind!=="pcapital")return false;const slot=s.owner;
@@ -8997,7 +9002,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.149 · 바뀐 점</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.150 · 바뀐 점</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
@@ -9051,7 +9056,7 @@ UI.inspect=s=>{const u=U[s.t];toast(`${u.n} ${s.alive}명 — ${u.d}`);};
 
 /* 길잡이를 할지 묻는다: 시작하고 조금 둘러본 뒤 — 창이 열려 있으면 닫힐 때까지 기다린다 */
 function tutAsk(ms){setTimeout(function chk(){if(!S||!S.guideAsk||S.title||S.practice)return;if(UI.modalOpen||BT||!(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")){setTimeout(chk,3000);return;}
-  S.paused=true;UI.openModal(`${winHead("길잡이",false)}<div class="wbody"><p class="story" style="font-size:16px">첫 주 동안 할 일을 하나씩 안내하는 <b>길잡이</b>와 함께 하겠는가?</p><p class="note">왕궁 둘러보기 → 지도·신하 → 건설·징병 → 마을·첩자·외교 → 대련까지, 할 일을 하나씩 알려 주고 눌러야 할 곳을 빛나게 한다. 처음 하는 왕이라면 권한다. 나중에 설정에서 켜고 끌 수 있다.</p></div><div class="wfoot"><button class="b ghost" data-a="tutNo">혼자 해 보겠다</button><button class="b gold" data-a="tutYes">길잡이와 함께</button></div>`,{narrow:true,blocking:true});},ms);}
+  S.paused=true;UI.openModal(`${winHead("길잡이",false)}<div class="wbody"><p class="story" style="font-size:16px">첫 주 동안 할 일을 하나씩 안내하는 <b>길잡이</b>와 함께 하겠는가?</p><p class="note">왕궁 둘러보기 → 지도·신하 → 건설·징병 → 마을·첩자·외교 → 대련까지, 할 일을 하나씩 알려 준다. 나중에 설정에서 켜고 끌 수 있다.</p></div><div class="wfoot"><button class="b ghost" data-a="tutNo">혼자 해 보겠다</button><button class="b gold" data-a="tutYes">길잡이와 함께</button></div>`,{narrow:true,blocking:true});},ms);}
 
 /* ════════ 저장 관리: 자동 백업 · 파일로 내보내기/가져오기 ════════ */
 // 닷새마다 그 슬롯의 판을 백업해 둔다 (최근 3개) — 잘못 고른 선택·무너진 판을 되돌릴 수 있게
@@ -9060,7 +9065,7 @@ function backupList(n){try{return JSON.parse(localStorage.getItem(bakKey(n))||"[
 function backupTick(){return;if(!S||S.practice||S.title)return;const d=S.day|0;if(d<2||d%5!==0)return;const L=backupList(S.slot);if(L.some(b=>b.day===d))return;
   try{L.unshift({day:d,at:Date.now(),snap:snapshotState()});localStorage.setItem(bakKey(S.slot),JSON.stringify(L.slice(0,3)));}catch(e){try{localStorage.setItem(bakKey(S.slot),JSON.stringify(L.slice(0,1)));}catch(e2){}}}
 function loadSnap(raw,label){let s=null;try{s=typeof raw==="string"?JSON.parse(raw):raw;}catch(e){}
-  if(!s||s.v!==2||!s.sites||!s.res){toast("저장 파일을 읽지 못했다 — Deep Dark 저장 파일이 맞는지 확인하라.");return false;}
+  if(!s||s.v!==2||!s.sites||!s.res){toast("저장 파일을 읽지 못했다 — Deep Dark 저장 파일이 아닌 것 같다.");return false;}
   if(s.over){toast("이미 끝난 판이다.");return false;}
   s.slot=(S&&S.slot)||s.slot||1;s.skin=s.skin||"ashen";s.kingWound=s.kingWound||0;
   if(typeof BT!=="undefined"&&BT){toast("전투 중에는 불러올 수 없다.");return false;}
