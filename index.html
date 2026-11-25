@@ -653,7 +653,9 @@ function fixJosa(str){
 }
 
 /* 출시 앱(PC판·홈 화면 앱·게임 주소로 직접 연 경우): claude.ai 안이 아니다 — 첫 화면을 싱글/멀티로, Claude는 내 API 키로 */
-const APP_MODE=!!window.deskApi||(typeof matchMedia==="function"&&matchMedia("(display-mode: standalone)").matches)||/github\.io$|deepdark/i.test(location.hostname)||new URLSearchParams(location.search).has("app");
+/* itch.io에 올린 체험판: 키 없이 바로 (망자 군주는 기본 규칙), 로그인은 깃허브 주소의 구글 로그인 창으로 */
+const ITCH=/(^|\.)itch\.(zone|io)$|hwcdn\.net$/i.test(location.hostname);
+const APP_MODE=ITCH||!!window.deskApi||(typeof matchMedia==="function"&&matchMedia("(display-mode: standalone)").matches)||/github\.io$|deepdark/i.test(location.hostname)||new URLSearchParams(location.search).has("app");
 
 /* 설명은 짧게: 앞의 n문장만 (한국어 문장 끝 "다." "요." 기준) */
 function firstSent(t,n=1){t=String(t||"");const re=/[다요]\.(\s|$)/g;let m,c=0,end=-1;while((m=re.exec(t))){c++;if(c===n){end=m.index+2;break;}}return end>0?t.slice(0,end):t;}
@@ -8064,6 +8066,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.144","itch.io 체험판: itch.io에서 열면 Claude API 키 없이 바로 시작한다(망자의 군주는 기본 규칙 — 설정에서 키를 넣으면 Claude가 지휘) · 구글 로그인은 깃허브 주소의 로그인 창에서 하고 저절로 돌아온다 · 첫 화면 멀티플레이에 남아 있던 '준비 중' 글씨를 지웠다"],
  ["0.9.143","휴대폰: 어떤 버튼을 누르라는 말 자체를 안 한다 — 버튼은 보이니까. 길잡이·알림에서 조이스틱·버튼 설명을 빼고 할 일(어디로 가서 무엇을)만 남긴다"],
  ["0.9.142","휴대폰: 안내 글에서 키보드·마우스 말(우클릭·E·M·Tab 등)은 버튼 이름으로 바꾸지 않고 그냥 뺀다 — 버튼은 눈에 보이니까 · 전투 오른쪽 키(찌르기·막기·구르기·점프·말)가 서로 살짝 겹치던 것 → 크기를 조금 줄이고 자리를 몇 칸 벌려 안 겹친다"],
  ["0.9.141","점검: 조사 '(으)로'가 그대로 보이던 곳(길잡이·힌트·알림·옆 창) 고침 · 휴대폰에서 안내 글의 키보드·마우스 말(우클릭·E·M·Tab·클릭)을 터치 말로 바꿔 보여 준다 · 휴대폰 전투에 키보드 단축키 줄이 뜨던 것 없앰 · 배치 화면의 조작 설명은 부관의 조언 아래로 옮겨 겹치지 않게 · 힌트가 떠 있으면 단축키 줄은 숨는다 · 긴 알림 띠가 잘리던 것 → 줄바꿈하고 글 길이만큼 더 오래 보인다 · 설정·안내의 'Esc' 설명을 Alt로"],
@@ -8246,7 +8249,7 @@ function doCharge(){if(!BT)return;if(bSelected().length)bCharge("선택한 부�
 
 // Deep Dark는 플레이어 자신의 Claude가 망자의 군주를 지휘해야 시작된다 — 연결이 없으면 시작하지 않는다
 async function claudeGate(){
-  if(window.__TEST||UI.gateSkip)return true;
+  if(window.__TEST||UI.gateSkip||(ITCH&&!AI.ok()))return true;
   if(AI.ok()&&AI.checked)return true;
   if(!AI.sample&&AI.ready){toast("Claude를 찾는 중…");try{await AI.ready;}catch(e){}}
   if(AI.sample&&!AI.off){
@@ -8267,7 +8270,7 @@ async function claudeGate(){
     <div class="acts" style="margin-top:12px"><button class="b gold" data-a="gateRetry">다시 연결</button><button class="b ghost" data-a="gateSkip" title="출시 전까지만 있는 임시 버튼">Claude 없이 시작 (출시 전 임시)</button></div></div>`,{blocking:false});
   return false;}
 /* 연결 창(API 키 등)을 거쳐 연결되면, 처음 누른 것(싱글플레이·START·이어 하기)으로 바로 들어간다 — 다시 누를 필요 없다 */
-function gateThen(fn){if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){UI.gateNext=null;fn();return;}UI.gateNext=fn;claudeGate().then(ok=>{if(ok)gateGo();});}
+function gateThen(fn){if(ITCH&&!UI.gateSkip&&!AI.ok()){UI.gateSkip=true;setTimeout(()=>toast("체험판: 망자의 군주는 기본 규칙으로 움직인다. 설정에서 Claude API 키를 넣으면 Claude가 직접 지휘한다."),2500);}if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){UI.gateNext=null;fn();return;}UI.gateNext=fn;claudeGate().then(ok=>{if(ok)gateGo();});}
 function gateGo(){const f=UI.gateNext;UI.gateNext=null;if(f&&(!S||S.title)){f();return true;}return false;}
 
 // 길잡이가 지금 단계에서 눌러야 할 곳을 금빛으로 깜빡이게 한다 (버튼·지도의 거점·왕궁의 문)
@@ -8348,7 +8351,7 @@ function loginPw(signup){const id=(($("#lgId")||{}).value||"").trim(),pw=($("#lg
   }).catch(()=>lgMsg("로그인 서버에 닿지 않는다 — 인터넷 연결을 확인하라",true));}
 function renderLoginChip(){}
 function loginGo(){if(!FB_CFG)return;fbLoad().then(()=>{
-  if(window.deskApi){loginCode();return;}   // PC 앱 안에서는 구글 팝업이 막힌다 → 코드 방식
+  if(window.deskApi||ITCH){loginCode();return;}   // PC 앱 안에서는 구글 팝업이 막힌다 → 코드 방식
   const p=new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(p).then(()=>{toast("로그인했다 — 저장이 클라우드에 올라간다");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{const c=(e&&e.code)||String(e);console.warn("login",e);if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;LOGIN.lastErr=c;toast("구글 로그인 실패 ("+c+") — 브라우저로 로그인한다");loginCode();});
 }).catch(e=>{LOGIN.lastErr="load";toast("로그인 서버(구글)에 닿지 않는다 — 인터넷 연결을 확인하라");});}
@@ -8764,13 +8767,13 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
   $("#whud").hidden=true;$("#bhud").hidden=true;$("#prompt").hidden=true;
   const has=!fresh&&LOADED;
   $("#title").innerHTML=`<div class="tlogo"><span class="tline"></span><h1 class="ttl">Deep Dark</h1><span class="tline"></span><p class="tsub">망자의 군단</p></div>
-    ${APP_MODE?`${typeof loginTitleHtml==="function"?loginTitleHtml():""}<div class="tmenu" ${typeof loginOn==="function"&&loginOn()&&!LOGIN.user&&(()=>{try{return localStorage.getItem("dd-guest")!=="1";}catch(e){return false;}})()?"hidden":""}><button class="tb main" data-a="${has?"continue":"start"}">싱글플레이<small>${has?`${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕 — 이어 하기`:"새 왕국을 세운다"}</small></button><button class="tb" data-a="multi">멀티플레이<small>준비 중 — 2~4명 협동</small></button></div>`:""}
+    ${APP_MODE?`${typeof loginTitleHtml==="function"?loginTitleHtml():""}<div class="tmenu" ${typeof loginOn==="function"&&loginOn()&&!LOGIN.user&&(()=>{try{return localStorage.getItem("dd-guest")!=="1";}catch(e){return false;}})()?"hidden":""}><button class="tb main" data-a="${has?"continue":"start"}">싱글플레이<small>${has?`${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕 — 이어 하기`:"새 왕국을 세운다"}</small></button><button class="tb" data-a="multi">멀티플레이<small>2~4명 협동 — 구글 로그인</small></button></div>`:""}
     <div class="tmenu" ${APP_MODE?"hidden":""}>
       ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕</small></button>`:`<button class="tb main" data-a="start">START<small>선왕의 마지막 밤부터</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">프롤로그 없이 시작<small>바로 1일째 왕궁에서</small></button>`}
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.143 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.144 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
@@ -8865,6 +8868,6 @@ function deskSample(key){
 if((window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)){const k=deskKey();if(k){AI.sample=deskSample(k);}}
 
 /* 홈 화면 앱(PWA): 서비스 워커가 게임 파일을 담아 두고, 새 버전이 올라오면 다음 실행 때 바뀐다 */
-if("serviceWorker" in navigator&&APP_MODE&&!window.deskApi&&location.protocol==="https:"){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});}
+if("serviceWorker" in navigator&&APP_MODE&&!ITCH&&!window.deskApi&&location.protocol==="https:"){addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{});});}
 </script>
 </body></html>
