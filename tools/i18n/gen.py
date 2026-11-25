@@ -50,6 +50,7 @@ for m in miss[:20]: print('MISS',repr(m[:80]))
 out=open(OUT,encoding='utf-8').read()
 i=out.find('const CHANGES=[');j=out.find('];',i)
 EN_CH='''const CHANGES=[
+ ["0.9.151","Houses: varied timber framing, joist ends under the upper floor, bargeboards and ridge, door frames and doorstep stones, window sills; some have a lean-to shed or a dormer, and a barrel, woodpile or bench by the door · Walls: corbels under the parapet, arrow slits and patched masonry · Towers: flared base, string course, corbels and arrow slits at different heights · Spells and prayers: thin wisps rising from the ground, low dark mist and scattering motes instead of big glowing blobs; the necromancer's bolt is a small dark orb trailing smoke · 'How to build strong companies' in the Garrison tab is now four short steps · English: key names removed on phones, sign-in page in English, singular and plural handled (1 company)"],
  ["0.9.150","Full pass over every line of text: press-this and click-that instructions and nagging phrasing are gone from descriptions, the guide and error messages · Phones no longer mention keyboard or mouse; the Controls tab and war-map notes in Help appear on PC only · Soldiers pushed off a wall no longer hang in the air at wall height · On phones the mount button is no longer cut off at the right edge · Notifications no longer cover the battle result table · Outdated wording removed"],
  ["0.9.149","Guidance text shortened to read like other games: the line at the bottom is now an Objective that states the task without telling you which button to press · The raid bar shows only the outlook, without urging you to recruit · Settings reorganised into Display, Sound, Mouse, Language, Claude, Game and Saves, one row each; duplicate buttons and rarely used options removed · Switching to English also switches the king's name in a game started in Korean"],
  ["0.9.148","Two typefaces only: a sans for the interface and a serif for titles and story text. Wide letter-spacing, the decorative display face and monospaced numbers are gone · Units flash briefly and kick up dust when they use a skill. Infantry already in contact shove the enemy back on the spot, javelins fly in twice the number, stick in the ground and knock back what they hit, and War Cry and Flank Charge shake the screen slightly · The palace roof no longer covers the lower half of the deployment view · On phones the title menu no longer overlaps the subtitle · Title menu text no longer washes out against the bright sky · Outdated wording in Help and Settings cleaned up"],
@@ -64,3 +65,13 @@ EN_CH='''const CHANGES=[
 out=out[:i]+EN_CH+out[j:]
 out=out.replace('`${S.day} days in · Act I — Legions of the Dead`','`Day ${S.day} · Act I — Legions of the Dead`')
 open(OUT,'w',encoding='utf-8').write(out)
+
+# English singular/plural: "${n} companies" -> company when n is 1
+out=open(OUT,encoding='utf-8').read()
+SING={'companies':'company','days':'day','wins':'win','spies':'spy','soldiers':'soldier','villages':'village','armies':'army','kills':'kill','seconds':'second'}
+def _pl(m):
+    x,sp,w=m.group(1),m.group(2),m.group(3)
+    if '=' in x.replace('==','').replace('!=','').replace('>=','').replace('<=','') or '++' in x: return m.group(0)
+    return '${%s}%s${(%s)==1?"%s":"%s"}'%(x,sp,x,SING[w],w)
+out,npl=re.subn(r'\$\{([^{}`]{1,60})\}( )(companies|days|wins|spies|soldiers|villages|armies|kills|seconds)\b',_pl,out)
+open(OUT,'w',encoding='utf-8').write(out);print('plurals',npl)

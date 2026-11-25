@@ -640,6 +640,7 @@ body.bTp .lbl.sq{display:none}
 .tfoot{letter-spacing:0}
 .glyph,.seal,.lbl.sq i{font-family:var(--f-body);font-weight:700}
 kbd{font-family:var(--f-body)!important}
+.steps{margin:0;padding-left:20px;font-size:12.5px;color:var(--bone-dim);line-height:1.7}.steps b{color:var(--bone);font-weight:500}
 /* 설정: 이름은 왼쪽, 조작은 오른쪽 한 줄씩 */
 .setbody{gap:0;padding-top:4px}
 .set{padding:14px 0;border-bottom:1px solid var(--line)}.set:last-of-type{border-bottom:0}
@@ -780,6 +781,13 @@ const ICON={
 function touchTxt(str){
   /* 휴대폰: 어떤 키·버튼을 누르라는 말은 뺀다 — 버튼은 눈에 보이고, 사람은 알아서 누른다 */
   if(typeof COARSE==="undefined"||!COARSE)return str;
+  if(typeof LANG!=="undefined"&&LANG==="en")return String(str).replace(/<kbd>[^<]*<\/kbd>\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
+    .replace(/\s?\((E|Q|F|G|H|V|P|R|M|T|B|J|Tab|right-click)\)/gi,"").replace(/[^.·>]*\bTab\b[^.·<]*[.·]?/g,"").replace(/[^.·>]*right-click (also )?works( too)?\.?/gi,"")
+    .replace(/\s?Shift to gallop\.?/g,"").replace(/WASD (to )?/g,"").replace(/(and |, )?press(ing)? [A-Z0-9]\b( again)?( to)?/gi,"").replace(/(with )?(keys )?5[–-]9 ?/g,"")
+    .replace(/\b(Shift|Ctrl|Space|Alt) (to |or )?(?=[a-z])/g,"").replace(/(^|[\s·(,])[EMQRGHJFVPBT] (to |or )?(?=[a-z])/g,"$1").replace(/(^|[\s·(,])[EM](,| or)(?= )/g,"$1")
+    .replace(/wheel or two fingers/g,"two fingers").replace(/wheel to zoom/g,"pinch to zoom").replace(/wheel zoom/g,"pinch zoom")
+    .replace(/Right-click/g,"Long-press").replace(/right-click/g,"long-press").replace(/Double-click/g,"Double-tap").replace(/double-click/g,"double-tap").replace(/Left-click/g,"Tap").replace(/Click/g,"Tap").replace(/click/g,"tap")
+    .replace(/ +([·,.→—:])/g," $1").replace(/^(\s*)[·—]\s*/,"$1").replace(/ {2,}/g," ")).join("");
   return String(str).replace(/<kbd>우클릭<\/kbd>하면/g,"길게 누르면").replace(/<kbd>[^<]*<\/kbd>(으로|로)?\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
     .replace(/WASD ?(로 )?(이동)?/g,"").replace(/[^.>]*우클릭으로도 보낼 수 있다\.?/g,"").replace(/우클릭하면/g,"길게 누르면").replace(/\s?Shift로 질주\.?/g,"").replace(/Tab(으로|:)?\s?/g,"").replace(/(^|[\s·(,])[A-Z]로 (?=[가-힣])/g,"$1").replace(/(가서|다가가) E(?=[^A-Za-z]|$)/g,"$1").replace(/더블\s?클릭(해서|하면)?\s?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/우클릭\s?(끌기:?\s?회전|으로|로)?\s?/g,"").replace(/\s?\((우클릭|Tab|Ctrl|Shift|Space|[A-Z])\)/g,"")
     .replace(/Tab을 누르면 /g,"").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1").replace(/(^|[\s·(])E (?=[가-힣])/g,"$1")
@@ -1803,34 +1811,62 @@ const SB=(w,h,d,col,mat="stone",p=[0,0,0],r=[0,0,0],k=3)=>P(SG.box(w,h,d),col,ma
 function crenels(len,y,z0,thick,col=B3.stone,axis="x"){const p=[];const n=Math.floor(len/1.6),r=bldRng();for(let i=0;i<n;i++){const t=-len/2+0.8+i*1.6;if(i%2)continue;const hh=1.0+r()*0.22,ww=0.95+r()*0.12,cc=jit(col,r,0.1);
   p.push(axis==="x"?SB(ww,hh,thick,cc,"stone",[t,y+hh/2,z0]):SB(thick,hh,ww,cc,"stone",[z0,y+hh/2,t]));}return p;}
 
-/* 집: 돌 기단 + 회벽 + 목재 골조 + 기와 지붕 */
+/* 집: 돌 기단 + 회벽 + 목재 골조 + 기와 지붕. 집마다 골조 짜임, 처마, 덧집, 지붕창, 문 앞 살림이 다르다 */
 function houseParts(o={}){
   const r=bldRng();const PL=["#c9bda2","#b8aa8e","#a89a80","#d0c4a9","#bdb39c","#9f9480"];
   const w=o.w||6,d=o.d||8,h=o.h||5,two=o.two??true,roof=jit(o.roof||B3.roofR,r,0.12),pl=jit(o.plaster&&o.plaster!==B3.plaster?o.plaster:PL[Math.floor(r()*PL.length)],r,0.05);const p=[];
-  const stoneLow=r()<0.3;
+  const stoneLow=r()<0.3,beam=jit(B3.beam,r,0.12),W=(bw,bh,bd,pos,rot)=>P(SG.box(bw,bh,bd),beam,"wood",pos,rot||[0,0,0]);
   p.push(SB(w+0.3,1.0,d+0.3,jit(B3.stoneD,r,0.08),"stone",[0,0.5,0]));
   p.push(stoneLow?SB(w,h,d,jit(B3.stone,r,0.1),"stone",[0,1+h/2,0]):P(SG.box(w,h,d),pl,"plaster",[0,1+h/2,0],[0,0,0],[1,1,1],[w/2,h/2]));
-  // 골조
-  for(const sx of [-1,1])for(const sz of [-1,1])p.push(P(SG.box(0.3,h,0.3),B3.beam,"wood",[sx*w/2,1+h/2,sz*d/2]));
-  p.push(P(SG.box(w+0.2,0.28,0.32),B3.beam,"wood",[0,1+h*0.5,d/2]),P(SG.box(w+0.2,0.28,0.32),B3.beam,"wood",[0,1+h*0.5,-d/2]));
-  p.push(P(SG.box(0.25,h*0.5,0.3),B3.beam,"wood",[w*0.2,1+h*0.75,d/2],[0,0,0.6]),P(SG.box(0.25,h*0.5,0.3),B3.beam,"wood",[-w*0.2,1+h*0.75,d/2],[0,0,-0.6]));
+  // 골조: 모서리 기둥, 가로 들보, 그리고 집마다 다른 샛기둥과 가새
+  for(const sx of [-1,1])for(const sz of [-1,1])p.push(W(0.3,h,0.3,[sx*w/2,1+h/2,sz*d/2]));
+  for(const sz of [-1,1]){p.push(W(w+0.2,0.28,0.32,[0,1+h*0.5,sz*d/2]),W(w+0.2,0.24,0.3,[0,1+h-0.12,sz*d/2]));}
+  for(const sx of [-1,1])p.push(W(0.3,0.26,d+0.2,[sx*w/2,1+h*0.5,0]),W(0.28,0.24,d+0.2,[sx*w/2,1+h-0.12,0]));
+  if(!stoneLow){const style=Math.floor(r()*3);
+    if(style===0){p.push(W(0.25,h*0.5,0.3,[w*0.2,1+h*0.75,d/2],[0,0,0.6]),W(0.25,h*0.5,0.3,[-w*0.2,1+h*0.75,d/2],[0,0,-0.6]));}
+    else if(style===1){for(const sx of [-0.5,0.5])p.push(W(0.2,h*0.48,0.28,[sx*w*0.45,1+h*0.75,d/2]));}
+    else{p.push(W(0.2,h*0.62,0.28,[w*0.33,1+h*0.74,d/2],[0,0,0.75]),W(0.2,h*0.62,0.28,[w*0.33,1+h*0.74,d/2],[0,0,-0.75]));}
+    const ns=2+Math.floor(r()*2);for(let i=1;i<=ns;i++)for(const sx of [-1,1])p.push(W(0.28,h,0.2,[sx*w/2,1+h/2,-d/2+i*d/(ns+1)]));}
   if(two){p.push(P(SG.box(w+0.6,h*0.5,d+0.6),pl,"plaster",[0,1+h+h*0.25,0],[0,0,0],[1,1,1],[w/2,h/4]));
-    for(const sx of [-1,1])p.push(P(SG.box(0.3,h*0.5,0.3),B3.beam,"wood",[sx*(w/2+0.3),1+h*1.25,d/2+0.3]));}
-  const top=1+h*(two?1.5:1);
-  p.push(P(prismGeo(w+1.4+r()*0.6,w*(0.45+r()*0.22),d+1.2+r()*0.5),roof,"roof",[0,top,0],[0,0,0],[1,1,1],0.35));
-  if(r()<0.75)p.push(SB(0.9+r()*0.3,2.2+r()*1.2,0.9+r()*0.3,jit(B3.stoneD,r,0.1),"stone",[w*(r()<0.5?0.25:-0.25),top+1.6,d*(r()-0.5)*0.6]));
-  // 문과 창
-  p.push(P(SG.box(1.3,2.2,0.12),"#3b2a1c","wood",[0,2.1,d/2+0.06]),P(SG.sph(0.06,6,4),"#c9a24a","gold",[0.4,2.0,d/2+0.14]));
-  for(const sx of [-1,1]){p.push(P(SG.box(1.0,1.1,0.1),o.lit?"#ffb85a":"#2a2420",o.lit?"glow":"wood",[sx*w*0.3,1+h*0.62,d/2+0.05]));
-    if(two)p.push(P(SG.box(0.9,0.9,0.1),o.lit2?"#ffb85a":"#2a2420",o.lit2?"glow":"wood",[sx*w*0.28,1+h*1.25,d/2+0.35]));
-    p.push(P(SG.box(0.5,1.1,0.08),"#5d4630","wood",[sx*w*0.3+sx*0.75,1+h*0.62,d/2+0.06]));}
+    for(const sx of [-1,1])for(const sz of [-1,1])p.push(W(0.3,h*0.5,0.3,[sx*(w/2+0.3),1+h*1.25,sz*(d/2+0.3)]));
+    // 위층을 받치는 들보 끝이 벽 밖으로 줄지어 나와 있다
+    const nj=Math.max(3,Math.round(w/1.3));for(let i=0;i<nj;i++)p.push(W(0.2,0.22,0.5,[-w/2+0.3+i*(w-0.6)/(nj-1),1+h-0.05,d/2+0.2]));
+    p.push(W(w+0.8,0.2,0.3,[0,1+h*1.5-0.1,d/2+0.3]),W(w+0.8,0.2,0.3,[0,1+h*1.5-0.1,-d/2-0.3]));}
+  const top=1+h*(two?1.5:1),rw=w+1.4+r()*0.6,rh=w*(0.45+r()*0.22),rd=d+1.2+r()*0.5;
+  p.push(P(prismGeo(rw,rh,rd),roof,"roof",[0,top,0],[0,0,0],[1,1,1],0.35));
+  // 박공널(지붕 끝을 따라 댄 널)과 용마루
+  {const L=Math.hypot(rw/2,rh)+0.15,a=Math.atan2(rh,rw/2);for(const sz of [-1,1])for(const sx of [-1,1])p.push(W(L,0.2,0.14,[sx*rw/4,top+rh/2,sz*(rd/2+0.02)],[0,0,sx>0?-a:a]));
+    p.push(P(SG.box(0.26,0.2,rd+0.2),jit(roof,r,0.12),"roof",[0,top+rh+0.02,0],[0,0,0],[1,1,1],0.3));}
+  if(r()<0.75){const cx=w*(r()<0.5?0.25:-0.25),cz=d*(r()-0.5)*0.6,ch=2.2+r()*1.2,cw=0.9+r()*0.3,cs=jit(B3.stoneD,r,0.1);p.push(SB(cw,ch,cw,cs,"stone",[cx,top+1.6,cz]),SB(cw+0.25,0.22,cw+0.25,cs,"stone",[cx,top+1.6+ch/2,cz]));}
+  // 지붕창
+  if(two&&r()<0.3){const sx=r()<0.5?-1:1,dz=(r()-0.5)*d*0.4;p.push(P(SG.box(1.1,1.0,1.0),pl,"plaster",[sx*rw*0.24,top+rh*0.42,dz]),P(prismGeo(1.5,0.6,1.2),roof,"roof",[sx*rw*0.24,top+rh*0.42+0.5,dz],[0,Math.PI/2,0],[1,1,1],0.35),P(SG.box(0.08,0.6,0.6),"#2a2420","wood",[sx*(rw*0.24+0.56),top+rh*0.42,dz]));}
+  // 문과 창: 문틀, 문지방 돌, 창틀과 덧문
+  p.push(P(SG.box(1.3,2.2,0.12),"#3b2a1c","wood",[0,2.1,d/2+0.06]),P(SG.sph(0.06,6,4),"#8a7a52","metal",[0.4,2.0,d/2+0.14]),W(1.7,0.22,0.24,[0,3.3,d/2+0.08]),W(0.2,2.3,0.22,[-0.75,2.1,d/2+0.08]),W(0.2,2.3,0.22,[0.75,2.1,d/2+0.08]),SB(1.9,0.22,0.7,jit(B3.stoneD,r,0.08),"stone",[0,0.95,d/2+0.4]));
+  for(const sx of [-1,1]){p.push(P(SG.box(1.0,1.1,0.1),o.lit?"#ffb85a":"#2a2420",o.lit?"glow":"wood",[sx*w*0.3,1+h*0.62,d/2+0.05]),W(1.2,0.14,0.2,[sx*w*0.3,1+h*0.62-0.62,d/2+0.08]),W(0.08,1.1,0.14,[sx*w*0.3,1+h*0.62,d/2+0.09]));
+    if(two)p.push(P(SG.box(0.9,0.9,0.1),o.lit2?"#ffb85a":"#2a2420",o.lit2?"glow":"wood",[sx*w*0.28,1+h*1.25,d/2+0.35]),W(1.1,0.12,0.18,[sx*w*0.28,1+h*1.25-0.5,d/2+0.38]));
+    p.push(P(SG.box(0.5,1.1,0.08),jit("#5d4630",r,0.15),"wood",[sx*w*0.3+sx*0.75,1+h*0.62,d/2+0.06]));}
+  // 옆에 붙은 덧집(헛간)
+  if(r()<0.35){const sx=r()<0.5?-1:1,lw=2.2+r()*0.8,ld=d*(0.45+r()*0.25),lh=2.6,lz=(r()-0.5)*(d-ld);
+    p.push(P(SG.box(lw,lh,ld),jit("#6b5338",r,0.12),"wood",[sx*(w/2+lw/2),1+lh/2-0.5,lz],[0,0,0],[1,1,1],[lw/1.5,lh/1.5]),P(SG.box(lw+0.7,0.16,ld+0.5),roof,"roof",[sx*(w/2+lw/2+0.1),lh+0.75,lz],[0,0,sx*-0.3],[1,1,1],0.35));}
+  // 문 앞 살림: 통, 장작더미, 긴 의자 가운데 하나쯤
+  {const k=r(),bx=(r()<0.5?-1:1)*(w*0.5-0.6),bz=d/2+0.7;
+    if(k<0.3){p.push(P(SG.cyl(0.42,0.38,0.95,10),jit("#6a5136",r,0.1),"wood",[bx,1.0,bz]),P(SG.cyl(0.44,0.44,0.07,10),"#3a3632","metal",[bx,1.2,bz]),P(SG.cyl(0.42,0.42,0.07,10),"#3a3632","metal",[bx,0.75,bz]));}
+    else if(k<0.55){for(let i=0;i<3;i++)for(let j=0;j<3-i;j++)p.push(P(SG.cyl(0.16,0.16,1.1,6),jit("#7a6044",r,0.15),"wood",[bx+(j-(2-i)/2)*0.34,0.72+i*0.29,bz],[Math.PI/2,0,0]));}
+    else if(k<0.75){p.push(W(1.5,0.1,0.4,[bx,1.05,bz]),W(0.1,0.5,0.36,[bx-0.6,0.8,bz]),W(0.1,0.5,0.36,[bx+0.6,0.8,bz]));}}
   return p;
 }
 function towerParts(r=5,h=16,roof=B3.roofS,cone=true){
-  const p=[P(SG.cyl(r,r*1.08,h,20),B3.stone,"stone",[0,h/2,0],[0,0,0],[1,1,1],[r*2,h/3]),P(SG.cyl(r*1.12,r*1.12,0.6,20),B3.stoneD,"stone",[0,h,0],[0,0,0],[1,1,1],[r*2,0.3])];
-  const n=10;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;p.push(SB(1.2,1.4,0.9,B3.stone,"stone",[Math.cos(a)*r,h+0.9,Math.sin(a)*r],[0,-a+Math.PI/2,0]));}
-  if(cone)p.push(P(SG.cone(r*1.2,r*1.9,20),roof,"roof",[0,h+r*0.95+0.3,0],[0,0,0],[1,1,1],[r*2,r]),P(SG.cyl(0.08,0.08,3,6),B3.wood,"wood",[0,h+r*1.9+1.5,0]),P(SG.box(0.06,1.1,1.8),C.kblue,"cloth",[0,h+r*1.9+2.4,0.9]));
-  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+0.4;p.push(P(SG.box(0.5,1.4,0.2),"#1e1a16","dark",[Math.cos(a)*(r+0.05),h*0.6,Math.sin(a)*(r+0.05)],[0,-a+Math.PI/2,0]));}
+  const rg=bldRng(),st=jit(B3.stone,rg,0.07),sd=jit(B3.stoneD,rg,0.07);
+  const p=[P(SG.cyl(r,r*1.08,h,20),st,"stone",[0,h/2,0],[0,0,0],[1,1,1],[r*2,h/3]),P(SG.cyl(r*1.12,r*1.12,0.6,20),sd,"stone",[0,h,0],[0,0,0],[1,1,1],[r*2,0.3])];
+  // 넓은 밑동, 중간 띠돌, 흉벽을 받치는 까치발
+  p.push(P(SG.cyl(r*1.1,r*1.22,Math.min(3,h*0.2),20),jit("#6f6a5f",rg,0.08),"stone",[0,Math.min(1.5,h*0.1),0],[0,0,0],[1,1,1],[r*2,0.6]));
+  if(h>10)p.push(P(SG.cyl(r*1.05,r*1.05,0.35,20),sd,"stone",[0,h*0.55,0],[0,0,0],[1,1,1],[r*2,0.2]));
+  {const nc=Math.max(10,Math.round(r*3.2));for(let i=0;i<nc;i++){const a=i/nc*Math.PI*2;p.push(SB(0.45,0.7,0.5,sd,"stone",[Math.cos(a)*(r*1.06),h-0.55,Math.sin(a)*(r*1.06)],[0,-a+Math.PI/2,0]));}}
+  const n=10;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,hh=1.3+rg()*0.25;p.push(SB(1.2,hh,0.9,jit(B3.stone,rg,0.1),"stone",[Math.cos(a)*r,h+0.2+hh/2,Math.sin(a)*r],[0,-a+Math.PI/2,0]));}
+  if(cone)p.push(P(SG.cone(r*1.2,r*1.9,20),jit(roof,rg,0.1),"roof",[0,h+r*0.95+0.3,0],[0,0,0],[1,1,1],[r*2,r]),P(SG.cyl(r*1.24,r*1.24,0.18,20),B3.beam,"wood",[0,h+0.42,0]),P(SG.cyl(0.08,0.08,3,6),B3.wood,"wood",[0,h+r*1.9+1.5,0]),P(SG.box(0.06,1.1,1.8),C.kblue,"cloth",[0,h+r*1.9+2.4,0.9]));
+  // 화살 구멍: 높이를 달리해 두 줄
+  const ns=h>18?7:4;for(let i=0;i<ns;i++){const a=i/ns*Math.PI*2+0.4+rg()*0.3,y=h*(i%2?0.38:0.68);p.push(P(SG.box(0.32,1.5,0.2),"#14110e","dark",[Math.cos(a)*(r+0.03),y,Math.sin(a)*(r+0.03)],[0,-a+Math.PI/2,0]),SB(0.7,0.16,0.3,sd,"stone",[Math.cos(a)*(r+0.06),y-0.85,Math.sin(a)*(r+0.06)],[0,-a+Math.PI/2,0]));}
+  return p;
   return p;
 }
 function wallSeg(len,h=11,t=4){const r=bldRng(),st=jit(B3.stone,r,0.07),sd=jit(B3.stoneD,r,0.07);
@@ -1840,6 +1876,13 @@ function wallSeg(len,h=11,t=4){const r=bldRng(),st=jit(B3.stone,r,0.07),sd=jit(B
   if(h>7)p.push(SB(len,0.35,t+0.25,sd,"stone",[0,h*0.62,0]));
   // 버팀벽: 일정하지 않은 간격으로
   if(len>9&&h>6){let x=-len/2+3+r()*3;while(x<len/2-3){for(const sz of [-1,1])p.push(SB(1.3,h*(0.55+r()*0.2),1.0,jit(B3.stoneD,r,0.06),"stone",[x,h*0.3,sz*(t/2+0.45)]));x+=7+r()*5;}}
+  for(const sz of [-1,1]){
+    // 흉벽을 받치는 까치발 줄
+    const nc=Math.floor(len/1.1);for(let i=0;i<nc;i++)p.push(SB(0.4,0.55,0.45,sd,"stone",[-len/2+0.55+i*(len-1.1)/Math.max(1,nc-1),h-0.5,sz*(t/2+0.2)]));
+    // 덧댄 돌: 색이 다른 돌판이 군데군데 박혀 있다 (오래 고쳐 쓴 성벽)
+    const np=Math.round(len/4);for(let i=0;i<np;i++){const pw=1.2+r()*2.2,ph=0.8+r()*1.6;p.push(SB(pw,ph,0.08,jit(r()<0.5?B3.stoneD:B3.stone2,r,0.1),"stone",[(r()-0.5)*(len-pw),1.5+r()*(h-3.5),sz*(t/2+0.03)]));}
+    // 화살 구멍
+    if(h>8){let x=-len/2+2.5+r()*2;while(x<len/2-2.5){p.push(P(SG.box(0.28,1.3,0.12),"#14110e","dark",[x,h*0.72,sz*(t/2+0.02)]));x+=5+r()*3;}}}
   p.push(...crenels(len,h+0.25,t/2-0.3,0.7),...crenels(len,h+0.25,-t/2+0.3,0.7));return p;}
 function keepParts(){
   const p=[];const W=24,D=22,H=24;
@@ -2416,9 +2459,21 @@ function fxTex(k){if(FXT[k])return FXT[k];const c=document.createElement("canvas
     g.fillStyle=gr;g.beginPath();g.moveTo(30,6);g.bezierCurveTo(40,34,58,62,54,96);g.bezierCurveTo(51,120,13,120,10,96);g.bezierCurveTo(7,70,24,46,22,28);g.bezierCurveTo(26,34,28,20,30,6);g.fill();}
   else if(k==="smoke"){c.width=c.height=64;g=c.getContext("2d");g.filter="blur(4px)";for(let i=0;i<7;i++){const x=20+Math.random()*24,y=20+Math.random()*24,r=10+Math.random()*10;const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,"rgba(255,255,255,0.5)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);}}
   else if(k==="ember"){c.width=c.height=16;g=c.getContext("2d");const gr=g.createRadialGradient(8,8,0,8,8,8);gr.addColorStop(0,"rgba(255,230,170,1)");gr.addColorStop(0.4,"rgba(255,140,40,0.8)");gr.addColorStop(1,"rgba(255,80,0,0)");g.fillStyle=gr;g.fillRect(0,0,16,16);}
+  else if(k==="wisp"){c.width=32;c.height=96;g=c.getContext("2d");g.filter="blur(3px)";const gr=g.createLinearGradient(0,96,0,0);gr.addColorStop(0,"rgba(255,255,255,0)");gr.addColorStop(0.35,"rgba(255,255,255,0.75)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.beginPath();g.moveTo(16,92);g.bezierCurveTo(26,70,8,46,18,22);g.bezierCurveTo(20,14,16,8,16,4);g.bezierCurveTo(12,20,22,44,10,66);g.bezierCurveTo(8,78,12,86,16,92);g.fill();}
+  else if(k==="mote"){c.width=c.height=16;g=c.getContext("2d");const gr=g.createRadialGradient(8,8,0,8,8,8);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(0.35,"rgba(255,255,255,0.6)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,16,16);}
   else if(k==="glow"){c.width=c.height=64;g=c.getContext("2d");const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,140,50,0.55)");gr.addColorStop(0.5,"rgba(200,70,20,0.2)");gr.addColorStop(1,"rgba(120,30,0,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);}
   else if(k==="scorch"){c.width=c.height=128;g=c.getContext("2d");g.filter="blur(5px)";for(let i=0;i<26;i++){const a=Math.random()*6.283,r=Math.random()*24,x=64+Math.cos(a)*r,y=64+Math.sin(a)*r,rr=10+Math.random()*12;const gr=g.createRadialGradient(x,y,0,x,y,rr);gr.addColorStop(0,"rgba(18,12,8,0.55)");gr.addColorStop(1,"rgba(18,12,8,0)");g.fillStyle=gr;g.fillRect(0,0,128,128);}}
   FXT[k]=new THREE.CanvasTexture(c);return FXT[k];}
+/* 주술과 기도: 큰 빛 덩어리 대신, 땅에서 피어오르는 가는 기운과 낮게 깔리는 검은 안개 */
+const MAGIC={raise:1,shock:1,heal:1,purify:1};
+function magicFx(B,k,x,z){if(B.headless)return;const t=B.t,y=bH(x,z);
+  if(k==="raise"){for(let i=0;i<16;i++){const a=Math.random()*6.283,r=Math.sqrt(Math.random())*7,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;partAdd(B,{k:"wisp",c:"#9fc48a",x:px,y:bH(px,pz)+0.3,z:pz,vx:rnd(-0.2,0.2),vy:1.6+Math.random()*1.8,vz:rnd(-0.2,0.2),t0:t+Math.random()*0.5,dur:1.3+Math.random()*0.6,s0:1.4,s1:2.2,o:0.5,w:1});}
+    for(let i=0;i<5;i++)partAdd(B,{k:"smoke",c:"#1a2016",x:x+rnd(-5,5),y:y+0.5,z:z+rnd(-5,5),vx:rnd(-0.4,0.4),vy:0.25,vz:rnd(-0.4,0.4),t0:t,dur:2.4,s0:3,s1:7,o:0.45});}
+  else if(k==="shock"){for(let i=0;i<22;i++){const a=i/22*6.283+rnd(-0.1,0.1),v=7+Math.random()*5;partAdd(B,{k:"mote",c:"#a99ac8",x:x,y:y+0.6,z:z,vx:Math.cos(a)*v,vy:rnd(0,1.2),vz:Math.sin(a)*v,t0:t,dur:0.8+Math.random()*0.4,s0:0.5,s1:0.15,o:0.8});}
+    for(let i=0;i<8;i++){const a=Math.random()*6.283;partAdd(B,{k:"smoke",c:"#221c2a",x:x+Math.cos(a)*2,y:y+0.6,z:z+Math.sin(a)*2,vx:Math.cos(a)*2.5,vy:0.5,vz:Math.sin(a)*2.5,t0:t,dur:1.8,s0:2,s1:6,o:0.5});}
+    for(let i=0;i<6;i++)partAdd(B,{k:"wisp",c:"#8f7fb4",x:x+rnd(-1.5,1.5),y:y+0.4,z:z+rnd(-1.5,1.5),vx:0,vy:3+Math.random()*2,vz:0,t0:t+i*0.05,dur:1.1,s0:1.6,s1:2.6,o:0.55,w:1});}
+  else if(k==="heal"){for(let i=0;i<9;i++)partAdd(B,{k:"mote",c:"#f0e2b4",x:x+rnd(-3,3),y:y+0.5+Math.random(),z:z+rnd(-3,3),vx:0,vy:1.2+Math.random(),vz:0,t0:t+Math.random()*0.3,dur:1.1,s0:0.32,s1:0.1,o:0.85,w:1});}
+  else if(k==="purify"){for(let i=0;i<16;i++){const a=i/16*6.283,v=5+Math.random()*4;partAdd(B,{k:"mote",c:"#f3ead0",x:x,y:y+0.5,z:z,vx:Math.cos(a)*v,vy:0.8+Math.random(),vz:Math.sin(a)*v,t0:t,dur:1.0,s0:0.4,s1:0.12,o:0.8});}}}
 function partAdd(B,o){if(!B||B.headless)return;const P=B.parts||(B.parts=[]);P.push(o);if(P.length>360)P.splice(0,P.length-360);}
 // 땅에 떨어진 화살은 몇 초 동안 꽂혀 있다 (불화살은 잠깐 더 탄다)
 function stuckAdd(B,p){if(B.headless)return;const L=Math.hypot(p.x1-p.x0,p.z1-p.z0)||1,arc=p.k==="fire"?Math.min(30,L*0.42+8):p.k==="jav"?Math.min(9,L*0.25):Math.min(24,L*0.3),fire=p.k==="fire";
@@ -2430,7 +2485,7 @@ function potBreak(B,p){if(B.headless)return;const y=bH(p.x1,p.z1);for(let i=0;i<
 function fireRender(B,dt,now){const t=B.t;BR.fxp=BR.fxp||[];let pi=0;
   const spr=(k)=>{let sp=BR.fxp[pi];if(!sp){sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false,toneMapped:false}));sp.renderOrder=6;BR.scene.add(sp);BR.fxp.push(sp);}
     if(sp.userData.k!==k){sp.userData.k=k;sp.material.map=fxTex(k);sp.material.blending=k==="smoke"?THREE.NormalBlending:THREE.AdditiveBlending;sp.material.needsUpdate=true;if(k==="flame")sp.center.set(0.5,0.16);else sp.center.set(0.5,0.5);}
-    sp.material.color.set(k==="smoke"?"#3a342e":"#ffffff");sp.visible=true;pi++;return sp;};
+    sp.material.color.set(k==="smoke"?"#3a342e":"#ffffff");sp.visible=true;if(k==="wisp")sp.center.set(0.5,0.05);else if(k!=="flame")sp.center.set(0.5,0.5);pi++;return sp;};
   BR.fxd=BR.fxd||[];let di=0;
   const dec=(k)=>{let m=BR.fxd[di];if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}));m.rotation.x=-Math.PI/2;m.renderOrder=4;BR.scene.add(m);BR.fxd.push(m);}
     if(m.userData.k!==k){m.userData.k=k;m.material.map=fxTex(k);m.material.blending=k==="glow"?THREE.AdditiveBlending:THREE.NormalBlending;m.material.needsUpdate=true;}m.visible=true;di++;return m;};
@@ -2456,7 +2511,7 @@ function fireRender(B,dt,now){const t=B.t;BR.fxp=BR.fxp||[];let pi=0;
   const tips=B.fireTips||[];for(let i=0;i<tips.length;i+=3){const fl=0.8+0.2*Math.sin(now*20+i);const sp=spr("flame");sp.position.set(tips[i],tips[i+1]-0.15,tips[i+2]);sp.scale.set(0.42*fl,0.8*fl,1);sp.material.opacity=0.95;}B.fireTips=[];
   B.parts=(B.parts||[]).filter(p=>t<p.t0+p.dur);
   for(const p of B.parts){const age=t-p.t0;if(age<0)continue;const a=age/p.dur,sp=spr(p.k);
-    sp.position.set(p.x+p.vx*age+(p.w?Math.sin(age*7+p.x)*0.3:0),p.y+p.vy*age-(p.g||0)*age*age*0.5,p.z+p.vz*age);sp.scale.setScalar(p.s0+(p.s1-p.s0)*a);
+    sp.position.set(p.x+p.vx*age+(p.w?Math.sin(age*7+p.x)*0.3:0),p.y+p.vy*age-(p.g||0)*age*age*0.5,p.z+p.vz*age);{const sc=p.s0+(p.s1-p.s0)*a;if(p.k==="wisp")sp.scale.set(sc*0.45,sc*1.6,1);else sp.scale.setScalar(sc);}if(p.c)sp.material.color.set(p.c);
     sp.material.opacity=p.k==="smoke"?p.o*Math.sin(Math.min(1,a*1.4)*Math.PI*0.5)*(1-a):p.o*(1-a*a);}
   for(;pi<BR.fxp.length;pi++)BR.fxp[pi].visible=false;for(;di<BR.fxd.length;di++)BR.fxd[di].visible=false;}
 function glowSprite(col,size,opacity=1){
@@ -6844,13 +6899,15 @@ function renderBattle(dt){
     else if(p.k==="stone"||p.k==="rock"||p.k==="chip"||p.k==="pot"){const sc0=p.k==="stone"?3.2:p.k==="rock"?1.35:p.k==="pot"?0.9:(p.sz||0.6);if(p.k==="pot"){(B.fireTips=B.fireTips||[]).push(x,y+0.5,z);if(Math.random()<dt*12)partAdd(B,{k:"smoke",x,y,z,vx:0.2,vy:0.8,vz:0,t0:t,dur:1,s0:0.5,s1:1.6,o:0.4});}_be.set(t*(p.k==="stone"?2.2:5)+p.x0,t*(p.k==="stone"?1.6:4)+p.z0,0);_bq.setFromEuler(_be);_bm.compose(_bv.set(x,y,z),_bq,_bs.setScalar(sc0));
       if(nr<260){BR.rocks.setMatrixAt(nr,_bm);BR.rocks.setColorAt(nr,_bc.set(p.k==="stone"?"#8a8070":p.k==="chip"?(p.col||"#7a7266"):p.k==="pot"?"#6a4a34":"#7d756a"));nr++;}
       if(p.k==="stone"&&!B.paused&&Math.random()<0.35)B.fx.push({k:"dust",x,z,t0:t,dur:0.7,y});}
-    else{_bm.compose(_bv.set(x,y,z),_bq.identity(),_bs.setScalar(1));if(nb<300){BR.bolts.setMatrixAt(nb,_bm);BR.bolts.setColorAt(nb,_bc.set(p.k==="stone"?"#4a4440":p.k==="rock"?"#5a544c":p.k==="holy"?"#fff1b8":"#b98cff"));nb++;}}}
+    else{_bm.compose(_bv.set(x,y,z),_bq.identity(),_bs.setScalar(p.k==="holy"?0.4:0.5));if(nb<300){BR.bolts.setMatrixAt(nb,_bm);BR.bolts.setColorAt(nb,_bc.set(p.k==="holy"?"#e8dcae":"#3a2f4a"));nb++;}
+      if(!B.paused&&Math.random()<dt*22)partAdd(B,p.k==="holy"?{k:"mote",c:"#f0e2b4",x,y,z,vx:rnd(-0.3,0.3),vy:0.4,vz:rnd(-0.3,0.3),t0:t,dur:0.5,s0:0.3,s1:0.08,o:0.8}:{k:"smoke",c:"#2a2236",x,y,z,vx:rnd(-0.3,0.3),vy:0.5,vz:rnd(-0.3,0.3),t0:t,dur:0.8,s0:0.5,s1:1.5,o:0.5});
+      if(p.k==="hex"&&!B.paused&&Math.random()<dt*10)partAdd(B,{k:"mote",c:"#9a8ac0",x,y,z,vx:0,vy:0.2,vz:0,t0:t,dur:0.35,s0:0.35,s1:0.1,o:0.7});}}
   if(B.stuck){B.stuck=B.stuck.filter(q=>t<q.t0+q.life);for(const q of B.stuck){if(na>=900)break;_be.set(q.p,q.y,0,"YXZ");_bq.setFromEuler(_be);const cp=Math.cos(q.p),dx=Math.sin(q.y)*cp,dy=-Math.sin(q.p),dz=Math.cos(q.y)*cp,g=bH(q.x,q.z);
     const L2=q.jav?0.6:0.28;_bm.compose(_bv.set(q.x-dx*L2,g-dy*L2,q.z-dz*L2),_bq,q.jav?_bs.set(1.5,1.5,2.2):_bs.setScalar(1));BR.arrows.setMatrixAt(na,_bm);BR.arrows.setColorAt(na,_bc.set(q.burn&&t<q.t0+q.burn?"#2a1e16":"#4a3a2a"));na++;}}
   BR.arrows.count=na;BR.arrows.instanceMatrix.needsUpdate=true;if(BR.arrows.instanceColor)BR.arrows.instanceColor.needsUpdate=true;
   BR.rocks.count=nr;BR.rocks.instanceMatrix.needsUpdate=true;if(BR.rocks.instanceColor)BR.rocks.instanceColor.needsUpdate=true;BR.bolts.count=nb;BR.bolts.instanceMatrix.needsUpdate=true;if(BR.bolts.instanceColor)BR.bolts.instanceColor.needsUpdate=true;
   // 효과
-  for(const f of B.fx){if(f.obj)continue;
+  for(const f of B.fx){if(f.obj)continue;if(MAGIC[f.k]){if(!f.mg){f.mg=1;magicFx(B,f.k,f.x,f.z);}continue;}
     if(f.k==="ring"){const m=new THREE.Mesh(new THREE.RingGeometry(1.6,2.2,24),new THREE.MeshBasicMaterial({color:f.col,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(f.x,bH(f.x,f.z)+0.3,f.z);f.obj=m;}
     else if(f.k==="dust"){// 흙먼지: 빛나지 않는 흙빛 연기 (밝게 더해지는 빛무리면 하얀 덩어리가 된다)
       const sp=glowSprite(f.col||"#ffffff",1,1);sp.material.blending=THREE.NormalBlending;sp.material.toneMapped=true;sp.material.color.set("#5e4c3a");sp.material.opacity=0.35;
@@ -7698,7 +7755,7 @@ ${visitList(["market","farm","homes"])}<p class="note">빚은 금화 3,000까지
       <div class="cost">금화 ${unitCost(k).gold}${unitCost(k).gold<u.cost.gold?' <span style="color:var(--blight)">(지역 할인)</span>':""} · 식량 ${u.cost.food} · 백성 100</div>
       <button class="b sm" data-a="recruit" data-k="${k}" ${why?"disabled":""}>${why||"1개 중대 징병"}</button></div>`;}).join("")}</div>
     ${drillHtml(OURS)}${S.queue.length?`<div><div class="eyebrow" style="margin:6px 0">훈련 중</div>${S.queue.map(q=>`<div class="qrow"><span class="glyph" style="background:${U[q.t].col}">${U[q.t].g}</span>${U[q.t].n} 1개 중대<span class="note" style="margin-left:auto">${q.days}일 남음</span><button class="b sm ghost" data-a="cancel" data-k="queue" data-q="${q.qid||(q.qid=(S.qidN=(S.qidN||0)+1))}" title="취소하면 80%와 백성을 돌려받는다">취소</button></div>`).join("")}</div>`:""}`;
-  else body=`${forceHtml("왕궁 주둔군",S.garrison)}<div class="tile" style="margin-bottom:8px"><div class="eyebrow" style="margin-bottom:4px">강한 중대를 만드는 길</div><div class="ds">① 징병 탭에서 중대를 뽑는다 → ② 같은 탭의 <b>부대 단련</b>(금화 70·식량 30·2일)으로 ★, 한 번 더 ★★ — 별 하나마다 공격 +8%·받는 피해 -6% → ③ ★★·90명 이상 중대는 여기서 <b>정예화</b>(금화 ${ELITE_COST.gold}·식량 ${ELITE_COST.food}·${ELITE_DAYS}일, 여러 중대 동시에): 보병→<b>정예보병</b>(철벽), 창병→<b>정예창병</b>, 궁병→<b>정예궁병</b>(사거리·연사), 기마병→<b>정예기마병</b>(최강)이 된다 — 기마병보다 빠르고(13.5) 세며 모든 상성에서 유리, 창벽만 조심 → ④ ★★★은 실전 승리로만 → ⑤ ★★★ 중대장은 대전에서 장군으로 승급(금화 500)</div></div><div>${S.garrison.map((c,i)=>{const w=canElite(c);return `<div class="qrow"><span class="glyph" style="background:${U[c.t].col}">${U[c.t].g}</span>${U[c.t].n} 중대 <span style="color:var(--gold)">${vetStars(c)}</span> ${eliteMark(c)}<span style="flex:1;margin:0 10px" class="bar"><i style="width:${c.men}%;background:var(--steel)"></i></span><span class="num">${c.men}/100</span>${c.fat?`<span class="note" style="margin-left:8px;color:${c.fat>=60?"var(--blood)":"var(--bone-dim)"}">${fatText(c)} ${c.fat}</span>`:""}
+  else body=`${forceHtml("왕궁 주둔군",S.garrison)}<div class="tile" style="margin-bottom:8px"><div class="eyebrow" style="margin-bottom:4px">강한 중대를 만드는 길</div><ol class="steps"><li>징병 탭에서 중대를 뽑는다.</li><li>같은 탭의 <b>부대 단련</b>으로 별을 단다 (금화 70, 식량 30, 2일). 별 하나마다 공격 +8%, 받는 피해 -6%. 두 번까지.</li><li>별 둘에 90명 이상인 중대는 아래에서 <b>정예화</b>한다 (금화 ${ELITE_COST.gold}, 식량 ${ELITE_COST.food}, ${ELITE_DAYS}일).</li><li>별 셋은 실전에서 이겨야만 단다. 별 셋 중대장은 대전에서 장군으로 승급할 수 있다 (금화 500).</li></ol></div></div><div>${S.garrison.map((c,i)=>{const w=canElite(c);return `<div class="qrow"><span class="glyph" style="background:${U[c.t].col}">${U[c.t].g}</span>${U[c.t].n} 중대 <span style="color:var(--gold)">${vetStars(c)}</span> ${eliteMark(c)}<span style="flex:1;margin:0 10px" class="bar"><i style="width:${c.men}%;background:var(--steel)"></i></span><span class="num">${c.men}/100</span>${c.fat?`<span class="note" style="margin-left:8px;color:${c.fat>=60?"var(--blood)":"var(--bone-dim)"}">${fatText(c)} ${c.fat}</span>`:""}
       ${!c.elite&&!(c.eliteT>0)?`<button class="b sm" style="margin-left:8px" data-a="elite" data-i="${i}" ${w?"disabled":""} title="${w||`금화 ${ELITE_COST.gold} · 식량 ${ELITE_COST.food} · ${ELITE_DAYS}일`}">정예화${w?` (${w})`:""}</button>`:""}</div>`;}).join("")||'<p class="note">주둔군이 없다.</p>'}</div>
     <p class="note" style="margin:0">왕궁에 있는 중대는 매일 병력을 보충하고(백성 1명 + 금화 1 = 병사 1명) 피로를 12씩 푼다. 피로 100이면 전투력 60%. <b>정예화</b>: ★★ 중대를 금화 ${ELITE_COST.gold}·식량 ${ELITE_COST.food}, ${ELITE_DAYS}일 들여 정예 병종(정예보병·정예창병·정예궁병·정예기마병)으로 바꾼다.</p>`;
   if(t==="tech"){ensureTech();body=`<p class="note" style="margin:0">재상이 장인과 학자를 모아 왕국을 개량한다. 한 번에 하나씩.</p>${S.tech.q?`<div class="tile"><div class="hd"><span class="nm">${TECH[S.tech.q.k].n} 진행 중</span><span class="note" style="margin-left:auto">${S.tech.q.days}일 남음</span><button class="b sm ghost" data-a="cancel" data-k="tech" title="취소하면 80%를 돌려받는다">취소</button></div></div>`:""}
@@ -8286,6 +8343,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.151","집: 집마다 골조 짜임이 다르고, 위층을 받치는 들보 끝, 박공널과 용마루, 문틀과 문지방 돌, 창틀이 생겼다. 일부는 옆에 헛간이 붙거나 지붕창이 있고, 문 앞에 통이나 장작더미, 긴 의자가 놓인다 · 성벽: 흉벽을 받치는 까치발 줄, 화살 구멍, 색이 다른 덧댄 돌 · 탑: 넓은 밑동, 띠돌, 까치발, 높이가 다른 화살 구멍 · 주술과 기도 효과: 큰 빛 덩어리 대신 땅에서 피어오르는 가는 기운과 낮게 깔리는 검은 안개, 흩어지는 빛 알갱이. 강령술사의 주술탄은 작고 어두운 구슬이 연기를 끌며 날아간다 · 주둔군 탭의 '강한 중대를 만드는 길'을 네 줄로 정리 · 영어판: 휴대폰에서 키 이름 제거, 로그인 창 영어, 1 company처럼 단수와 복수 구분"],
  ["0.9.150","게임 안 문장 전체 점검: 누르라, 클릭하라 같은 지시와 재촉하는 말투를 설명문, 길잡이, 오류 안내까지 고쳤다 · 휴대폰에는 키보드와 마우스 이야기가 나오지 않는다. 도움말의 조작법 탭과 작전도 설명은 PC에만 보인다 · 성벽 위 부대에서 성벽 밖으로 밀려난 병사가 성벽 높이로 허공에 떠 있던 것 고침 · 휴대폰 전장에서 말 버튼이 화면 오른쪽 끝에 잘리던 것 고침 · 전투 결과 창 위에 알림 글이 겹쳐 표를 가리던 것 고침 · 낡은 문구 정리(둘째 기술, 임시 버튼 표시)"],
  ["0.9.149","안내 문구를 다른 게임처럼 짧게: 화면 아래 한 줄은 '목표'로, 어떤 버튼을 누르라거나 '(빛나는 버튼)' 같은 설명 없이 할 일만 적는다 · 대습격 막대의 '지금 징병하라' 같은 재촉을 없애고 전망만 보여 준다 · 설정 창 정리: 화면, 소리, 마우스, 언어, Claude, 게임, 저장 순서로 한 줄씩. 두 번씩 있던 음악 버튼과 전투 연습 버튼, 조작 설명 문단, 거의 쓰이지 않던 회전 감도를 뺐다 · 영어로 바꾸면 한국어로 시작한 판의 왕 이름도 영어로 바뀐다"],
  ["0.9.148","글씨체를 둘로 줄였다: 화면 글씨는 본고딕, 제목과 이야기 글은 본명조. 넓은 자간, 장식 서체(Cinzel), 고정폭 숫자를 없앴다 · 기술을 쓰면 그 부대가 잠깐 밝게 번쩍이고 발밑에 흙먼지가 인다. 이미 맞붙은 보병은 그 자리에서 적을 밀쳐 내고, 투창은 두 배로 날아가 땅에 꽂혀 남으며 맞은 적이 밀려난다. 함성과 측면 돌격에는 화면이 살짝 흔들린다 · 배치 화면에서 왕궁 지붕이 화면 아래 절반을 가리던 것 고침 · 휴대폰 첫 화면에서 메뉴가 부제와 겹치던 것 고침 · 첫 화면 메뉴 글씨가 밝은 배경에 묻히던 것 고침 · 도움말과 설정의 낡은 문구 정리"],
@@ -8582,7 +8640,7 @@ function loginGo(){if(!FB_CFG)return;fbLoad().then(()=>{
   firebase.auth().signInWithPopup(p).then(()=>{toast("로그인했다 — 저장이 클라우드에 올라간다");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{const c=(e&&e.code)||String(e);console.warn("login",e);if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;LOGIN.lastErr=c;toast("구글 로그인 실패 ("+c+") — 브라우저로 로그인한다");loginCode();});
 }).catch(e=>{LOGIN.lastErr="load";toast("로그인 서버(구글)에 닿지 않는다 — 인터넷 연결이 필요하다");});}
 function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";const r=crypto.getRandomValues(new Uint8Array(8));for(const x of r)c+=A[x%A.length];LOGIN.code=c;
-  const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?c=${c}`;
+  const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?l=${LANG}&c=${c}`;
   /* 코드는 보이지 않는다: 브라우저(크롬)에서 구글 로그인 페이지를 바로 열고, 끝나면 이 화면이 저절로 넘어간다 */
   UI.openModal(`${winHead("구글 로그인")}<div class="wbody"><p class="story" style="font-size:15px">브라우저에서 구글 로그인 창이 열렸다. <b>Google로 로그인</b>을 눌러 계정을 고르면 여기로 저절로 돌아온다.</p>
     <p class="note" id="lgWait"><span class="spin"></span> 기다리는 중…</p>${LOGIN.lastErr?`<p class="note" style="color:#e8a79a">앞의 오류: ${esc(LOGIN.lastErr)}</p>`:""}</div><div class="wfoot"><button class="b ghost" data-a="loginCancel">취소</button><button class="b gold" data-a="loginOpen" data-u="${esc(url)}">브라우저가 안 열렸으면 — 열기</button></div>`,{narrow:true});
@@ -9002,7 +9060,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.150 · 바뀐 점</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.151 · 바뀐 점</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){

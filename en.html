@@ -640,6 +640,7 @@ body.bTp .lbl.sq{display:none}
 .tfoot{letter-spacing:0}
 .glyph,.seal,.lbl.sq i{font-family:var(--f-body);font-weight:700}
 kbd{font-family:var(--f-body)!important}
+.steps{margin:0;padding-left:20px;font-size:12.5px;color:var(--bone-dim);line-height:1.7}.steps b{color:var(--bone);font-weight:500}
 /* 설정: 이름은 왼쪽, 조작은 오른쪽 한 줄씩 */
 .setbody{gap:0;padding-top:4px}
 .set{padding:14px 0;border-bottom:1px solid var(--line)}.set:last-of-type{border-bottom:0}
@@ -780,6 +781,13 @@ const ICON={
 function touchTxt(str){
   /* 휴대폰: 어떤 키·버튼을 누르라는 말은 뺀다 — 버튼은 눈에 보이고, 사람은 알아서 누른다 */
   if(typeof COARSE==="undefined"||!COARSE)return str;
+  if(typeof LANG!=="undefined"&&LANG==="en")return String(str).replace(/<kbd>[^<]*<\/kbd>\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
+    .replace(/\s?\((E|Q|F|G|H|V|P|R|M|T|B|J|Tab|right-click)\)/gi,"").replace(/[^.·>]*\bTab\b[^.·<]*[.·]?/g,"").replace(/[^.·>]*right-click (also )?works( too)?\.?/gi,"")
+    .replace(/\s?Shift to gallop\.?/g,"").replace(/WASD (to )?/g,"").replace(/(and |, )?press(ing)? [A-Z0-9]\b( again)?( to)?/gi,"").replace(/(with )?(keys )?5[–-]9 ?/g,"")
+    .replace(/\b(Shift|Ctrl|Space|Alt) (to |or )?(?=[a-z])/g,"").replace(/(^|[\s·(,])[EMQRGHJFVPBT] (to |or )?(?=[a-z])/g,"$1").replace(/(^|[\s·(,])[EM](,| or)(?= )/g,"$1")
+    .replace(/wheel or two fingers/g,"two fingers").replace(/wheel to zoom/g,"pinch to zoom").replace(/wheel zoom/g,"pinch zoom")
+    .replace(/Right-click/g,"Long-press").replace(/right-click/g,"long-press").replace(/Double-click/g,"Double-tap").replace(/double-click/g,"double-tap").replace(/Left-click/g,"Tap").replace(/Click/g,"Tap").replace(/click/g,"tap")
+    .replace(/ +([·,.→—:])/g," $1").replace(/^(\s*)[·—]\s*/,"$1").replace(/ {2,}/g," ")).join("");
   return String(str).replace(/<kbd>우클릭<\/kbd>하면/g,"길게 누르면").replace(/<kbd>[^<]*<\/kbd>(으로|로)?\s*/g,"").split(/(<[^>]+>)/).map(seg=>seg.startsWith("<")?seg:seg
     .replace(/WASD ?(로 )?(이동)?/g,"").replace(/[^.>]*우클릭으로도 보낼 수 있다\.?/g,"").replace(/우클릭하면/g,"길게 누르면").replace(/\s?Shift로 질주\.?/g,"").replace(/Tab(으로|:)?\s?/g,"").replace(/(^|[\s·(,])[A-Z]로 (?=[가-힣])/g,"$1").replace(/(가서|다가가) E(?=[^A-Za-z]|$)/g,"$1").replace(/더블\s?클릭(해서|하면)?\s?/g,"").replace(/우클릭\s?베기/g,"베기").replace(/우클릭\s?(끌기:?\s?회전|으로|로)?\s?/g,"").replace(/\s?\((우클릭|Tab|Ctrl|Shift|Space|[A-Z])\)/g,"")
     .replace(/Tab을 누르면 /g,"").replace(/(앞에서|문에서|탁자에서) E(?=[^A-Za-z]|$)/g,"$1").replace(/(^|[\s·(])E (?=[가-힣])/g,"$1")
@@ -1803,34 +1811,62 @@ const SB=(w,h,d,col,mat="stone",p=[0,0,0],r=[0,0,0],k=3)=>P(SG.box(w,h,d),col,ma
 function crenels(len,y,z0,thick,col=B3.stone,axis="x"){const p=[];const n=Math.floor(len/1.6),r=bldRng();for(let i=0;i<n;i++){const t=-len/2+0.8+i*1.6;if(i%2)continue;const hh=1.0+r()*0.22,ww=0.95+r()*0.12,cc=jit(col,r,0.1);
   p.push(axis==="x"?SB(ww,hh,thick,cc,"stone",[t,y+hh/2,z0]):SB(thick,hh,ww,cc,"stone",[z0,y+hh/2,t]));}return p;}
 
-/* 집: 돌 기단 + 회벽 + 목재 골조 + 기와 지붕 */
+/* 집: 돌 기단 + 회벽 + 목재 골조 + 기와 지붕. 집마다 골조 짜임, 처마, 덧집, 지붕창, 문 앞 살림이 다르다 */
 function houseParts(o={}){
   const r=bldRng();const PL=["#c9bda2","#b8aa8e","#a89a80","#d0c4a9","#bdb39c","#9f9480"];
   const w=o.w||6,d=o.d||8,h=o.h||5,two=o.two??true,roof=jit(o.roof||B3.roofR,r,0.12),pl=jit(o.plaster&&o.plaster!==B3.plaster?o.plaster:PL[Math.floor(r()*PL.length)],r,0.05);const p=[];
-  const stoneLow=r()<0.3;
+  const stoneLow=r()<0.3,beam=jit(B3.beam,r,0.12),W=(bw,bh,bd,pos,rot)=>P(SG.box(bw,bh,bd),beam,"wood",pos,rot||[0,0,0]);
   p.push(SB(w+0.3,1.0,d+0.3,jit(B3.stoneD,r,0.08),"stone",[0,0.5,0]));
   p.push(stoneLow?SB(w,h,d,jit(B3.stone,r,0.1),"stone",[0,1+h/2,0]):P(SG.box(w,h,d),pl,"plaster",[0,1+h/2,0],[0,0,0],[1,1,1],[w/2,h/2]));
-  // 골조
-  for(const sx of [-1,1])for(const sz of [-1,1])p.push(P(SG.box(0.3,h,0.3),B3.beam,"wood",[sx*w/2,1+h/2,sz*d/2]));
-  p.push(P(SG.box(w+0.2,0.28,0.32),B3.beam,"wood",[0,1+h*0.5,d/2]),P(SG.box(w+0.2,0.28,0.32),B3.beam,"wood",[0,1+h*0.5,-d/2]));
-  p.push(P(SG.box(0.25,h*0.5,0.3),B3.beam,"wood",[w*0.2,1+h*0.75,d/2],[0,0,0.6]),P(SG.box(0.25,h*0.5,0.3),B3.beam,"wood",[-w*0.2,1+h*0.75,d/2],[0,0,-0.6]));
+  // 골조: 모서리 기둥, 가로 들보, 그리고 집마다 다른 샛기둥과 가새
+  for(const sx of [-1,1])for(const sz of [-1,1])p.push(W(0.3,h,0.3,[sx*w/2,1+h/2,sz*d/2]));
+  for(const sz of [-1,1]){p.push(W(w+0.2,0.28,0.32,[0,1+h*0.5,sz*d/2]),W(w+0.2,0.24,0.3,[0,1+h-0.12,sz*d/2]));}
+  for(const sx of [-1,1])p.push(W(0.3,0.26,d+0.2,[sx*w/2,1+h*0.5,0]),W(0.28,0.24,d+0.2,[sx*w/2,1+h-0.12,0]));
+  if(!stoneLow){const style=Math.floor(r()*3);
+    if(style===0){p.push(W(0.25,h*0.5,0.3,[w*0.2,1+h*0.75,d/2],[0,0,0.6]),W(0.25,h*0.5,0.3,[-w*0.2,1+h*0.75,d/2],[0,0,-0.6]));}
+    else if(style===1){for(const sx of [-0.5,0.5])p.push(W(0.2,h*0.48,0.28,[sx*w*0.45,1+h*0.75,d/2]));}
+    else{p.push(W(0.2,h*0.62,0.28,[w*0.33,1+h*0.74,d/2],[0,0,0.75]),W(0.2,h*0.62,0.28,[w*0.33,1+h*0.74,d/2],[0,0,-0.75]));}
+    const ns=2+Math.floor(r()*2);for(let i=1;i<=ns;i++)for(const sx of [-1,1])p.push(W(0.28,h,0.2,[sx*w/2,1+h/2,-d/2+i*d/(ns+1)]));}
   if(two){p.push(P(SG.box(w+0.6,h*0.5,d+0.6),pl,"plaster",[0,1+h+h*0.25,0],[0,0,0],[1,1,1],[w/2,h/4]));
-    for(const sx of [-1,1])p.push(P(SG.box(0.3,h*0.5,0.3),B3.beam,"wood",[sx*(w/2+0.3),1+h*1.25,d/2+0.3]));}
-  const top=1+h*(two?1.5:1);
-  p.push(P(prismGeo(w+1.4+r()*0.6,w*(0.45+r()*0.22),d+1.2+r()*0.5),roof,"roof",[0,top,0],[0,0,0],[1,1,1],0.35));
-  if(r()<0.75)p.push(SB(0.9+r()*0.3,2.2+r()*1.2,0.9+r()*0.3,jit(B3.stoneD,r,0.1),"stone",[w*(r()<0.5?0.25:-0.25),top+1.6,d*(r()-0.5)*0.6]));
-  // 문과 창
-  p.push(P(SG.box(1.3,2.2,0.12),"#3b2a1c","wood",[0,2.1,d/2+0.06]),P(SG.sph(0.06,6,4),"#c9a24a","gold",[0.4,2.0,d/2+0.14]));
-  for(const sx of [-1,1]){p.push(P(SG.box(1.0,1.1,0.1),o.lit?"#ffb85a":"#2a2420",o.lit?"glow":"wood",[sx*w*0.3,1+h*0.62,d/2+0.05]));
-    if(two)p.push(P(SG.box(0.9,0.9,0.1),o.lit2?"#ffb85a":"#2a2420",o.lit2?"glow":"wood",[sx*w*0.28,1+h*1.25,d/2+0.35]));
-    p.push(P(SG.box(0.5,1.1,0.08),"#5d4630","wood",[sx*w*0.3+sx*0.75,1+h*0.62,d/2+0.06]));}
+    for(const sx of [-1,1])for(const sz of [-1,1])p.push(W(0.3,h*0.5,0.3,[sx*(w/2+0.3),1+h*1.25,sz*(d/2+0.3)]));
+    // 위층을 받치는 들보 끝이 벽 밖으로 줄지어 나와 있다
+    const nj=Math.max(3,Math.round(w/1.3));for(let i=0;i<nj;i++)p.push(W(0.2,0.22,0.5,[-w/2+0.3+i*(w-0.6)/(nj-1),1+h-0.05,d/2+0.2]));
+    p.push(W(w+0.8,0.2,0.3,[0,1+h*1.5-0.1,d/2+0.3]),W(w+0.8,0.2,0.3,[0,1+h*1.5-0.1,-d/2-0.3]));}
+  const top=1+h*(two?1.5:1),rw=w+1.4+r()*0.6,rh=w*(0.45+r()*0.22),rd=d+1.2+r()*0.5;
+  p.push(P(prismGeo(rw,rh,rd),roof,"roof",[0,top,0],[0,0,0],[1,1,1],0.35));
+  // 박공널(지붕 끝을 따라 댄 널)과 용마루
+  {const L=Math.hypot(rw/2,rh)+0.15,a=Math.atan2(rh,rw/2);for(const sz of [-1,1])for(const sx of [-1,1])p.push(W(L,0.2,0.14,[sx*rw/4,top+rh/2,sz*(rd/2+0.02)],[0,0,sx>0?-a:a]));
+    p.push(P(SG.box(0.26,0.2,rd+0.2),jit(roof,r,0.12),"roof",[0,top+rh+0.02,0],[0,0,0],[1,1,1],0.3));}
+  if(r()<0.75){const cx=w*(r()<0.5?0.25:-0.25),cz=d*(r()-0.5)*0.6,ch=2.2+r()*1.2,cw=0.9+r()*0.3,cs=jit(B3.stoneD,r,0.1);p.push(SB(cw,ch,cw,cs,"stone",[cx,top+1.6,cz]),SB(cw+0.25,0.22,cw+0.25,cs,"stone",[cx,top+1.6+ch/2,cz]));}
+  // 지붕창
+  if(two&&r()<0.3){const sx=r()<0.5?-1:1,dz=(r()-0.5)*d*0.4;p.push(P(SG.box(1.1,1.0,1.0),pl,"plaster",[sx*rw*0.24,top+rh*0.42,dz]),P(prismGeo(1.5,0.6,1.2),roof,"roof",[sx*rw*0.24,top+rh*0.42+0.5,dz],[0,Math.PI/2,0],[1,1,1],0.35),P(SG.box(0.08,0.6,0.6),"#2a2420","wood",[sx*(rw*0.24+0.56),top+rh*0.42,dz]));}
+  // 문과 창: 문틀, 문지방 돌, 창틀과 덧문
+  p.push(P(SG.box(1.3,2.2,0.12),"#3b2a1c","wood",[0,2.1,d/2+0.06]),P(SG.sph(0.06,6,4),"#8a7a52","metal",[0.4,2.0,d/2+0.14]),W(1.7,0.22,0.24,[0,3.3,d/2+0.08]),W(0.2,2.3,0.22,[-0.75,2.1,d/2+0.08]),W(0.2,2.3,0.22,[0.75,2.1,d/2+0.08]),SB(1.9,0.22,0.7,jit(B3.stoneD,r,0.08),"stone",[0,0.95,d/2+0.4]));
+  for(const sx of [-1,1]){p.push(P(SG.box(1.0,1.1,0.1),o.lit?"#ffb85a":"#2a2420",o.lit?"glow":"wood",[sx*w*0.3,1+h*0.62,d/2+0.05]),W(1.2,0.14,0.2,[sx*w*0.3,1+h*0.62-0.62,d/2+0.08]),W(0.08,1.1,0.14,[sx*w*0.3,1+h*0.62,d/2+0.09]));
+    if(two)p.push(P(SG.box(0.9,0.9,0.1),o.lit2?"#ffb85a":"#2a2420",o.lit2?"glow":"wood",[sx*w*0.28,1+h*1.25,d/2+0.35]),W(1.1,0.12,0.18,[sx*w*0.28,1+h*1.25-0.5,d/2+0.38]));
+    p.push(P(SG.box(0.5,1.1,0.08),jit("#5d4630",r,0.15),"wood",[sx*w*0.3+sx*0.75,1+h*0.62,d/2+0.06]));}
+  // 옆에 붙은 덧집(헛간)
+  if(r()<0.35){const sx=r()<0.5?-1:1,lw=2.2+r()*0.8,ld=d*(0.45+r()*0.25),lh=2.6,lz=(r()-0.5)*(d-ld);
+    p.push(P(SG.box(lw,lh,ld),jit("#6b5338",r,0.12),"wood",[sx*(w/2+lw/2),1+lh/2-0.5,lz],[0,0,0],[1,1,1],[lw/1.5,lh/1.5]),P(SG.box(lw+0.7,0.16,ld+0.5),roof,"roof",[sx*(w/2+lw/2+0.1),lh+0.75,lz],[0,0,sx*-0.3],[1,1,1],0.35));}
+  // 문 앞 살림: 통, 장작더미, 긴 의자 가운데 하나쯤
+  {const k=r(),bx=(r()<0.5?-1:1)*(w*0.5-0.6),bz=d/2+0.7;
+    if(k<0.3){p.push(P(SG.cyl(0.42,0.38,0.95,10),jit("#6a5136",r,0.1),"wood",[bx,1.0,bz]),P(SG.cyl(0.44,0.44,0.07,10),"#3a3632","metal",[bx,1.2,bz]),P(SG.cyl(0.42,0.42,0.07,10),"#3a3632","metal",[bx,0.75,bz]));}
+    else if(k<0.55){for(let i=0;i<3;i++)for(let j=0;j<3-i;j++)p.push(P(SG.cyl(0.16,0.16,1.1,6),jit("#7a6044",r,0.15),"wood",[bx+(j-(2-i)/2)*0.34,0.72+i*0.29,bz],[Math.PI/2,0,0]));}
+    else if(k<0.75){p.push(W(1.5,0.1,0.4,[bx,1.05,bz]),W(0.1,0.5,0.36,[bx-0.6,0.8,bz]),W(0.1,0.5,0.36,[bx+0.6,0.8,bz]));}}
   return p;
 }
 function towerParts(r=5,h=16,roof=B3.roofS,cone=true){
-  const p=[P(SG.cyl(r,r*1.08,h,20),B3.stone,"stone",[0,h/2,0],[0,0,0],[1,1,1],[r*2,h/3]),P(SG.cyl(r*1.12,r*1.12,0.6,20),B3.stoneD,"stone",[0,h,0],[0,0,0],[1,1,1],[r*2,0.3])];
-  const n=10;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;p.push(SB(1.2,1.4,0.9,B3.stone,"stone",[Math.cos(a)*r,h+0.9,Math.sin(a)*r],[0,-a+Math.PI/2,0]));}
-  if(cone)p.push(P(SG.cone(r*1.2,r*1.9,20),roof,"roof",[0,h+r*0.95+0.3,0],[0,0,0],[1,1,1],[r*2,r]),P(SG.cyl(0.08,0.08,3,6),B3.wood,"wood",[0,h+r*1.9+1.5,0]),P(SG.box(0.06,1.1,1.8),C.kblue,"cloth",[0,h+r*1.9+2.4,0.9]));
-  for(let i=0;i<4;i++){const a=i/4*Math.PI*2+0.4;p.push(P(SG.box(0.5,1.4,0.2),"#1e1a16","dark",[Math.cos(a)*(r+0.05),h*0.6,Math.sin(a)*(r+0.05)],[0,-a+Math.PI/2,0]));}
+  const rg=bldRng(),st=jit(B3.stone,rg,0.07),sd=jit(B3.stoneD,rg,0.07);
+  const p=[P(SG.cyl(r,r*1.08,h,20),st,"stone",[0,h/2,0],[0,0,0],[1,1,1],[r*2,h/3]),P(SG.cyl(r*1.12,r*1.12,0.6,20),sd,"stone",[0,h,0],[0,0,0],[1,1,1],[r*2,0.3])];
+  // 넓은 밑동, 중간 띠돌, 흉벽을 받치는 까치발
+  p.push(P(SG.cyl(r*1.1,r*1.22,Math.min(3,h*0.2),20),jit("#6f6a5f",rg,0.08),"stone",[0,Math.min(1.5,h*0.1),0],[0,0,0],[1,1,1],[r*2,0.6]));
+  if(h>10)p.push(P(SG.cyl(r*1.05,r*1.05,0.35,20),sd,"stone",[0,h*0.55,0],[0,0,0],[1,1,1],[r*2,0.2]));
+  {const nc=Math.max(10,Math.round(r*3.2));for(let i=0;i<nc;i++){const a=i/nc*Math.PI*2;p.push(SB(0.45,0.7,0.5,sd,"stone",[Math.cos(a)*(r*1.06),h-0.55,Math.sin(a)*(r*1.06)],[0,-a+Math.PI/2,0]));}}
+  const n=10;for(let i=0;i<n;i++){const a=i/n*Math.PI*2,hh=1.3+rg()*0.25;p.push(SB(1.2,hh,0.9,jit(B3.stone,rg,0.1),"stone",[Math.cos(a)*r,h+0.2+hh/2,Math.sin(a)*r],[0,-a+Math.PI/2,0]));}
+  if(cone)p.push(P(SG.cone(r*1.2,r*1.9,20),jit(roof,rg,0.1),"roof",[0,h+r*0.95+0.3,0],[0,0,0],[1,1,1],[r*2,r]),P(SG.cyl(r*1.24,r*1.24,0.18,20),B3.beam,"wood",[0,h+0.42,0]),P(SG.cyl(0.08,0.08,3,6),B3.wood,"wood",[0,h+r*1.9+1.5,0]),P(SG.box(0.06,1.1,1.8),C.kblue,"cloth",[0,h+r*1.9+2.4,0.9]));
+  // 화살 구멍: 높이를 달리해 두 줄
+  const ns=h>18?7:4;for(let i=0;i<ns;i++){const a=i/ns*Math.PI*2+0.4+rg()*0.3,y=h*(i%2?0.38:0.68);p.push(P(SG.box(0.32,1.5,0.2),"#14110e","dark",[Math.cos(a)*(r+0.03),y,Math.sin(a)*(r+0.03)],[0,-a+Math.PI/2,0]),SB(0.7,0.16,0.3,sd,"stone",[Math.cos(a)*(r+0.06),y-0.85,Math.sin(a)*(r+0.06)],[0,-a+Math.PI/2,0]));}
+  return p;
   return p;
 }
 function wallSeg(len,h=11,t=4){const r=bldRng(),st=jit(B3.stone,r,0.07),sd=jit(B3.stoneD,r,0.07);
@@ -1840,6 +1876,13 @@ function wallSeg(len,h=11,t=4){const r=bldRng(),st=jit(B3.stone,r,0.07),sd=jit(B
   if(h>7)p.push(SB(len,0.35,t+0.25,sd,"stone",[0,h*0.62,0]));
   // 버팀벽: 일정하지 않은 간격으로
   if(len>9&&h>6){let x=-len/2+3+r()*3;while(x<len/2-3){for(const sz of [-1,1])p.push(SB(1.3,h*(0.55+r()*0.2),1.0,jit(B3.stoneD,r,0.06),"stone",[x,h*0.3,sz*(t/2+0.45)]));x+=7+r()*5;}}
+  for(const sz of [-1,1]){
+    // 흉벽을 받치는 까치발 줄
+    const nc=Math.floor(len/1.1);for(let i=0;i<nc;i++)p.push(SB(0.4,0.55,0.45,sd,"stone",[-len/2+0.55+i*(len-1.1)/Math.max(1,nc-1),h-0.5,sz*(t/2+0.2)]));
+    // 덧댄 돌: 색이 다른 돌판이 군데군데 박혀 있다 (오래 고쳐 쓴 성벽)
+    const np=Math.round(len/4);for(let i=0;i<np;i++){const pw=1.2+r()*2.2,ph=0.8+r()*1.6;p.push(SB(pw,ph,0.08,jit(r()<0.5?B3.stoneD:B3.stone2,r,0.1),"stone",[(r()-0.5)*(len-pw),1.5+r()*(h-3.5),sz*(t/2+0.03)]));}
+    // 화살 구멍
+    if(h>8){let x=-len/2+2.5+r()*2;while(x<len/2-2.5){p.push(P(SG.box(0.28,1.3,0.12),"#14110e","dark",[x,h*0.72,sz*(t/2+0.02)]));x+=5+r()*3;}}}
   p.push(...crenels(len,h+0.25,t/2-0.3,0.7),...crenels(len,h+0.25,-t/2+0.3,0.7));return p;}
 function keepParts(){
   const p=[];const W=24,D=22,H=24;
@@ -2416,9 +2459,21 @@ function fxTex(k){if(FXT[k])return FXT[k];const c=document.createElement("canvas
     g.fillStyle=gr;g.beginPath();g.moveTo(30,6);g.bezierCurveTo(40,34,58,62,54,96);g.bezierCurveTo(51,120,13,120,10,96);g.bezierCurveTo(7,70,24,46,22,28);g.bezierCurveTo(26,34,28,20,30,6);g.fill();}
   else if(k==="smoke"){c.width=c.height=64;g=c.getContext("2d");g.filter="blur(4px)";for(let i=0;i<7;i++){const x=20+Math.random()*24,y=20+Math.random()*24,r=10+Math.random()*10;const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,"rgba(255,255,255,0.5)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);}}
   else if(k==="ember"){c.width=c.height=16;g=c.getContext("2d");const gr=g.createRadialGradient(8,8,0,8,8,8);gr.addColorStop(0,"rgba(255,230,170,1)");gr.addColorStop(0.4,"rgba(255,140,40,0.8)");gr.addColorStop(1,"rgba(255,80,0,0)");g.fillStyle=gr;g.fillRect(0,0,16,16);}
+  else if(k==="wisp"){c.width=32;c.height=96;g=c.getContext("2d");g.filter="blur(3px)";const gr=g.createLinearGradient(0,96,0,0);gr.addColorStop(0,"rgba(255,255,255,0)");gr.addColorStop(0.35,"rgba(255,255,255,0.75)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.beginPath();g.moveTo(16,92);g.bezierCurveTo(26,70,8,46,18,22);g.bezierCurveTo(20,14,16,8,16,4);g.bezierCurveTo(12,20,22,44,10,66);g.bezierCurveTo(8,78,12,86,16,92);g.fill();}
+  else if(k==="mote"){c.width=c.height=16;g=c.getContext("2d");const gr=g.createRadialGradient(8,8,0,8,8,8);gr.addColorStop(0,"rgba(255,255,255,1)");gr.addColorStop(0.35,"rgba(255,255,255,0.6)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,16,16);}
   else if(k==="glow"){c.width=c.height=64;g=c.getContext("2d");const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"rgba(255,140,50,0.55)");gr.addColorStop(0.5,"rgba(200,70,20,0.2)");gr.addColorStop(1,"rgba(120,30,0,0)");g.fillStyle=gr;g.fillRect(0,0,64,64);}
   else if(k==="scorch"){c.width=c.height=128;g=c.getContext("2d");g.filter="blur(5px)";for(let i=0;i<26;i++){const a=Math.random()*6.283,r=Math.random()*24,x=64+Math.cos(a)*r,y=64+Math.sin(a)*r,rr=10+Math.random()*12;const gr=g.createRadialGradient(x,y,0,x,y,rr);gr.addColorStop(0,"rgba(18,12,8,0.55)");gr.addColorStop(1,"rgba(18,12,8,0)");g.fillStyle=gr;g.fillRect(0,0,128,128);}}
   FXT[k]=new THREE.CanvasTexture(c);return FXT[k];}
+/* 주술과 기도: 큰 빛 덩어리 대신, 땅에서 피어오르는 가는 기운과 낮게 깔리는 검은 안개 */
+const MAGIC={raise:1,shock:1,heal:1,purify:1};
+function magicFx(B,k,x,z){if(B.headless)return;const t=B.t,y=bH(x,z);
+  if(k==="raise"){for(let i=0;i<16;i++){const a=Math.random()*6.283,r=Math.sqrt(Math.random())*7,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;partAdd(B,{k:"wisp",c:"#9fc48a",x:px,y:bH(px,pz)+0.3,z:pz,vx:rnd(-0.2,0.2),vy:1.6+Math.random()*1.8,vz:rnd(-0.2,0.2),t0:t+Math.random()*0.5,dur:1.3+Math.random()*0.6,s0:1.4,s1:2.2,o:0.5,w:1});}
+    for(let i=0;i<5;i++)partAdd(B,{k:"smoke",c:"#1a2016",x:x+rnd(-5,5),y:y+0.5,z:z+rnd(-5,5),vx:rnd(-0.4,0.4),vy:0.25,vz:rnd(-0.4,0.4),t0:t,dur:2.4,s0:3,s1:7,o:0.45});}
+  else if(k==="shock"){for(let i=0;i<22;i++){const a=i/22*6.283+rnd(-0.1,0.1),v=7+Math.random()*5;partAdd(B,{k:"mote",c:"#a99ac8",x:x,y:y+0.6,z:z,vx:Math.cos(a)*v,vy:rnd(0,1.2),vz:Math.sin(a)*v,t0:t,dur:0.8+Math.random()*0.4,s0:0.5,s1:0.15,o:0.8});}
+    for(let i=0;i<8;i++){const a=Math.random()*6.283;partAdd(B,{k:"smoke",c:"#221c2a",x:x+Math.cos(a)*2,y:y+0.6,z:z+Math.sin(a)*2,vx:Math.cos(a)*2.5,vy:0.5,vz:Math.sin(a)*2.5,t0:t,dur:1.8,s0:2,s1:6,o:0.5});}
+    for(let i=0;i<6;i++)partAdd(B,{k:"wisp",c:"#8f7fb4",x:x+rnd(-1.5,1.5),y:y+0.4,z:z+rnd(-1.5,1.5),vx:0,vy:3+Math.random()*2,vz:0,t0:t+i*0.05,dur:1.1,s0:1.6,s1:2.6,o:0.55,w:1});}
+  else if(k==="heal"){for(let i=0;i<9;i++)partAdd(B,{k:"mote",c:"#f0e2b4",x:x+rnd(-3,3),y:y+0.5+Math.random(),z:z+rnd(-3,3),vx:0,vy:1.2+Math.random(),vz:0,t0:t+Math.random()*0.3,dur:1.1,s0:0.32,s1:0.1,o:0.85,w:1});}
+  else if(k==="purify"){for(let i=0;i<16;i++){const a=i/16*6.283,v=5+Math.random()*4;partAdd(B,{k:"mote",c:"#f3ead0",x:x,y:y+0.5,z:z,vx:Math.cos(a)*v,vy:0.8+Math.random(),vz:Math.sin(a)*v,t0:t,dur:1.0,s0:0.4,s1:0.12,o:0.8});}}}
 function partAdd(B,o){if(!B||B.headless)return;const P=B.parts||(B.parts=[]);P.push(o);if(P.length>360)P.splice(0,P.length-360);}
 // 땅에 떨어진 화살은 몇 초 동안 꽂혀 있다 (불화살은 잠깐 더 탄다)
 function stuckAdd(B,p){if(B.headless)return;const L=Math.hypot(p.x1-p.x0,p.z1-p.z0)||1,arc=p.k==="fire"?Math.min(30,L*0.42+8):p.k==="jav"?Math.min(9,L*0.25):Math.min(24,L*0.3),fire=p.k==="fire";
@@ -2430,7 +2485,7 @@ function potBreak(B,p){if(B.headless)return;const y=bH(p.x1,p.z1);for(let i=0;i<
 function fireRender(B,dt,now){const t=B.t;BR.fxp=BR.fxp||[];let pi=0;
   const spr=(k)=>{let sp=BR.fxp[pi];if(!sp){sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false,toneMapped:false}));sp.renderOrder=6;BR.scene.add(sp);BR.fxp.push(sp);}
     if(sp.userData.k!==k){sp.userData.k=k;sp.material.map=fxTex(k);sp.material.blending=k==="smoke"?THREE.NormalBlending:THREE.AdditiveBlending;sp.material.needsUpdate=true;if(k==="flame")sp.center.set(0.5,0.16);else sp.center.set(0.5,0.5);}
-    sp.material.color.set(k==="smoke"?"#3a342e":"#ffffff");sp.visible=true;pi++;return sp;};
+    sp.material.color.set(k==="smoke"?"#3a342e":"#ffffff");sp.visible=true;if(k==="wisp")sp.center.set(0.5,0.05);else if(k!=="flame")sp.center.set(0.5,0.5);pi++;return sp;};
   BR.fxd=BR.fxd||[];let di=0;
   const dec=(k)=>{let m=BR.fxd[di];if(!m){m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,toneMapped:false}));m.rotation.x=-Math.PI/2;m.renderOrder=4;BR.scene.add(m);BR.fxd.push(m);}
     if(m.userData.k!==k){m.userData.k=k;m.material.map=fxTex(k);m.material.blending=k==="glow"?THREE.AdditiveBlending:THREE.NormalBlending;m.material.needsUpdate=true;}m.visible=true;di++;return m;};
@@ -2456,7 +2511,7 @@ function fireRender(B,dt,now){const t=B.t;BR.fxp=BR.fxp||[];let pi=0;
   const tips=B.fireTips||[];for(let i=0;i<tips.length;i+=3){const fl=0.8+0.2*Math.sin(now*20+i);const sp=spr("flame");sp.position.set(tips[i],tips[i+1]-0.15,tips[i+2]);sp.scale.set(0.42*fl,0.8*fl,1);sp.material.opacity=0.95;}B.fireTips=[];
   B.parts=(B.parts||[]).filter(p=>t<p.t0+p.dur);
   for(const p of B.parts){const age=t-p.t0;if(age<0)continue;const a=age/p.dur,sp=spr(p.k);
-    sp.position.set(p.x+p.vx*age+(p.w?Math.sin(age*7+p.x)*0.3:0),p.y+p.vy*age-(p.g||0)*age*age*0.5,p.z+p.vz*age);sp.scale.setScalar(p.s0+(p.s1-p.s0)*a);
+    sp.position.set(p.x+p.vx*age+(p.w?Math.sin(age*7+p.x)*0.3:0),p.y+p.vy*age-(p.g||0)*age*age*0.5,p.z+p.vz*age);{const sc=p.s0+(p.s1-p.s0)*a;if(p.k==="wisp")sp.scale.set(sc*0.45,sc*1.6,1);else sp.scale.setScalar(sc);}if(p.c)sp.material.color.set(p.c);
     sp.material.opacity=p.k==="smoke"?p.o*Math.sin(Math.min(1,a*1.4)*Math.PI*0.5)*(1-a):p.o*(1-a*a);}
   for(;pi<BR.fxp.length;pi++)BR.fxp[pi].visible=false;for(;di<BR.fxd.length;di++)BR.fxd[di].visible=false;}
 function glowSprite(col,size,opacity=1){
@@ -2897,7 +2952,7 @@ function updateSiteLabels(){
     const o=WR.siteObjs[site.id];if(!o)continue;const st=S.sites[site.id];
     let cls="s-ours",sub="";
     if(site.kind==="capital"){sub=`Garrison ${fmtN(compMen(S.garrison))}`;}
-    else if(site.kind==="village"){if(st.state==="besieged"){cls="s-danger";sub=`Besieged · ${st.doom} days left`;}else if(st.state==="ruined"){cls="s-dead";sub="Ruins";}else sub=`Pop. ${fmtN(st.pop)}`;}
+    else if(site.kind==="village"){if(st.state==="besieged"){cls="s-danger";sub=`Besieged · ${st.doom} ${(st.doom)==1?"day":"days"} left`;}else if(st.state==="ruined"){cls="s-dead";sub="Ruins";}else sub=`Pop. ${fmtN(st.pop)}`;}
     else if(site.kind==="neutral"){cls=st.state==="joined"?"s-ours":"s-neutral";sub=st.state==="joined"?"Allied":"Neutral";}
     else if(site.kind==="pcapital"||site.kind==="pvillage"){const P=typeof MP!=="undefined"&&MP.kingdoms&&MP.kingdoms[site.owner];cls="s-ally";sub=site.kind==="pcapital"?`${esc(mpOwnerName(site.owner))}${P&&P.men!=null?` · ${fmtN(P.men)}`:""}`:esc(mpOwnerName(site.owner));if(st.state==="ruined"){cls="s-dead";sub="Ruins";}}
     else if(site.kind==="rcapital"||site.kind==="rvillage"){const r=realmOf(site),R=S.realms&&S.realms[r.id];cls=R&&R.alive?(R.rel>=70?"s-ours":"s-neutral"):"s-dead";sub=R&&R.alive?(st.state==="ok"?`${r.name} · ${REL_NAME(R.rel)}`:"Ruins"):"Fallen";}
@@ -3297,7 +3352,7 @@ function enterCapital(){
   UI.mode="capital";showCapitalHUD();$("#cmini").hidden=false;drawCapMini();
   if(!WR.built&&!enterCapital._pre){enterCapital._pre=true;setTimeout(()=>{try{if(!WR.built)buildWorld();}catch(e){}},2500);}   /* 지도를 미리 지어 둔다 — 처음 펼칠 때 2초 넘게 걸리던 것 */
 }
-function capMount(){if(!CAP.horse)return;if(!KC.mounted&&S.kingWound>0){UI.bannerSay(`Too wounded to ride — ${S.kingWound} days left`);return;}if(KC.mounted){KC.mounted=false;CAP.horsePos={x:CAP.pos.x,z:CAP.pos.z,face:KC.face};CAP.horse.visible=true;CAP.horse.position.set(CAP.pos.x,capHm(CAP.pos.x,CAP.pos.z),CAP.pos.z);CAP.horse.rotation.y=KC.face;CAP.pos.x+=Math.cos(KC.face)*1.4;CAP.pos.z-=Math.sin(KC.face)*1.4;E.tp.dd=7;UI.bannerSay("Dismounted.");}
+function capMount(){if(!CAP.horse)return;if(!KC.mounted&&S.kingWound>0){UI.bannerSay(`Too wounded to ride — ${S.kingWound} ${(S.kingWound)==1?"day":"days"} left`);return;}if(KC.mounted){KC.mounted=false;CAP.horsePos={x:CAP.pos.x,z:CAP.pos.z,face:KC.face};CAP.horse.visible=true;CAP.horse.position.set(CAP.pos.x,capHm(CAP.pos.x,CAP.pos.z),CAP.pos.z);CAP.horse.rotation.y=KC.face;CAP.pos.x+=Math.cos(KC.face)*1.4;CAP.pos.z-=Math.sin(KC.face)*1.4;E.tp.dd=7;UI.bannerSay("Dismounted.");}
   else{KC.mounted=true;KC.horse=CAP.horse;CAP.pos.x=CAP.horsePos.x;CAP.pos.z=CAP.horsePos.z;KC.face=CAP.horsePos.face||KC.face;E.tp.dd=9.5;UI.bannerSay("Mounted. Shift to gallop.");}
   updateHorseSpot();renderPrompt();}
 // 오늘 '왕의 발걸음'이 되는 건물 이름표에 작은 표식
@@ -3331,7 +3386,7 @@ function duelK(){const k=kingSkill();return clamp(0.55+k*0.012,0.55,1.6);}
 function duelLv(){const d=duelK();return d<0.75?"They go very easy on you":d<0.95?"They go a little easy":d<1.15?"They fight properly":d<1.35?"They fight all-out":"They fight like their life depends on it";}
 function startTournament(){const ready=S.gens.filter(g=>g.status==="ready").sort((a,b)=>a.lvl-b.lvl);if(ready.length<2)return;DUEL.tour={list:ready.map(g=>g.id),i:0,wins:0};startDuel(ready[0].id);UI.bannerSay(`Tournament begins — defeat ${ready.length} opponents in a row!`);}
 function tourNext(){const T=DUEL.tour;if(!T)return;T.i++;if(T.i<T.list.length){KC.hp=Math.min(KC.max,KC.hp+20);setTimeout(()=>{if(UI.mode==="capital"&&DUEL.tour)startDuel(T.list[T.i]);},2200);}else tourEnd();}
-function tourEnd(){const T=DUEL.tour;if(!T)return;DUEL.tour=null;const prize=150*T.wins;S.res.gold+=prize;if(T.wins===T.list.length){S.tourWins=(S.tourWins||0)+1;kingGainSkill(4,"Tournament");S.morale=clamp(S.morale+4,0,100);UI.bannerSay(`Tournament won! Gold ${prize}, and the people chant the king's name.`);sfx("cheer");}else UI.bannerSay(`Tournament over — ${T.wins} wins. Gold ${prize}.`);logMsg(`Colosseum tournament: ${T.wins}W ${T.list.length-T.wins}L. Gold +${prize}.`,"gold");}
+function tourEnd(){const T=DUEL.tour;if(!T)return;DUEL.tour=null;const prize=150*T.wins;S.res.gold+=prize;if(T.wins===T.list.length){S.tourWins=(S.tourWins||0)+1;kingGainSkill(4,"Tournament");S.morale=clamp(S.morale+4,0,100);UI.bannerSay(`Tournament won! Gold ${prize}, and the people chant the king's name.`);sfx("cheer");}else UI.bannerSay(`Tournament over — ${T.wins} ${(T.wins)==1?"win":"wins"}. Gold ${prize}.`);logMsg(`Colosseum tournament: ${T.wins}W ${T.list.length-T.wins}L. Gold +${prize}.`,"gold");}
 // 장군마다 검술: 에오린은 짧고 빠른 베기, 하드릭은 크고 무거운 내려찍기, 셀레나는 돌며 베기
 const DUEL_MOVES={eorin:["sw_slash1","sw_slash2","sw_slash4"],hadrik:["sw_slash3","sw_slash5","sw_attack1"],selena:["sw_attack2","sw_slash4","sw_attack3"]},DUEL_SPD={eorin:1.25,hadrik:0.85,selena:1.05};
 function startDuel(id){const g=S.gens.find(x=>x.id===id);if(!g)return;if(regentOn()){UI.closeModal();UI.bannerSay("The king duels in person — opens when he returns from campaign");return;}UI.closeModal();const G=genById(id);
@@ -3541,7 +3596,7 @@ function drawCapMini(){const cv=$("#cmini");if(!cv||cv.hidden||!(UI.mode==="capi
 function conventVisit(){const day=S.day|0;const used=S.conventDay===day;
   const html=`${winHead("Convent")}<p class="sub">By candlelight the sisters wind bandages and grind herbs. Soldiers back from the field lie quietly.</p>
   <div class="tile"><b>Sisters' Blessing</b><span>King's max HP +20% today (duel · tournament · battle)${used?" · already blessed today":""}</span>${used?"":`<button class="b gold" data-a="conventHeal">Receive blessing</button>`}</div>
-  ${S.kingWound>0?`<div class="tile"><b>Tend the king's wounds</b><span>Grave wound, ${S.kingWound} days left → the sisters drain and re-stitch it: -4 days · 80 gold (once a day)${S.res.gold<80?" (not enough gold)":""}</span>${S.res.gold<80||S.woundCare===day?"":`<button class="b gold" data-a="woundCare">Get treated</button>`}</div>`:""}
+  ${S.kingWound>0?`<div class="tile"><b>Tend the king's wounds</b><span>Grave wound, ${S.kingWound} ${(S.kingWound)==1?"day":"days"} left → the sisters drain and re-stitch it: -4 days · 80 gold (once a day)${S.res.gold<80?" (not enough gold)":""}</span>${S.res.gold<80||S.woundCare===day?"":`<button class="b gold" data-a="woundCare">Get treated</button>`}</div>`:""}
   <div class="tile"><b>Tend the wounded</b><span>Favor +5 (troops also start battles with higher morale) · Gold 30${S.res.gold<30?" (not enough gold)":""}</span>${S.res.gold<30||S.conventMor===day?"":`<button class="b" data-a="conventMor">Donate</button>`}</div>
   <p class="hint">E to leave</p>`;
   UI.openModal(html,{narrow:true});}
@@ -3772,7 +3827,7 @@ function treasuryModal(){
   const opts=[["Lenient taxes","Gold income -20%, Favor +0.35/day"],["Normal taxes","No change"],["Harsh taxes","Gold income +30%, Favor -0.5/day"]];
   return `${winHead("Treasurer Bella")}<div class="wbody"><p class="story" style="font-size:15px">"Majesty, the treasury is the army. But even the people's patience has a bottom."</p>
     <dl class="kv"><dt>Gold</dt><dd>${fmtN(S.res.gold)} (${e.gold>=0?"+":""}${e.gold}/day)</dd><dt>Food</dt><dd>${fmtN(S.res.food)} (${e.food>=0?"+":""}${e.food}/day)</dd><dt>Village tribute</dt><dd>Every three days ~gold ${fmtN(e.vg*3)} · ~food ${fmtN(e.vf*3)}</dd><dt>Favor</dt><dd>${Math.round(S.morale)}</dd>
-    ${S.court.buffs.length?`<dt>Special income</dt><dd>${S.court.buffs.map(b=>`${b.k==="gold"?"Gold":"Food"} ${b.v>0?"+":""}${b.v}/day (${b.until-S.day} days)`).join(", ")}</dd>`:""}</dl>
+    ${S.court.buffs.length?`<dt>Special income</dt><dd>${S.court.buffs.map(b=>`${b.k==="gold"?"Gold":"Food"} ${b.v>0?"+":""}${b.v}/day (${b.until-S.day} ${(b.until-S.day)==1?"day":"days"})`).join(", ")}</dd>`:""}</dl>
     <div><div class="eyebrow" style="margin-bottom:6px">Tax policy</div><div style="display:grid;gap:6px">${opts.map(([n,d],i)=>`<button class="gen" data-a="tax" data-v="${i}" aria-pressed="${t===i}" style="grid-template-columns:1fr auto"><span class="nm">${n}<small>${d}</small></span><span class="st ${t===i?"ready":""}">${t===i?"Active":""}</span></button>`).join("")}</div></div></div>`;
 }
 function spyNetModal(){
@@ -3781,22 +3836,22 @@ function spyNetModal(){
   return `${winHead("Spymaster Kael")}<div class="wbody"><p class="story" style="font-size:15px">"The Dead never sleep, but their eyes are dim. Send them at night."</p>
     <dl class="kv"><dt>Spies</dt><dd>${sp.agents} (resting: ${spyFree()}) / max ${spyMax()}</dd><dt>Network</dt><dd>Level ${sp.lvl} — success +${(sp.lvl-1)*9}%</dd></dl>
     <div class="acts"><button class="b" data-a="spyHire" ${sp.agents<spyMax()&&S.res.gold>=cost?"":"disabled"}>Hire spy · Gold ${cost}</button><button class="b" data-a="spyUp" ${sp.lvl<3&&S.res.gold>=up?"":"disabled"}>${sp.lvl<3?`Expand network · Gold ${up}`:"Network at max"}</button></div>
-    <div><div class="eyebrow" style="margin:6px 0">Targets</div>${targets.map(s=>{const op=opAt(s.id),age=intelAge(s.id);return `<div class="qrow"><span class="glyph" style="background:${s.kind==="village"?"#7a5a3a":"#3a2a2a"}">${s.kind==="village"?"V":"F"}</span><span>${esc(s.name)}<br><span class="note">${age<Infinity?`Report ${age} days ago · weaknesses ${(S.intel[s.id].found||[]).length}/3`:"No intel"} · Success ${Math.round(spyChance(s)*100)}%</span></span>
+    <div><div class="eyebrow" style="margin:6px 0">Targets</div>${targets.map(s=>{const op=opAt(s.id),age=intelAge(s.id);return `<div class="qrow"><span class="glyph" style="background:${s.kind==="village"?"#7a5a3a":"#3a2a2a"}">${s.kind==="village"?"V":"F"}</span><span>${esc(s.name)}<br><span class="note">${age<Infinity?`Report ${age} ${(age)==1?"day":"days"} ago · weaknesses ${(S.intel[s.id].found||[]).length}/3`:"No intel"} · Success ${Math.round(spyChance(s)*100)}%</span></span>
       <span style="margin-left:auto;display:flex;gap:6px">${age<Infinity&&S.intel[s.id].comps?`<button class="b sm" data-a="report" data-id="${s.id}">Report</button>`:""}${op?(op.phase==="in"?`<button class="b sm gold" data-a="infil" data-id="${s.id}">Infiltrate</button>`:`<span class="note">${op.phase==="go"?"En route":"Returning"}</span>`):`<button class="b sm" data-a="spy" data-id="${s.id}" ${spyFree()>0&&S.res.gold>=spyCost()?"":"disabled"}>Send · ${spyCost()}</button>`}</span></div>`;}).join("")||"<p class=\"note\">No enemy to scout.</p>"}</div></div>`;
 }
 function priestModal(){
   ensureCourt();const cd=S.court.blessT>S.day?S.court.blessT-S.day:0;
   return `${winHead("High Priest Mirel")}<div class="wbody"><p class="story" style="font-size:15px">"Light outlasts walls, Majesty. Let the people believe it."</p>
     <div class="tile"><div class="hd"><span class="ic">${ICON.heart}</span><span class="nm">Blessing Prayer</span></div><div class="ds">A public prayer in the square. Favor +8</div><div class="cost">Gold 120 · Food 40</div>
-      <button class="b sm gold" data-a="bless" ${cd||S.res.gold<120||S.res.food<40?"disabled":""}>${cd?`${cd} days until ready`:"Hold a prayer"}</button></div>
+      <button class="b sm gold" data-a="bless" ${cd||S.res.gold<120||S.res.food<40?"disabled":""}>${cd?`${cd} ${(cd)==1?"day":"days"} until ready`:"Hold a prayer"}</button></div>
     <div class="tile"><div class="hd"><span class="ic">${ICON.skull}</span><span class="nm">Memorial for the Fallen</span></div><div class="ds">Honor the fallen. Favor +3, +3 men to each garrison company (once every three days)</div><div class="cost">Gold 60</div>
-      <button class="b sm" data-a="mourn" ${S.res.gold<60||(S.court.mournD&&S.day<S.court.mournD+3)?"disabled":""}>${S.court.mournD&&S.day<S.court.mournD+3?`${S.court.mournD+3-S.day} days`:"Hold a memorial"}</button></div>
+      <button class="b sm" data-a="mourn" ${S.res.gold<60||(S.court.mournD&&S.day<S.court.mournD+3)?"disabled":""}>${S.court.mournD&&S.day<S.court.mournD+3?`${S.court.mournD+3-S.day} ${(S.court.mournD+3-S.day)==1?"day":"days"}`:"Hold a memorial"}</button></div>
     ${S.bld.chapel?`<div class="acts"><button class="b" data-a="openBld" data-k="chapel">Recruit priests</button></div>`:`<p class="note">Build a chapel to train priests.</p>`}</div>`;
 }
 function councilModal(){
   return `${winHead("War Council")}<div class="wbody"><p class="story" style="font-size:15px">On the map table, a black stone marks every fort of the Dead. The generals await the king's word.</p>
-    ${S.gens.map(g=>{const G=genById(g.id);return `<div class="gen" style="grid-template-columns:auto 1fr auto"><span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"Ready",march:"On campaign",wounded:`Wounded ${g.wound} days`,dead:"Fallen"}[g.status]}</span></div>`;}).join("")}
-    ${S.court&&S.court.hire?`<div class="tile"><div class="hd"><span class="seal">${S.court.hire.name[0]}</span><span class="nm">${S.court.hire.name} · ${GEN_KIT[S.court.hire.unit].title} (Lv${S.court.hire.lvl})</span></div><div class="ds">${esc(S.court.hire.bio)} ${GEN_KIT[S.court.hire.unit].passive} · ${GEN_KIT[S.court.hire.unit].ab}</div><div class="cost">Gold ${S.court.hire.cost} · ${S.court.hire.until-S.day} days left</div><button class="b sm gold" data-a="hireGen" ${S.res.gold>=S.court.hire.cost&&S.gens.length<7?"":"disabled"}>Recruit</button></div>`:""}
+    ${S.gens.map(g=>{const G=genById(g.id);return `<div class="gen" style="grid-template-columns:auto 1fr auto"><span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"Ready",march:"On campaign",wounded:`Wounded ${g.wound} ${(g.wound)==1?"day":"days"}`,dead:"Fallen"}[g.status]}</span></div>`;}).join("")}
+    ${S.court&&S.court.hire?`<div class="tile"><div class="hd"><span class="seal">${S.court.hire.name[0]}</span><span class="nm">${S.court.hire.name} · ${GEN_KIT[S.court.hire.unit].title} (Lv${S.court.hire.lvl})</span></div><div class="ds">${esc(S.court.hire.bio)} ${GEN_KIT[S.court.hire.unit].passive} · ${GEN_KIT[S.court.hire.unit].ab}</div><div class="cost">Gold ${S.court.hire.cost} · ${S.court.hire.until-S.day} ${(S.court.hire.until-S.day)==1?"day":"days"} left</div><button class="b sm gold" data-a="hireGen" ${S.res.gold>=S.court.hire.cost&&S.gens.length<7?"":"disabled"}>Recruit</button></div>`:""}
     <div><div class="eyebrow" style="margin:8px 0 4px">Promote a general — a ★★★ company captain becomes a general (500 gold, max 7)</div>${S.garrison.map((c,i)=>({c,i})).filter(x=>(x.c.vet||0)>=3).map(({c,i})=>`<div class="qrow"><span class="glyph" style="background:${U[c.t].col}">${U[c.t].g}</span>${U[c.t].n} company <span style="color:var(--gold)">★★★</span><span class="note" style="margin-left:6px">${GEN_KIT[c.t]?GEN_KIT[c.t].title+" · "+GEN_KIT[c.t].ab:""}</span><button class="b sm gold" style="margin-left:auto" data-a="promote" data-i="${i}" ${S.res.gold>=500&&S.gens.length<7?"":"disabled"}>Promote</button></div>`).join("")||"<p class=\"note\">No ★★★ company yet. Only companies that survive real battles earn a third star.</p>"}</div>
     <div class="acts"><button class="b gold" data-a="compose">Form expedition</button><button class="b" data-a="armies">Command armies</button><button class="b" data-a="map">World map</button><button class="b" data-a="spyNet">Spy reports</button></div></div>`;
 }
@@ -3804,14 +3859,14 @@ function genModal(id){
   const g=genState(id),G=genById(id);
   return `${winHead(G.name)}<div class="wbody"><div style="display:flex;gap:12px;align-items:center"><span class="seal">${G.seal}</span><div><h2>${G.name}</h2><span class="kind">${G.title}</span></div></div>
     <p class="desc">${esc(G.bio)}</p><dl class="kv"><dt>Rank</dt><dd>Lv${g.lvl} (XP ${g.xp})</dd><dt>Passive</dt><dd>${G.passive}</dd><dt>Ability</dt><dd>${G.ab} — ${G.abd}</dd>${genPerks(id).map(p=>`<dt>Lv${p.need}</dt><dd style="${p.on?"color:var(--gold)":"opacity:.55"}">${p.on?"":"(locked) "}${p.n}</dd>`).join("")}</dl>
-    ${g.status==="ready"?`<div class="acts"><button class="b gold" data-a="composeGen" data-id="${id}">Give this general an expedition</button></div>`:`<p class="note">${g.status==="wounded"?`Recovering from wounds (${g.wound} days)`:""}</p>`}</div>`;
+    ${g.status==="ready"?`<div class="acts"><button class="b gold" data-a="composeGen" data-id="${id}">Give this general an expedition</button></div>`:`<p class="note">${g.status==="wounded"?`Recovering from wounds (${g.wound} ${(g.wound)==1?"day":"days"})`:""}</p>`}</div>`;
 }
 
 // 신하의 인사: 다가가면 제 소관을 한마디로 보고한다
 function courtGreet(id){const e=econ();
   if(id==="chan")return `Chancellor: "Majesty, ${S.bq&&Object.keys(S.bq).length?`${Object.keys(S.bq).length} building projects under way, and `:""}companies in training: ${S.queue.length}."`;
   if(id==="treas")return `Treasurer: "Treasury gold ${fmtN(S.res.gold)}, today ${e.gold>=0?"+":""}${e.gold}. ${S.debt>0?`Debt remaining: ${fmtN(Math.round(S.debt))}.`:"No debt."}"`;
-  if(id==="spym")return `Spymaster: "${S.spy&&S.spy.ops.length?`${S.spy.ops.length} spies are out in the field.`:"No spies are out right now. Shall we look into a fort?"}"`;
+  if(id==="spym")return `Spymaster: "${S.spy&&S.spy.ops.length?`${S.spy.ops.length} ${(S.spy.ops.length)==1?"spy":"spies"} are out in the field.`:"No spies are out right now. Shall we look into a fort?"}"`;
   if(id==="pri")return `High Priest: "The people's favor stands at ${Math.round(S.morale)}. ${S.morale<50?"The people's hearts waver — they need a blessing.":"The people trust you, Majesty."}"`;
   if(id==="cham"){const pet=S.court&&S.court.pet?S.court.pet.length:0;return `Chamberlain: "${pet?`${pet} petitioners await an audience.`:"No petitions today, Majesty."}"`;}
   return "";}
@@ -4104,7 +4159,7 @@ function renderKingHud(extra){const el=$("#khud");if(!el)return;el.hidden=false;
   el.innerHTML=`<div class="kh-bars"><div class="kh-row"><span>HP</span><span class="bar big"><i style="width:${Math.max(0,k.hp/k.max*100)}%;background:${k.hp<k.max*0.3?"var(--blood)":"#b8463a"}"></i></span></div>
     <div class="kh-row"><span>Stamina</span><span class="bar big"><i style="width:${k.stam}%;background:#c9b07a"></i></span></div>
     ${inB?`<div class="kh-row"><span>Fury</span><span class="bar big musou ${(k.musou||0)>=100?"full":""}"><i style="width:${k.musou||0}%"></i></span></div>`:`<div class="kh-row"><span>${HERO.gen?"Level":"Prowess"}</span><span class="bar big"><i style="width:${HERO.gen?Math.min(100,((heroGenSt()||{}).lvl||1)*14):kingSkill()}%;background:#8fa6c0"></i></span><b class="num">${HERO.gen?((heroGenSt()||{}).lvl||1):Math.floor(kingSkill())}</b></div>`}</div>
-    ${typeof S!=="undefined"&&S&&S.kingWound>0&&!(typeof BT!=="undefined"&&BT)?`<div class="kh-row" style="color:#f0a090;display:block">Badly wounded, ${S.kingWound} days left. Cannot ride or march out</div>`:""}
+    ${typeof S!=="undefined"&&S&&S.kingWound>0&&!(typeof BT!=="undefined"&&BT)?`<div class="kh-row" style="color:#f0a090;display:block">Badly wounded, ${S.kingWound} ${(S.kingWound)==1?"day":"days"} left. Cannot ride or march out</div>`:""}
     ${extra||""}${inB&&!k.mounted?`<div class="kh-keys">${KSKILLS.filter(s=>kSkillOpen(s.id)).map(s=>`<kbd>${s.key}</kbd>${s.n}${(k.kcd&&k.kcd[s.id]>0)?` <span class="cd">${Math.ceil(k.kcd[s.id])}</span>`:""}`).join(" ")}</div>`:""}`;el.hidden=false;}
 function hideKingHud(){const el=$("#khud");if(el)el.hidden=true;const hv=$("#hurt");if(hv){hv.style.opacity="0";}}
 
@@ -4247,9 +4302,9 @@ function trainDays(t){let d=U[t].days;if(t==="inf"||t==="spear")d=Math.max(1,4-(
 function canRecruit(t){const u=U[t],k=unitCost(t);if(u.need&&!S.bld[u.need])return `${BLD[u.need].n}`;if(S.civ<400)return "Not enough people to conscript";if(S.res.gold<k.gold||S.res.food<k.food)return "Not enough resources";return null;}
 function recruit(t){if(canRecruit(t))return false;const u=U[t],k=unitCost(t);S.res.gold-=k.gold;S.res.food-=k.food;S.civ-=100;S.queue.push({t,days:trainDays(t),cost:{gold:k.gold,food:k.food}});return true;}
 function bldCost(k){const l=S.bld[k],f=1+l*0.8,o={};for(const r in BLD[k].c)o[r]=Math.round(BLD[k].c[r]*f);return o;}
-function canBuild(k){if(S.bld[k]>=BLD[k].max)return "Max";if(S.bq&&S.bq[k])return `Under construction ${S.bq[k].days} days`;const c=bldCost(k);for(const r in c)if(S.res[r]<c[r])return "Not enough resources";return null;}
+function canBuild(k){if(S.bld[k]>=BLD[k].max)return "Max";if(S.bq&&S.bq[k])return `Under construction ${S.bq[k].days} ${(S.bq[k].days)==1?"day":"days"}`;const c=bldCost(k);for(const r in c)if(S.res[r]<c[r])return "Not enough resources";return null;}
 function build(k){if(canBuild(k))return false;const c=bldCost(k);for(const r in c)S.res[r]-=c[r];
-  const d=bldDays(k);S.bq=S.bq||{};S.bq[k]={days:d,to:S.bld[k]+1,cost:c};logMsg(`${BLD[k].n} ${S.bld[k]+1} — construction begun. ${d} days.`);return true;}
+  const d=bldDays(k);S.bq=S.bq||{};S.bq[k]={days:d,to:S.bld[k]+1,cost:c};logMsg(`${BLD[k].n} ${S.bld[k]+1} — construction begun. ${d} ${(d)==1?"day":"days"}.`);return true;}
 // 공사 기간: 건물마다 기본값, 단계가 오를수록 하루씩 더 (최대 5일). 교련 체계 기술은 영향 없음
 function bldDays(k){const b=BLD[k];return Math.min(5,(b.days||2)+(k==="walls"?0:S.bld[k]));}
 function wallDay(){if(!S.bq)return;for(const k in S.bq){const q=S.bq[k];if(--q.days<=0){S.bld[k]=q.to;delete S.bq[k];logMsg(`${BLD[k].n} ${S.bld[k]>1?S.bld[k]+"":""} complete.`,"gold");UI.dirty=true;if(UI.mode==="capital"&&typeof rebuildCapital==="function")rebuildCapital();}}}
@@ -4258,7 +4313,7 @@ function wallDay(){if(!S.bq)return;for(const k in S.bq){const q=S.bq[k];if(--q.d
 const VIL_UNITS=["inf","spear","archer"];
 function vil(id){const st=S.sites[id];if(st.walls===undefined)st.walls=0;if(!st.vgar)st.vgar=[];if(!st.vq)st.vq=[];return st;}
 function vilWallCost(st){return {gold:180*(st.walls+1),food:80};}
-function canVilWall(id){const st=vil(id);if(st.state!=="ok")return "The village must be at peace";if(st.walls>=3)return "Max";if(st.wallQ)return `Building ${st.wallQ} days`;const c=vilWallCost(st);if(S.res.gold<c.gold||S.res.food<c.food)return "Not enough resources";return null;}
+function canVilWall(id){const st=vil(id);if(st.state!=="ok")return "The village must be at peace";if(st.walls>=3)return "Max";if(st.wallQ)return `Building ${st.wallQ} ${(st.wallQ)==1?"day":"days"}`;const c=vilWallCost(st);if(S.res.gold<c.gold||S.res.food<c.food)return "Not enough resources";return null;}
 function vilWall(id){if(canVilWall(id))return false;const st=vil(id),c=vilWallCost(st);S.res.gold-=c.gold;S.res.food-=c.food;st.wallQ=2;logMsg(`${siteById(id).name}: wall construction begun. Two days.`);return true;}
 function _vilWallOld(id){const st=vil(id);st.walls++;logMsg(`${siteById(id).name}: ${st.walls===1?"stone walls raised":`walls raised to Lv${st.walls}`}.`);return true;}
 function canVilRecruit(id,t){const st=vil(id),u=U[t];if(st.state!=="ok")return "The village must be at peace";if(st.pop<350)return "Not enough villagers";if(st.vgar.length+st.vq.length>=6)return "Village garrison is full (6 companies)";if(S.res.gold<u.cost.gold||S.res.food<u.cost.food)return "Not enough resources";return null;}
@@ -4287,7 +4342,7 @@ function onDay(){
   const e=econ();
   S.res.food+=e.food;S.res.gold+=e.gold;
   /* 병사가 백성의 60%를 넘으면 들판이 비고 집집마다 아들을 잃었다 — 민심이 매일 깎인다 */
-  {const sol=soldiersAll();if(sol>S.civ*0.6){S.morale=clamp(S.morale-1.5,0,100);if(!(S.draftWarnD>S.day-4)){S.draftWarnD=S.day;logMsg(`Over-conscription — ${fmtN(sol)} soldiers exceed 60% of the ${fmtN(S.civ)} people. Favor drops daily, and short-handed farms and markets slow down.`,"bad");}}
+  {const sol=soldiersAll();if(sol>S.civ*0.6){S.morale=clamp(S.morale-1.5,0,100);if(!(S.draftWarnD>S.day-4)){S.draftWarnD=S.day;logMsg(`Over-conscription — ${fmtN(sol)} ${(fmtN(sol))==1?"soldier":"soldiers"} exceed 60% of the ${fmtN(S.civ)} people. Favor drops daily, and short-handed farms and markets slow down.`,"bad");}}
    else if(laborK()<1&&!(S.laborWarnD>S.day-5)){S.laborWarnD=S.day;logMsg(`Short of hands — with fewer people, farms and markets run at only ${Math.round(laborK()*100)}%. Housing and settlers are needed.`,"bad");}}
   /* 마을 몫은 마을마다 쌓였다가 사흘마다 수레로 들어온다 */
   S.vAcc=S.vAcc||{};for(const v of villagesOwned()){const r=vilEarn(v);const a=S.vAcc[v.id]=S.vAcc[v.id]||{g:0,f:0};a.g+=r.g;a.f+=r.f;}
@@ -4463,7 +4518,7 @@ function arrive(a){
         const men=compMen(a.comps),wl=st.walls||0;
         if(a.pack&&men/FOE_K<=st.pop*0.12*(1+0.4*wl)){const lost=Math.min(st.pop-50,Math.round(men/FOE_K*0.4));st.pop-=lost;S.morale=clamp(S.morale-2,0,100);logMsg(`${s.name}'s militia drove off a pack of the Dead. Villagers lost: ${fmtN(lost)}.`,"bad");S.armies=S.armies.filter(x=>x!==a);UI.dirty=true;return;}
         st.state="besieged";st.doom=(a.pack?ri(9,13):ri(8,11))+wl*3;const lost=Math.round(st.pop*0.1);st.pop-=lost;a.mission="siege";a.target=s.id;a.moving=false;a.x=s.x+12;a.z=s.z-8;S.morale=clamp(S.morale-5,0,100);
-        logMsg(`The Dead host has surrounded ${s.name}. ${st.doom} days to relieve it, or it falls.`,"bad");refreshSites();herald(`${s.name}: siege`,`No garrison stood in the way. The villagers ${wl?"behind the walls ":""}barred the gates, but they can't hold for long. ${st.doom} days — send an army to break the siege.`,null,[{n:"View on map",a:"site:"+s.id},{n:"Send relief",a:"rescue:"+s.id}]);UI.dirty=true;return;}
+        logMsg(`The Dead host has surrounded ${s.name}. ${st.doom} ${(st.doom)==1?"day":"days"} to relieve it, or it falls.`,"bad");refreshSites();herald(`${s.name}: siege`,`No garrison stood in the way. The villagers ${wl?"behind the walls ":""}barred the gates, but they can't hold for long. ${st.doom} ${(st.doom)==1?"day":"days"} — send an army to break the siege.`,null,[{n:"View on map",a:"site:"+s.id},{n:"Send relief",a:"rescue:"+s.id}]);UI.dirty=true;return;}
       sendHome(a);return;}
     if(a.mission==="home"){const s=siteById(a.target),st=S.sites[s.id];if(st&&st.state==="active"){st.garrison.push(...a.comps);const cap=s.cap||(s.kind==="throne"?30:26);if(st.garrison.length>cap)st.garrison.splice(0,st.garrison.length-cap);}   /* 돌아온 무리로 요새가 끝없이 불어나지 않게: 한도를 넘는 무리는 흩어진다 */S.armies=S.armies.filter(x=>x!==a);return;}
   }
@@ -4503,13 +4558,13 @@ It is now day ${S.day}.
 Your forts (id: name, position x,z, garrison):
 ${forts.map(s=>`- ${s.id}: ${s.name} (${s.x},${s.z}) ${Object.entries(countBy(S.sites[s.id].garrison)).map(([t,n])=>`${t}×${n}`).join(", ")}`).join("\n")}
 Human targets (id: name, position, intel):
-${targets.map(s=>{const def=S.armies.filter(a=>a.side===0&&!a.moving&&Math.hypot(a.x-s.x,a.z-s.z)<12);return `- ${s.id}: ${s.name} (${s.x},${s.z}) ${s.kind==="capital"?`Palace, garrison ${compMen(S.garrison)}, walls Lv${S.bld.walls}`:s.realm?`Neighboring realm ${realmOf(s).name}'s ${s.kind==="rcapital"?"capital":"Village"}, army ${S.realms[s.realm].army.length} companies`:`Village pop. ${S.sites[s.id].pop}`}${def.length?`, defenders ${compMen(def.flatMap(a=>a.comps))}`:", undefended"}`;}).join("\n")}
+${targets.map(s=>{const def=S.armies.filter(a=>a.side===0&&!a.moving&&Math.hypot(a.x-s.x,a.z-s.z)<12);return `- ${s.id}: ${s.name} (${s.x},${s.z}) ${s.kind==="capital"?`Palace, garrison ${compMen(S.garrison)}, walls Lv${S.bld.walls}`:s.realm?`Neighboring realm ${realmOf(s).name}'s ${s.kind==="rcapital"?"capital":"Village"}, army ${S.realms[s.realm].army.length} ${(S.realms[s.realm].army.length)==1?"company":"companies"}`:`Village pop. ${S.sites[s.id].pop}`}${def.length?`, defenders ${compMen(def.flatMap(a=>a.comps))}`:", undefended"}`;}).join("\n")}
 Human expeditions: ${S.armies.filter(a=>a.side===0).map(a=>`${compMen(a.comps)} (${Math.round(a.x)},${Math.round(a.z)}) ${missionName(a)}`).join(" / ")||"None"}
 ${LORD_RULES}
 What you know of the human king: ${lordProfile()}
 Memory of past battles (avoid moves that failed, vary moves that worked):
 ${lordMemText()}
-Rules: from the source fort, take fewer of each unit type than it holds (leave at least 1 company in the fort). In total you may send at most ${maxTake} companies. Too weak and the humans will crush you piecemeal. Strike undefended places or exploit human armies that have marched far away.
+Rules: from the source fort, take fewer of each unit type than it holds (leave at least 1 company in the fort). In total you may send at most ${maxTake} ${(maxTake)==1?"company":"companies"}. Too weak and the humans will crush you piecemeal. Strike undefended places or exploit human armies that have marched far away.
 Put another target id in feint to split a third of the force there as a diversion (empty string if not needed).
 Answer with a single JSON only: {"from":"fort id","target":"target id","take":{"ghoul":2},"feint":"","why":"one sentence on your true intent (in English)","weak":"one mocking sentence pinpointing a concrete weakness of the human realm (in English) — a gap in their unit mix, a village without walls, an army far from home, things actually visible in the info above","taunt":"one short, chilling sentence to the human king (in English)"}`,{modelTier:"default"});
       const f=forts.find(s=>s.id===r?.from),tg=targets.find(s=>s.id===r?.target);
@@ -4536,8 +4591,8 @@ Answer with a single JSON only: {"from":"fort id","target":"target id","take":{"
 // 첩자가 그 요새에 들어가 있으면 다음 출격 계획을 엿본다
 function lordPeek(fresh){const L=S.lordNext;if(!L)return false;const op=typeof opAt==="function"&&opAt(L.from);if(!op||op.phase!=="in")return false;if(L.peeked&&!fresh)return false;L.peeked=true;
   const f=siteById(L.from),tg=siteById(L.target);const by=Object.entries(L.take).map(([t,n])=>`${U[t].n} ${fmtN(n*U[t].men)}`).join(" · ");const d=Math.max(1,S.lordT);
-  herald("Intel: the Dead's next sortie",`${f.name}: a spy hidden there overheard the Lord's orders. In about ${d} days, ${by} will march on ${tg.name}.${L.why?` The Lord's intent: ${L.why}`:""}${L.weak?` — the weakness the Lord named: “${L.weak}」`:""}`,null,[{n:`${tg.name} (view)`,a:"site:"+tg.id},{n:`${f.name} (view)`,a:"site:"+f.id}]);
-  logMsg(`Intel: in ${d} days, ${f.name} sorties toward ${tg.name}.`,"gold");return true;}
+  herald("Intel: the Dead's next sortie",`${f.name}: a spy hidden there overheard the Lord's orders. In about ${d} ${(d)==1?"day":"days"}, ${by} will march on ${tg.name}.${L.why?` The Lord's intent: ${L.why}`:""}${L.weak?` — the weakness the Lord named: “${L.weak}」`:""}`,null,[{n:`${tg.name} (view)`,a:"site:"+tg.id},{n:`${f.name} (view)`,a:"site:"+f.id}]);
+  logMsg(`Intel: in ${d} ${(d)==1?"day":"days"}, ${f.name} sorties toward ${tg.name}.`,"gold");return true;}
 // 규칙으로 찾는 우리의 약점 (Claude가 답하지 못했을 때)
 function lordWeakRule(tg){const st=S.sites[tg.id]||{};const all=[...S.garrison,...S.armies.filter(a=>a.side===0).flatMap(a=>a.comps)];const by={};let tot=0;for(const c of all){const b=lordBase(c.t);by[b]=(by[b]||0)+c.men;tot+=c.men;}
   const away=S.armies.filter(a=>a.side===0&&a.moving);
@@ -4562,8 +4617,8 @@ function lordLaunch(){const L=S.lordNext;S.lordNext=null;if(!L)return;const f=si
     if(other){const half=a.comps.splice(0,Math.floor(a.comps.length/3));const b=spawnArmy(1,half,plan.from.x+10,plan.from.z+10,{mission:"raid",target:other.id,from:plan.from.id});setDest(b,other.x,other.z);logMsg(`A Dead detachment of ${fmtN(compMen(half))} split off toward ${other.name} — it may be a feint.`,"bad");}}
   const eta=etaDays(a,plan.target.x,plan.target.z);
   const left=compMen(st.garrison),empty=left<=1600;   /* 출격한 만큼 요새가 빈다 — 그 틈을 알려 준다 */
-  logMsg(`${plan.from.name}: a Dead host of ${fmtN(compMen(out))} has marched out. Target: ${plan.target.name}, arriving in about ${eta} days. ${plan.from.name}: Dead remaining about ${fmtN(left)}${empty?" — the fort is empty. Strike now and it's easy":""}.`,"bad");
-  herald("The Dead host marches",`${plan.from.name}'s gates have opened. ${compsText(out,true)}. They march south toward ${plan.target.name}, arriving in about ${eta} days. ${plan.from.name}: Dead remaining about ${fmtN(left)}${empty?" — the fort is nearly empty. Instead of blocking, you could strike the empty fort":""}.${plan.weak?` A Dead herald ran ahead and shrieked at our gates — “${plan.weak}」`:""}`,plan.taunt,[{n:"View on map",a:"army:"+a.id},{n:`${plan.target.name} (view)`,a:"site:"+plan.target.id}]);
+  logMsg(`${plan.from.name}: a Dead host of ${fmtN(compMen(out))} has marched out. Target: ${plan.target.name}, arriving in about ${eta} ${(eta)==1?"day":"days"}. ${plan.from.name}: Dead remaining about ${fmtN(left)}${empty?" — the fort is empty. Strike now and it's easy":""}.`,"bad");
+  herald("The Dead host marches",`${plan.from.name}'s gates have opened. ${compsText(out,true)}. They march south toward ${plan.target.name}, arriving in about ${eta} ${(eta)==1?"day":"days"}. ${plan.from.name}: Dead remaining about ${fmtN(left)}${empty?" — the fort is nearly empty. Instead of blocking, you could strike the empty fort":""}.${plan.weak?` A Dead herald ran ahead and shrieked at our gates — “${plan.weak}」`:""}`,plan.taunt,[{n:"View on map",a:"army:"+a.id},{n:`${plan.target.name} (view)`,a:"site:"+plan.target.id}]);
   UI.dirty=true;
 }
 
@@ -4593,11 +4648,11 @@ function sabotage(id,k){
   S.res.gold-=SAB_COST;I.sab=I.sab||[];I.sab.push(k);
   const kill=(types,n)=>{let c=0;for(let i=0;i<n;i++){const j=st.garrison.findIndex(x=>types.includes(x.t));if(j>=0&&st.garrison.length>1){st.garrison.splice(j,1);c++;}}return c;};
   let txt="";
-  if(k==="pit")txt=`Ghouls: ${kill(["ghoul"],2)} companies vanished in the flames.`;
-  else if(k==="pen")txt=`Trolls: ${kill(["troll"],1)} companies broke their chains and fled into the woods.`;
+  if(k==="pit")txt=`Ghouls: ${kill(["ghoul"],2)} ${(kill(["ghoul"],2))==1?"company":"companies"} vanished in the flames.`;
+  else if(k==="pen")txt=`Trolls: ${kill(["troll"],1)} ${(kill(["troll"],1))==1?"company":"companies"} broke their chains and fled into the woods.`;
   else if(k==="tunnel"){I.delay=S.day+7;txt="The fort's war drums are gone. Its sortie will be delayed.";}
   else if(k==="rite"){kill(["necro"],1);st.growT+=6;txt="The necromantic altar collapsed. The necromancers scattered and reinforcement stalls.";}
-  else if(k==="stores")txt=`The rotting meat stores burned. Ghouls & goblins: ${kill(["ghoul","goblin"],2)} companies scattered from hunger.`;
+  else if(k==="stores")txt=`The rotting meat stores burned. Ghouls & goblins: ${kill(["ghoul","goblin"],2)} ${(kill(["ghoul","goblin"],2))==1?"company":"companies"} scattered from hunger.`;
   else if(k==="breach"){I.adv=true;txt="The wall breach was quietly widened. The assault will begin right at the enemy lines.";}
   I.comps=st.garrison.map(c=>({t:c.t,men:c.men}));I.day=S.day;
   logMsg(`Sabotage succeeded — ${s.name}: ${txt}`,"gold");toast(txt);saveGame();
@@ -4626,7 +4681,7 @@ function sendSpy(id){
   if(S.res.gold<spyCost()){toast("Not enough gold.");return false;}
   S.res.gold-=spyCost();const cap=siteById("capital"),d=Math.hypot(s.x-cap.x,s.z-cap.z)/SPY_SPEED;
   S.spy.ops.push({id:S.spy.nid++,site:id,phase:"go",d:Math.max(0.25,d),stay:0});
-  logMsg(`Under cover of darkness, a spy left for ${s.name}. News in about ${Math.max(1,Math.round(d*10)/10)} days.`);
+  logMsg(`Under cover of darkness, a spy left for ${s.name}. News in about ${Math.max(1,Math.round(d*10)/10)} ${(Math.max(1,Math.round(d*10)/10))==1?"day":"days"}.`);
   UI.dirty=true;saveGame();return true;
 }
 function tickSpies(days){
@@ -4640,7 +4695,7 @@ function tickSpies(days){
 // 안개 속 '?'로 첩자를 보내 무엇이 있는지 알아낸다. 요새면 그대로 정찰까지 이어간다
 function sendScout(id){ensureSpy();const s=siteById(id);if(!s)return false;if(spyFree()<=0){toast("No spy available to send.");return false;}if(opAt(id)){toast("A spy is already there.");return false;}
   const cost=Math.round(spyCost()*0.6);if(S.res.gold<cost){toast("Not enough gold.");return false;}S.res.gold-=cost;const cap=siteById("capital"),d=Math.hypot(s.x-cap.x,s.z-cap.z)/SPY_SPEED;
-  S.spy.ops.push({id:S.spy.nid++,site:id,phase:"go",d:Math.max(0.25,d),stay:0,scout:true});logMsg(`A spy set out into the unknown beyond the fog. About ${Math.ceil(d)} days.`);return true;}
+  S.spy.ops.push({id:S.spy.nid++,site:id,phase:"go",d:Math.max(0.25,d),stay:0,scout:true});logMsg(`A spy set out into the unknown beyond the fog. About ${Math.ceil(d)} ${(Math.ceil(d))==1?"day":"days"}.`);return true;}
 function spyLeave(op){const s=siteById(op.site),cap=siteById("capital");op.phase="back";op.d=Math.max(0.2,Math.hypot(s.x-cap.x,s.z-cap.z)/SPY_SPEED);}
 function resolveSpy(op){
   const s=siteById(op.site);
@@ -4674,12 +4729,12 @@ function spyReportHtml(id,live){
     ${done?"":`<button class="b sm" data-a="sab" data-id="${id}" data-k="${k}" ${canSab&&S.res.gold>=SAB_COST?"":"disabled"} title="${canSab?"":"A spy must be on site"}">Sabotage · ${SAB_COST}</button>`}</div>`;}).join("");
   const unknown=3-(I.found||[]).length;
   return `<div class="report">
-    <div class="eyebrow" style="color:#6b5530">Spy report · Day ${I.day}${age>0?` (${age} days ago)`:""}</div>
+    <div class="eyebrow" style="color:#6b5530">Spy report · Day ${I.day}${age>0?` (${age} ${(age)==1?"day":"days"} ago)`:""}</div>
     <h3>${esc(s.name)}</h3>
     <p class="rp"><b>Enemy captain</b> ${esc(I.cap[0])} — ${esc(I.cap[1])}</p>
     ${forceHtml("Forces (exact)",I.comps)}
     ${s.kind!=="village"?`<p class="rp"><b>Deployment</b> The enemy's main force is massed at the <b>${SIDE_NAME[siteFront(id)]}</b>. If you go in from the ${siteFront(id)==="front"?"flank or rear":"far side or rear"}, half the enemy arrives late. You can choose your entry side when the assault begins.</p><p class="rp"><b>Terrain</b> ${TERRAIN_NAME[siteTerrain(id)]} — ${TERRAIN_TIP[siteTerrain(id)]}</p>`:""}
-    ${s.kind==="village"?`<p class="rp">The village can hold about ${I.doom} days</p>`:`<p class="rp">New Dead join about every ${s.rate} days. The Lord orders the next sortie in about ${Math.max(1,I.lord)} days.</p>`}
+    ${s.kind==="village"?`<p class="rp">The village can hold about ${I.doom} ${(I.doom)==1?"day":"days"}</p>`:`<p class="rp">New Dead join about every ${s.rate} ${(s.rate)==1?"day":"days"}. The Lord orders the next sortie in about ${Math.max(1,I.lord)} ${(Math.max(1,I.lord))==1?"day":"days"}.</p>`}
     ${weakFound?`<div class="eyebrow" style="margin:8px 0 4px;color:#6b5530">Weaknesses found (apply when attacking)</div>${weakFound}`:""}
     ${(I.found||[]).length===3?`<p class="rp"><b>Perfect recon</b> — knowing every weakness, the whole enemy fights 15% weaker in the assault.</p>`:""}
     ${unknown>0?`<p class="rp" style="opacity:.75">Weaknesses still hidden: ${unknown}. ${op&&op.phase==="in"?"The spy is still on site. You can infiltrate in person.":"Send a spy again and infiltrate to find them."}</p>`:""}
@@ -4702,7 +4757,7 @@ function activeWeak(siteId){if(!siteId||!S.intel||!S.intel[siteId])return [];con
 function foeView(s){
   const real=siteForces(s);if(!real.length)return null;
   if(s.kind==="village")return {comps:real,label:"Besiegers (visible size)",est:true};
-  if(S.intel&&S.intel[s.id]&&S.intel[s.id].comps){const age=intelAge(s.id);return {comps:S.intel[s.id].comps,label:age<=INTEL_FRESH?`Intel · ${age} days ago`:`Old intel · ${age} days ago`,est:false,old:age>INTEL_FRESH};}
+  if(S.intel&&S.intel[s.id]&&S.intel[s.id].comps){const age=intelAge(s.id);return {comps:S.intel[s.id].comps,label:age<=INTEL_FRESH?`Intel · ${age} ${(age)==1?"day":"days"} ago`:`Old intel · ${age} ${(age)==1?"day":"days"} ago`,est:false,old:age>INTEL_FRESH};}
   return {rumor:rumorOf(s,real)};
 }
 function rumorOf(s,real){const men=compMen(real),r=mulberry(s.id.length*17+Math.floor(S.day/5)),k=0.6+r()*0.8;const lo=Math.round(men*k*0.7/500)*500||300,hi=Math.round(men*k*1.3/500)*500||800;return {lo:Math.min(lo,hi-200),hi};}
@@ -4713,7 +4768,7 @@ function _foeViewHtml(s,v){
 function spyButtons(s){if(typeof unl==="function"&&!unl("spy"))return lockedNote("spy");
   ensureSpy();if(!spyable(s))return "";const op=opAt(s.id);let h="";
   if(S.intel[s.id]&&S.intel[s.id].comps)h+=`<button class="b" data-a="report" data-id="${s.id}">Report</button>`;
-  if(op){if(op.phase==="in")h+=`<button class="b gold" data-a="infil" data-id="${s.id}">${ICON.eye}Infiltrate</button>`;else h+=`<button class="b" disabled>Spy ${op.phase==="go"?`en route · ${Math.max(0.1,Math.round(op.d*10)/10)} days`:"Returning"}</button>`;}
+  if(op){if(op.phase==="in")h+=`<button class="b gold" data-a="infil" data-id="${s.id}">${ICON.eye}Infiltrate</button>`;else h+=`<button class="b" disabled>Spy ${op.phase==="go"?`en route · ${Math.max(0.1,Math.round(op.d*10)/10)} ${(Math.max(0.1,Math.round(op.d*10)/10))==1?"day":"days"}`:"Returning"}</button>`;}
   else h+=`<button class="b" data-a="spy" data-id="${s.id}" ${spyFree()>0&&S.res.gold>=spyCost()?"":"disabled"} title="Success chance ~${Math.round(spyChance(s)*100)}%">${ICON.eye}Send spy · Gold ${spyCost()}</button>`;
   return h;
 }
@@ -4871,7 +4926,7 @@ function returnLent(r,why){const R=S.realms[r.id];const back=[];
   for(const a of [...S.armies]){if(a.side!==0)continue;const mine=a.comps.filter(c=>c.lentFrom===r.id);if(!mine.length)continue;back.push(...mine.filter(c=>c.men>0));a.comps=a.comps.filter(c=>c.lentFrom!==r.id);if(!a.comps.length){for(const id of armyGens(a)){const g=genState(id);if(g)g.status="ready";}S.armies=S.armies.filter(x=>x!==a);}}
   const g=S.garrison.filter(c=>c.lentFrom===r.id);S.garrison=S.garrison.filter(c=>c.lentFrom!==r.id);back.push(...g);
   for(const c of back){delete c.lentFrom;R.army.push(c);}R.lent=[];R.lentUntil=0;
-  if(back.length)logMsg(`${r.name}: reinforcements of ${back.length} companies, ${why}, went home.`);UI.dirty=true;}
+  if(back.length)logMsg(`${r.name}: reinforcements of ${back.length} ${(back.length)==1?"company":"companies"}, ${why}, went home.`);UI.dirty=true;}
 // 망자가 이웃 왕국을 칠 때: 그들의 군대가 막는다 (화면 없이)
 function realmDefend(r,foeArmy){
   const R=S.realms[r.id];let def=R.army.reduce((a,c)=>a+c.men,0);const atk=compMen(foeArmy.comps);
@@ -4892,14 +4947,14 @@ function realmFalls(r){const R=S.realms[r.id];R.alive=false;R.fallen=true;R.army
   S.civ+=400;refreshSites();}
 // 외교 행동
 // 교역: 식량을 싣고 보내면 사흘 뒤 금화가 돌아온다 (관계 40 이상, 한 번에 하나)
-function canTrade(r){const R=S.realms[r.id];if(!R||!R.alive)return "Fallen";if(R.rel<40)return "Relations 40+";if(R.trade)return `Caravan on the road (${R.trade.days} days)`;if(S.res.food<150)return "Needs food 150";return null;}
+function canTrade(r){const R=S.realms[r.id];if(!R||!R.alive)return "Fallen";if(R.rel<40)return "Relations 40+";if(R.trade)return `Caravan on the road (${R.trade.days} ${(R.trade.days)==1?"day":"days"})`;if(S.res.food<150)return "Needs food 150";return null;}
 function startTrade(r){if(canTrade(r))return false;const R=S.realms[r.id];S.res.food-=150;const gold=Math.round((320+R.rel*2)*(1+(S.tech?S.tech.supply*0.1:0)));R.trade={days:3,gold};logMsg(`${r.name}: caravan sent. Food 150 → gold in three days: ${gold}.`);return true;}
 function tradeDay(){ensureRealms();for(const r of REALMS){const R=S.realms[r.id];if(!R||!R.trade)continue;if(--R.trade.days<=0){const raid=S.armies.some(a=>a.side===1&&a.moving&&Math.random()<0.25);if(raid&&R.rel<80){logMsg(`${r.name}: the returning caravan was robbed by the Dead.`,"bad");}else{S.res.gold+=R.trade.gold;R.rel=clamp(R.rel+2,-100,100);logMsg(`${r.name} caravan returned with gold ${R.trade.gold}.`,"gold");}R.trade=null;}}}
 // 선물: 금화 200은 관계 +6, 600은 +20 (큰 선물일수록 조금 더 남는다)
 function giftRel(amt){return amt>=600?20:amt>=200?6:Math.max(1,Math.round(amt/35));}
 function realmGift(r,amt){const R=S.realms[r.id];if(S.res.gold<amt)return false;S.res.gold-=amt;R.gold+=amt;const d=giftRel(amt);R.rel=clamp(R.rel+d,-100,100);R.giftD=S.day;logMsg(`${r.name}: sent a gift of gold ${amt}. Relations +${d}.`);return true;}
 // 상호 방위 조약: 선물 대신 약속으로 동맹이 된다. 관계 45 이상이면 제안할 수 있고, 강한 왕국일수록 받아들인다.
-function canPact(r){const R=S.realms[r.id];if(!R.alive)return "Fallen";if(R.pact)return "Already allied";if(R.rel<40)return "Relations 40+";if(R.pactD&&S.day<R.pactD+6)return `Refused (${R.pactD+6-S.day} days left)`;return null;}
+function canPact(r){const R=S.realms[r.id];if(!R.alive)return "Fallen";if(R.pact)return "Already allied";if(R.rel<40)return "Relations 40+";if(R.pactD&&S.day<R.pactD+6)return `Refused (${R.pactD+6-S.day} ${(R.pactD+6-S.day)==1?"day":"days"} left)`;return null;}
 function proposePact(r){if(canPact(r))return false;const R=S.realms[r.id];const ours=soldiersAll();const p=clamp(0.4+(R.rel-40)/100+Math.min(0.3,ours/4000)+Math.min(0.2,(S.renown||0)*0.03),0.25,0.95);
   if(Math.random()<p){R.pact=true;R.rel=clamp(R.rel+20,-100,100);logMsg(`${r.name}: mutual defense pact signed. Each sends reinforcements if the other is besieged.`,"gold");return true;}
   R.pactD=S.day;R.rel=clamp(R.rel-3,-100,100);logMsg(`${r.ruler} refused the pact. "We can't trust you yet."`);return false;}
@@ -4912,7 +4967,7 @@ function realmAsk(r){const R=S.realms[r.id];if((R.rel<70&&!R.pact)||R.lent.lengt
   const n=Math.min(3,Math.floor(R.army.length/2)),cs=[];for(let i=0;i<n;i++){const c=R.army.shift();c.lentFrom=r.id;cs.push(c);}
   R.lent=cs.map(c=>c.t);R.lentUntil=S.day+25;R.rel-=6;
   const s=siteById(r.capital),a=spawnArmy(0,cs,s.x,s.z+6,{});goHome(a);a.lentFrom=r.id;
-  logMsg(`${r.name} sent reinforcements: ${n} companies. They return in 25 days.`,"gold");return true;}
+  logMsg(`${r.name} sent reinforcements: ${n} ${(n)==1?"company":"companies"}. They return in 25 days.`,"gold");return true;}
 function realmRelEvent(id,delta,why){ensureRealms();const R=S.realms[id];if(!R||!R.alive)return;const r=realmById(id);const b=R.rel;R.rel=clamp(R.rel+delta,-100,100);
   if(why)logMsg(`${r.name}: ${why} (relations ${delta>0?"+":""}${delta})`);
   if(b<70&&R.rel>=70)herald(`${r.name}: alliance`,`${r.ruler} sent an oath of alliance. Now we can borrow their armies, and we help each other in crisis.`);}
@@ -4944,7 +4999,7 @@ function fogTick(){ensureFog();for(const a of S.armies)if(a.side===0)revealAt(a.
 function settlers(){const cost=200;if(S.res.gold<cost)return false;if(S.civ>=popCap())return false;
   S.res.gold-=cost;const n=Math.min(popCap()-S.civ,Math.round(120+S.morale*2.2));S.civ+=n;logMsg(`Settler incentives: ${n} people settled in the Palace.`);return n;}
 function migrDays(id){const s=siteById(id),c=siteById("capital");return Math.max(1,Math.ceil(Math.hypot(s.x-c.x,s.z-c.z)/170));}
-function moveToVillage(id,n){const st=S.sites[id];if(st.state!=="ok"||S.civ-n<300||S.res.food<40)return false;S.civ-=n;S.res.food-=40;const d=migrDays(id);S.migr=(S.migr||[]).concat([{id,n,days:d}]);logMsg(`Palace folk: ${n} head for ${siteById(id).name}. Arriving in ${d} days.`);return true;}
+function moveToVillage(id,n){const st=S.sites[id];if(st.state!=="ok"||S.civ-n<300||S.res.food<40)return false;S.civ-=n;S.res.food-=40;const d=migrDays(id);S.migr=(S.migr||[]).concat([{id,n,days:d}]);logMsg(`Palace folk: ${n} head for ${siteById(id).name}. Arriving in ${d} ${(d)==1?"day":"days"}.`);return true;}
 function migrDay(){if(!S.migr||!S.migr.length)return;const keep=[];for(const m of S.migr){if(--m.days>0){keep.push(m);continue;}const st=S.sites[m.id],s=siteById(m.id);
     if(st.state==="ok"){st.pop+=m.n;logMsg(`${s.name}: settlers ${m.n} arrived.`);}
     else if(st.state==="besieged"){const lost=Math.round(m.n*0.3);S.civ+=m.n-lost;logMsg(`${s.name} is besieged — the settlers turned back. ${lost} lost, ${m.n-lost} returned to the Palace.`,"bad");}
@@ -4956,7 +5011,7 @@ function moveVillagers(id,n){const st=S.sites[id];if(st.pop-n<200||S.civ+n>popCa
 function relBase(){return 25+Math.min(30,(S.renown||0)*4);}
 function addRenown(n,why){S.renown=(S.renown||0)+n;if(why)logMsg(`${why} — Renown +${n}. The neighboring realms see us differently.`,"gold");}
 // 사절: 금화 없이 관계를 올린다 (왕국마다 5일에 한 번, 성향에 따라 결과가 다르다)
-function canEnvoy(r){const R=S.realms[r.id];if(!R.alive)return "Fallen";if(R.envAt)return "Envoy en route";if(R.envD&&S.day<R.envD+5)return `${R.envD+5-S.day} days`;if(!S.gens.some(g=>!armyGens||true))return null;return null;}
+function canEnvoy(r){const R=S.realms[r.id];if(!R.alive)return "Fallen";if(R.envAt)return "Envoy en route";if(R.envD&&S.day<R.envD+5)return `${R.envD+5-S.day} ${(R.envD+5-S.day)==1?"day":"days"}`;if(!S.gens.some(g=>!armyGens||true))return null;return null;}
 function sendEnvoy(r){if(canEnvoy(r))return false;const R=S.realms[r.id];R.envD=S.day;R.envAt=S.day+2;logMsg(`${r.name}: envoy sent. An answer comes in two days.`);return true;}
 function envoyArrive(r){const R=S.realms[r.id];R.envAt=null;
   const roll=Math.random();let d;
@@ -5015,7 +5070,7 @@ Answer with a single JSON only: {"who":"petitioner's title and name","t":"the pe
 }
 function effText(e){const out=[],f=(v,n)=>out.push(`${n} ${v>0?"+":""}${v}`);
   if(e.gold)f(e.gold,"Gold");if(e.food)f(e.food,"Food");if(e.civ)f(e.civ,"People");if(e.morale)f(e.morale,"Favor");
-  if(e.comp)out.push(`${U[e.comp[0]].n} ${e.comp[1]} companies join`);if(e.buff)out.push(`${e.buff.d} days: ${e.buff.k==="gold"?"Gold":"Food"} +${e.buff.v}/day`);
+  if(e.comp)out.push(`${U[e.comp[0]].n} ${e.comp[1]} ${(e.comp[1])==1?"company":"companies"} join`);if(e.buff)out.push(`${e.buff.d} ${(e.buff.d)==1?"day":"days"}: ${e.buff.k==="gold"?"Gold":"Food"} +${e.buff.v}/day`);
   if(e.intel)out.push("Reveals one fort's strength");if(e.vpop)out.push(`Village pop. +${e.vpop}`);if(e.drill)out.push("One garrison company is drilled");
   return out.join(" · ")||"No change";}
 function canAfford(e){return (S.res.gold+(e.gold||0))>=0&&(S.res.food+(e.food||0))>=0&&(S.civ+(e.civ||0))>=300;}
@@ -5061,7 +5116,7 @@ function drillHtml(types){
   const list=S.garrison.map((c,i)=>({c,i})).filter(x=>types.includes(x.c.t));
   if(!list.length)return "";
   return `<div><div class="eyebrow" style="margin:6px 0">Drill companies — each star: attack +8%, damage taken -6%, morale damage -10%</div>${list.map(({c,i})=>{const w=canDrill(c);return `<div class="qrow"><span class="glyph" style="background:${U[c.t].col}">${U[c.t].g}</span>${U[c.t].n} company <span style="color:var(--gold);margin-left:6px">${vetStars(c)}</span><span class="note" style="margin-left:8px">${c.men}</span>
-    <button class="b sm" style="margin-left:auto" data-a="drill" data-i="${i}" ${w?"disabled":""} title="${w||""}">${c.drill>0?`Drilling ${c.drill} days`:w&&(c.vet||0)>=2?"Max":"Drill (gold 70 · food 30 · 2 days)"}</button>${c.drill>0?`<button class="b sm ghost" data-a="cancel" data-k="drill" data-i="${i}" title="Cancel to get 80% back">Cancel</button>`:""}</div>`;}).join("")}</div>`;
+    <button class="b sm" style="margin-left:auto" data-a="drill" data-i="${i}" ${w?"disabled":""} title="${w||""}">${c.drill>0?`Drilling ${c.drill} ${(c.drill)==1?"day":"days"}`:w&&(c.vet||0)>=2?"Max":"Drill (gold 70 · food 30 · 2 days)"}</button>${c.drill>0?`<button class="b sm ghost" data-a="cancel" data-k="drill" data-i="${i}" title="Cancel to get 80% back">Cancel</button>`:""}</div>`;}).join("")}</div>`;
 }
 
 /* ════════ 전투 발발 ↔ 세계 반영 ════════ */
@@ -5134,7 +5189,7 @@ function battleAftermath(){
   // 살아남은 중대는 실전 경험을 쌓는다 (★★★은 실전에서만)
   if(res.win){const pool=[...(ctx.kind==="vsiege"?vil(ctx.site).vgar:ctx.kind==="siege"?S.garrison:[]),...involved.flatMap(a=>a.comps)];let up=0;
     for(const c of pool)if(c.men>0&&Math.random()<0.4&&(c.vet||0)<3){c.vet=(c.vet||0)+1;up++;}
-    if(up)logMsg(`Battle-hardened: ${up} companies became veterans.`);}
+    if(up)logMsg(`Battle-hardened: ${up} ${(up)==1?"company":"companies"} became veterans.`);}
   // 장군
   let genNote="";
   if(ctx.gen==="king"){if(res.genDead){S.kingWound=20;dropGen("king");S.morale=clamp(S.morale-15,0,100);genNote="The king was gravely wounded and carried off. He can't march for 20 days.";logMsg(genNote,"bad");}}
@@ -5276,17 +5331,17 @@ const fatText=c=>{const f=c.fat||0;return f>=60?"Exhausted":f>=30?"Weary":f>0?"T
 /* ── 정예부대: 돈과 시간을 들여 키운 강한 중대 ── */
 const ELITE_COST={gold:700,food:250},ELITE_DAYS=7;
 function canElite(c){if(c.elite||c.t==="ecav")return "Already elite";if(c.eliteT>0)return "Training";if(c.t==="cav"&&!S.bld.stable)return "Needs stables";if(!["cav","inf","spear","archer"].includes(c.t))return "Infantry, spearmen, archers, cavalry only";if(c.men<90)return "Needs 90+ men";if((c.vet||0)<2)return "★★ companies only";if(c.lentFrom)return "Not for borrowed reinforcements";if(S.res.gold<ELITE_COST.gold||S.res.food<ELITE_COST.food)return "Not enough resources";return null;}
-function makeElite(i){const c=S.garrison[i];if(!c||canElite(c))return false;S.res.gold-=ELITE_COST.gold;S.res.food-=ELITE_COST.food;c.eliteT=ELITE_DAYS;c.eliteCost={...ELITE_COST};logMsg(`${U[c.t].n} company began elite training (${ELITE_DAYS} days).`);return true;}
+function makeElite(i){const c=S.garrison[i];if(!c||canElite(c))return false;S.res.gold-=ELITE_COST.gold;S.res.food-=ELITE_COST.food;c.eliteT=ELITE_DAYS;c.eliteCost={...ELITE_COST};logMsg(`${U[c.t].n} company began elite training (${ELITE_DAYS} ${(ELITE_DAYS)==1?"day":"days"}).`);return true;}
 function allComps(){return [...S.garrison,...S.armies.filter(a=>a.side===0).flatMap(a=>a.comps)];}
 function eliteDay(){for(const c of allComps())if(c.eliteT>0&&--c.eliteT===0){const to={cav:"ecav",inf:"einf",spear:"espear",archer:"earcher"}[c.t]||"ecav";const was=U[c.t].n;c.t=to;c.elite=true;c.men=100;logMsg(`${was} company finished 7 days of drilling and became ${U[to].n}.`,"gold");}}
-const eliteMark=c=>c.elite?"<span style=\"color:#ffd76a;font-weight:700\">◆Elite</span>":c.eliteT>0?`<span class="note">Training ${c.eliteT} days</span> <button class="b sm ghost" data-a="cancel" data-k="elite" data-i="${S.garrison.indexOf(c)}" title="Cancel to get 80% back">Cancel</button>`:"";
+const eliteMark=c=>c.elite?"<span style=\"color:#ffd76a;font-weight:700\">◆Elite</span>":c.eliteT>0?`<span class="note">Training ${c.eliteT} ${(c.eliteT)==1?"day":"days"}</span> <button class="b sm ghost" data-a="cancel" data-k="elite" data-i="${S.garrison.indexOf(c)}" title="Cancel to get 80% back">Cancel</button>`:"";
 
 /* ── 기술: 재상이 추진하는 왕국의 개량 ── */
 const TECH={arms:{n:"Better arms",d:"All soldiers attack +6%/level",c:300},armor:{n:"Better armor",d:"All soldiers defense +6%/level",c:300},drill:{n:"Drill doctrine",d:"Training time -1 day/level (min 1)",c:350},supply:{n:"Supply train",d:"March speed +8%/level, camp recovery +2",c:250},wall:{n:"Fortification",d:"Wall durability +20%/level",c:400}};
 function ensureTech(){if(!S.tech)S.tech={arms:0,armor:0,drill:0,supply:0,wall:0,q:null};}
 function techCost(k){ensureTech();return Math.round(TECH[k].c*(1+S.tech[k]*0.7));}
 function canTech(k){ensureTech();if(S.tech.q)return "Another upgrade is in progress";if(S.tech[k]>=3)return "Max level";if(S.res.gold<techCost(k))return "Not enough gold";return null;}
-function startTech(k){if(canTech(k))return false;const tc=techCost(k);S.res.gold-=tc;S.tech.q={k,days:5+S.tech[k]*2,cost:{gold:tc,food:0}};logMsg(`${TECH[k].n} started (${S.tech.q.days} days).`);return true;}
+function startTech(k){if(canTech(k))return false;const tc=techCost(k);S.res.gold-=tc;S.tech.q={k,days:5+S.tech[k]*2,cost:{gold:tc,food:0}};logMsg(`${TECH[k].n} started (${S.tech.q.days} ${(S.tech.q.days)==1?"day":"days"}).`);return true;}
 function techDay(){ensureTech();const q=S.tech.q;if(q&&--q.days<=0){S.tech[q.k]++;S.tech.q=null;logMsg(`${TECH[q.k].n} ${S.tech[q.k]} complete.`,"gold");}}
 const techMul=k=>S.tech?1+0.06*S.tech[k]:1;
 
@@ -5318,7 +5373,7 @@ function eventTick(days){
   // 대습격을 막아 낸 뒤: 마을들이 감사의 공물을 가져온다
   if(S.ev.tribute&&nowD()>=S.ev.tribute.at){const w=S.ev.tribute.w;S.ev.tribute=null;const vs=villagesOwned().filter(v=>S.sites[v.id].state==="ok");const n=vs.length,wk=1+0.5*(w-1);const g=Math.round((800+n*150)*wk),f=Math.round((900+n*180)*wk),c=Math.round(n*50*wk);   /* 차수가 높을수록 더 크게 */
     S.res.gold+=g;S.res.food+=f;S.civ+=c;S.morale=clamp(S.morale+4,0,100);addRenown(3,`Great Raid #${w} repelled`);renderTop();
-    logMsg(`For the king who held off the Great Raid, ${n} villages sent tribute — gold +${g}, food +${f}, people +${c}.`,"gold");
+    logMsg(`For the king who held off the Great Raid, ${n} ${(n)==1?"village":"villages"} sent tribute — gold +${g}, food +${f}, people +${c}.`,"gold");
     herald("Tribute of the villages",`Hearing that the Palace did not fall, representatives of ${n?vs.slice(0,3).map(v=>v.name).join("·")+(n>3?" and more — "+n+"":"")+"":"scattered folk"} hauled carts here. Gold ${g}, food ${f}, and ${c} people who want to live in the Palace. Until the next Great Raid (day ${nextSurgeDay()}), catch your breath and refill. For a while, merchants and work will come more often.`);
     return;}
   // 미뤄 둔 요청이 돌아온다
@@ -5642,14 +5697,14 @@ function helpModal(tab){tab=tab||UI.helpTab||"keys";UI.helpTab=tab;
 function warBoardModal(){const row=(a,t,sub,cls="")=>`<button class="qrow wb ${cls}" data-a="hAct" data-act="${a}"><span>${t}</span><span class="note" style="margin-left:auto">${sub}</span></button>`;
   const nd=typeof nextSurgeDay==="function"?nextSurgeDay():0,zt=typeof zombieTier==="function"?zombieTier():1;
   const forts=SITES.filter(s=>s.kind==="fortress"||s.kind==="throne").map(s=>{const st=S.sites[s.id];const seen=siteSeen(s);const I=S.intel&&S.intel[s.id];
-    const sub=st.state==="razed"?"Razed":!seen?"In the fog — find out with a spy":`${FORT_TRAIT[s.id]?FORT_TRAIT[s.id].n+" · ":""}${I&&I.comps?`Intel ${S.day-I.day} days ago, ${fmtN(compMen(I.comps))} · weaknesses ${(I.found||[]).length}/3`:"No intel"}`;
+    const sub=st.state==="razed"?"Razed":!seen?"In the fog — find out with a spy":`${FORT_TRAIT[s.id]?FORT_TRAIT[s.id].n+" · ":""}${I&&I.comps?`Intel ${S.day-I.day} ${(S.day-I.day)==1?"day":"days"} ago, ${fmtN(compMen(I.comps))} · weaknesses ${(I.found||[]).length}/3`:"No intel"}`;
     return row("site:"+s.id,`${st.state==="razed"?"✓ ":""}${s.name}${s.kind==="throne"?" (Throne)":""}`,sub,st.state==="razed"?"done":"");}).join("");
-  const raids=S.armies.filter(a=>a.side===1&&a.moving&&fogSeen(a.x,a.z)).map(a=>{const t=siteById(a.target);return row("army:"+a.id,`Dead ${fmtN(compMen(a.comps))} → ${t?t.name:"?"}`,`~${etaDays(a,a.tx,a.tz)} days to arrival${a.surge?" · Great Raid":""}`,"bad");}).join("")||`<p class="note">No moving Dead host in sight.</p>`;
-  const sieges=SITES.filter(s=>s.kind==="village"&&S.sites[s.id].state==="besieged").map(s=>row("rescue:"+s.id,`${s.name} besieged`,`${S.sites[s.id].doom} days to relieve · click to send relief`,"bad")).join("")||`<p class="note">No villages under siege.</p>`;
-  const ours=S.armies.filter(a=>a.side===0).map(a=>row("army:"+a.id,armyName(a),`${fmtN(compMen(a.comps))} · ${missionName(a)}${a.moving&&a.tx!==undefined?` · ${etaDays(a,a.tx,a.tz)} days`:""}`)).join("")||`<p class="note">No armies in the field. Palace garrison ${fmtN(compMen(S.garrison))}.</p>`;
+  const raids=S.armies.filter(a=>a.side===1&&a.moving&&fogSeen(a.x,a.z)).map(a=>{const t=siteById(a.target);return row("army:"+a.id,`Dead ${fmtN(compMen(a.comps))} → ${t?t.name:"?"}`,`~${etaDays(a,a.tx,a.tz)} ${(etaDays(a,a.tx,a.tz))==1?"day":"days"} to arrival${a.surge?" · Great Raid":""}`,"bad");}).join("")||`<p class="note">No moving Dead host in sight.</p>`;
+  const sieges=SITES.filter(s=>s.kind==="village"&&S.sites[s.id].state==="besieged").map(s=>row("rescue:"+s.id,`${s.name} besieged`,`${S.sites[s.id].doom} ${(S.sites[s.id].doom)==1?"day":"days"} to relieve · click to send relief`,"bad")).join("")||`<p class="note">No villages under siege.</p>`;
+  const ours=S.armies.filter(a=>a.side===0).map(a=>row("army:"+a.id,armyName(a),`${fmtN(compMen(a.comps))} · ${missionName(a)}${a.moving&&a.tx!==undefined?` · ${etaDays(a,a.tx,a.tz)} ${(etaDays(a,a.tx,a.tz))==1?"day":"days"}`:""}`)).join("")||`<p class="note">No armies in the field. Palace garrison ${fmtN(compMen(S.garrison))}.</p>`;
   const vils=SITES.filter(s=>s.kind==="village").map(s=>{const st=S.sites[s.id];return `<span class="vchip ${st.state}" title="${s.name}: ${st.state==="ok"?"Peaceful":st.state==="besieged"?"Besieged":"Ruins"}">${s.name}</span>`;}).join("");
   return `${winHead("War Board")}<div class="wbody">
-    <div class="tile"><div class="hd"><span class="nm">Next Great Raid</span><span class="note" style="margin-left:auto">${S.day<7?"not yet":`${nd} · ${nd-S.day} days left · ~${fmtN(surgeMen((S.camp&&S.camp.surges||0)+1))}`}</span></div><div class="ds">${chapter().n} — ${chapter().goal()}${zt>1.02?` · Dead strength ×${zt.toFixed(2)}`:""}</div></div>
+    <div class="tile"><div class="hd"><span class="nm">Next Great Raid</span><span class="note" style="margin-left:auto">${S.day<7?"not yet":`${nd} · ${nd-S.day} ${(nd-S.day)==1?"day":"days"} left · ~${fmtN(surgeMen((S.camp&&S.camp.surges||0)+1))}`}</span></div><div class="ds">${chapter().n} — ${chapter().goal()}${zt>1.02?` · Dead strength ×${zt.toFixed(2)}`:""}</div></div>
     <div><div class="eyebrow">Forts of the Dead</div>${forts}</div>
     <div><div class="eyebrow">Incoming threats</div>${raids}</div>
     <div><div class="eyebrow">Besieged villages</div>${sieges}</div>
@@ -5792,10 +5847,10 @@ function realmRaidTick(){if(!S||S.practice||S.day<9)return;S.camp.nextRealmRaid=
   const forts=SITES.filter(s=>(s.kind==="fortress"||s.kind==="throne")&&S.sites[s.id].state==="active");if(!forts.length)return;const f=forts.reduce((b,s)=>!b||Math.hypot(s.x-tg.x,s.z-tg.z)<Math.hypot(b.x-tg.x,b.z-tg.z)?s:b,null);
   const n=Math.max(3,Math.round((500+S.day*30)/200));const out=[];for(let i=0;i<n;i++){const r2=Math.random(),t=r2<0.5?"ghoul":r2<0.78?"goblin":r2<0.95?"orc":"troll";out.push({t,men:U[t].men,tier:zombieTier()});}
   const a=spawnArmy(1,out,f.x,f.z+14,{mission:"raid",target:tg.id,from:f.id});setDest(a,tg.x,tg.z);const eta=etaDays(a,tg.x,tg.z);
-  logMsg(`${f.name}: Dead ${fmtN(compMen(out))} head for neighboring ${r.name}'s ${tg.name}. About ${eta} days until they arrive — help with an army and relations improve.`,"bad");
+  logMsg(`${f.name}: Dead ${fmtN(compMen(out))} head for neighboring ${r.name}'s ${tg.name}. About ${eta} ${(eta)==1?"day":"days"} until they arrive — help with an army and relations improve.`,"bad");
   /* 이웃이 우리에게 원군을 청한다 (사이가 나쁘면 청하지 않는다) */
   const R2=S.realms[r.id],defM=R2.army.reduce((m,c)=>m+c.men,0);
-  if(R2.rel>=0)herald(`${r.name} asks for aid`,`${r.name}'s herald rushed in, gasping. "${f.name}'s Dead, ${fmtN(compMen(out))}, are coming for our ${tg.name}. They arrive in about ${eta} days. Our army is only ${fmtN(defM)} — please, send troops." ${S.camp.realmRaidSaid?"":"The Dead don't only hunt us. If a neighbor's army can't stop them, their villages fall, and if their capital falls, that realm is gone. "}Station our army near ${tg.name} before the Dead arrive and we fight together — win, and relations soar and they pay a fee. Refusing has no penalty, but a fallen neighbor can never help again.`,null,[{n:"Send reinforcements",a:"rescue:"+tg.id},{n:"View on map",a:"army:"+a.id}]);
+  if(R2.rel>=0)herald(`${r.name} asks for aid`,`${r.name}'s herald rushed in, gasping. "${f.name}'s Dead, ${fmtN(compMen(out))}, are coming for our ${tg.name}. They arrive in about ${eta} ${(eta)==1?"day":"days"}. Our army is only ${fmtN(defM)} — please, send troops." ${S.camp.realmRaidSaid?"":"The Dead don't only hunt us. If a neighbor's army can't stop them, their villages fall, and if their capital falls, that realm is gone. "}Station our army near ${tg.name} before the Dead arrive and we fight together — win, and relations soar and they pay a fee. Refusing has no penalty, but a fallen neighbor can never help again.`,null,[{n:"Send reinforcements",a:"rescue:"+tg.id},{n:"View on map",a:"army:"+a.id}]);
   S.camp.realmRaidSaid=1;
   UI.dirty=true;}
 
@@ -5852,7 +5907,7 @@ function lordSurgePlan(nd){
   const forts=SITES.filter(s=>s.kind==="fortress"&&S.sites[s.id].state==="active");if(!forts.length)return;
   const cap=siteById("capital");
   const p=`You are the Lord of the Dead legions. ${nd} — on that day you send a Great Raid against the human Palace (${cap.x},${cap.z}). Decide which fort it departs from and which unit types to fill it with. Strike the human army's weaknesses.
-Your forts: ${forts.map(s=>`${s.id}=${s.name}(${s.x},${s.z}, garrison ${S.sites[s.id].garrison.length} companies)`).join(", ")}
+Your forts: ${forts.map(s=>`${s.id}=${s.name}(${s.x},${s.z}, garrison ${S.sites[s.id].garrison.length} ${(S.sites[s.id].garrison.length)==1?"company":"companies"})`).join(", ")}
 ${LORD_RULES}
 What you know of the human king: ${lordProfile()}
 Memory of past battles:
@@ -6844,13 +6899,15 @@ function renderBattle(dt){
     else if(p.k==="stone"||p.k==="rock"||p.k==="chip"||p.k==="pot"){const sc0=p.k==="stone"?3.2:p.k==="rock"?1.35:p.k==="pot"?0.9:(p.sz||0.6);if(p.k==="pot"){(B.fireTips=B.fireTips||[]).push(x,y+0.5,z);if(Math.random()<dt*12)partAdd(B,{k:"smoke",x,y,z,vx:0.2,vy:0.8,vz:0,t0:t,dur:1,s0:0.5,s1:1.6,o:0.4});}_be.set(t*(p.k==="stone"?2.2:5)+p.x0,t*(p.k==="stone"?1.6:4)+p.z0,0);_bq.setFromEuler(_be);_bm.compose(_bv.set(x,y,z),_bq,_bs.setScalar(sc0));
       if(nr<260){BR.rocks.setMatrixAt(nr,_bm);BR.rocks.setColorAt(nr,_bc.set(p.k==="stone"?"#8a8070":p.k==="chip"?(p.col||"#7a7266"):p.k==="pot"?"#6a4a34":"#7d756a"));nr++;}
       if(p.k==="stone"&&!B.paused&&Math.random()<0.35)B.fx.push({k:"dust",x,z,t0:t,dur:0.7,y});}
-    else{_bm.compose(_bv.set(x,y,z),_bq.identity(),_bs.setScalar(1));if(nb<300){BR.bolts.setMatrixAt(nb,_bm);BR.bolts.setColorAt(nb,_bc.set(p.k==="stone"?"#4a4440":p.k==="rock"?"#5a544c":p.k==="holy"?"#fff1b8":"#b98cff"));nb++;}}}
+    else{_bm.compose(_bv.set(x,y,z),_bq.identity(),_bs.setScalar(p.k==="holy"?0.4:0.5));if(nb<300){BR.bolts.setMatrixAt(nb,_bm);BR.bolts.setColorAt(nb,_bc.set(p.k==="holy"?"#e8dcae":"#3a2f4a"));nb++;}
+      if(!B.paused&&Math.random()<dt*22)partAdd(B,p.k==="holy"?{k:"mote",c:"#f0e2b4",x,y,z,vx:rnd(-0.3,0.3),vy:0.4,vz:rnd(-0.3,0.3),t0:t,dur:0.5,s0:0.3,s1:0.08,o:0.8}:{k:"smoke",c:"#2a2236",x,y,z,vx:rnd(-0.3,0.3),vy:0.5,vz:rnd(-0.3,0.3),t0:t,dur:0.8,s0:0.5,s1:1.5,o:0.5});
+      if(p.k==="hex"&&!B.paused&&Math.random()<dt*10)partAdd(B,{k:"mote",c:"#9a8ac0",x,y,z,vx:0,vy:0.2,vz:0,t0:t,dur:0.35,s0:0.35,s1:0.1,o:0.7});}}
   if(B.stuck){B.stuck=B.stuck.filter(q=>t<q.t0+q.life);for(const q of B.stuck){if(na>=900)break;_be.set(q.p,q.y,0,"YXZ");_bq.setFromEuler(_be);const cp=Math.cos(q.p),dx=Math.sin(q.y)*cp,dy=-Math.sin(q.p),dz=Math.cos(q.y)*cp,g=bH(q.x,q.z);
     const L2=q.jav?0.6:0.28;_bm.compose(_bv.set(q.x-dx*L2,g-dy*L2,q.z-dz*L2),_bq,q.jav?_bs.set(1.5,1.5,2.2):_bs.setScalar(1));BR.arrows.setMatrixAt(na,_bm);BR.arrows.setColorAt(na,_bc.set(q.burn&&t<q.t0+q.burn?"#2a1e16":"#4a3a2a"));na++;}}
   BR.arrows.count=na;BR.arrows.instanceMatrix.needsUpdate=true;if(BR.arrows.instanceColor)BR.arrows.instanceColor.needsUpdate=true;
   BR.rocks.count=nr;BR.rocks.instanceMatrix.needsUpdate=true;if(BR.rocks.instanceColor)BR.rocks.instanceColor.needsUpdate=true;BR.bolts.count=nb;BR.bolts.instanceMatrix.needsUpdate=true;if(BR.bolts.instanceColor)BR.bolts.instanceColor.needsUpdate=true;
   // 효과
-  for(const f of B.fx){if(f.obj)continue;
+  for(const f of B.fx){if(f.obj)continue;if(MAGIC[f.k]){if(!f.mg){f.mg=1;magicFx(B,f.k,f.x,f.z);}continue;}
     if(f.k==="ring"){const m=new THREE.Mesh(new THREE.RingGeometry(1.6,2.2,24),new THREE.MeshBasicMaterial({color:f.col,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(f.x,bH(f.x,f.z)+0.3,f.z);f.obj=m;}
     else if(f.k==="dust"){// 흙먼지: 빛나지 않는 흙빛 연기 (밝게 더해지는 빛무리면 하얀 덩어리가 된다)
       const sp=glowSprite(f.col||"#ffffff",1,1);sp.material.blending=THREE.NormalBlending;sp.material.toneMapped=true;sp.material.color.set("#5e4c3a");sp.material.opacity=0.35;
@@ -6975,7 +7032,7 @@ function oddsHtml(o){if(!o)return "";return `<div class="odds ${o.cls}"><span>Fo
 function planReinforcements(B,ctx){B.reinf=[];const pos=battlePos(ctx);if(!pos)return;const inv=new Set([ctx.ourArmy,...(ctx.allies||[])].filter(Boolean).map(a=>a.id));
   for(const a of S.armies){if(a.side!==0||inv.has(a.id)||!a.moving||a.tx===undefined)continue;if(Math.hypot(a.tx-pos.x,a.tz-pos.z)>70)continue;const eta=Math.hypot(a.tx-a.x,a.tz-a.z)/armySpeed(a);if(eta>2.2)continue;
     B.reinf.push({army:a,at:15+eta*90});}
-  if(B.reinf.length&&!B.headless)setTimeout(()=>{if(BT===B)bSay(`Reinforcements: ${B.reinf.length} armies are on their way — hold on!`);},1200);}
+  if(B.reinf.length&&!B.headless)setTimeout(()=>{if(BT===B)bSay(`Reinforcements: ${B.reinf.length} ${(B.reinf.length)==1?"army":"armies"} are on their way — hold on!`);},1200);}
 function battlePos(ctx){if(ctx.kind==="siege")return siteById("capital");if(ctx.site)return siteById(ctx.site);if(ctx.ourArmy)return {x:ctx.ourArmy.x,z:ctx.ourArmy.z};return null;}
 function reinforce(a){const B=BT;if(!B||B.over||!S.armies.includes(a))return;const pos=battlePos(B.ctx);if(pos){a.x=pos.x+rnd(-4,4);a.z=pos.z+rnd(-4,4);a.moving=false;a.arrived=true;}
   B.ctx.allies=B.ctx.allies||[];B.ctx.allies.push(a);if(typeof WAR!=="undefined"&&WAR&&WAR!==B.ctx){WAR.allies=WAR.allies||[];WAR.allies.push(a);}
@@ -7082,7 +7139,7 @@ function battleKingControl(dt){
     if(KC.musouP<=0){KC.musouP=0.3;bKingStrike(k.x,k.z,KC.face,kingDmg()*2.4,"spin");if(BR.king&&BR.king.userData.hero)heroOnce(BR.king,hasClip("sw_attack2")?"sw_attack2":KCLIP.atk[2],0.05,2.4);BT.fx.push({k:"ring",x:k.x,z:k.z,t0:BT.t,dur:0.45,col:"#ffe08a"});}
     if(KC.musouT<=0){for(const s of bFoes())if(Math.hypot(s.x-k.x,s.z-k.z)<14)s.morale-=22;BT.fx.push({k:"ring",x:k.x,z:k.z,t0:BT.t,dur:0.9,col:"#fff1b8"});E.shake=Math.max(E.shake||0,0.3);E.hitStop=Math.max(E.hitStop||0,0.15);bSay("The Dead fall back in terror!");}}
   // 격파 수 이정표
-  {const kc=r.kills||0;BT.koNext=BT.koNext||50;if(kc>=BT.koNext){bSay(`${kc} kills!`);BT.koNext=kc<100?100:kc<200?200:BT.koNext+150;}}
+  {const kc=r.kills||0;BT.koNext=BT.koNext||50;if(kc>=BT.koNext){bSay(`${kc} ${(kc)==1?"kill":"kills"}!`);BT.koNext=kc<100?100:kc<200?200:BT.koNext+150;}}
   // 적장: 멀리서 처음 보이면 알린다
   {const cq=BT.sq.find(q=>q.isCapt&&act(q));if(cq&&!BT.captSeen&&Math.hypot(cq.x-k.x,cq.z-k.z)<40){BT.captSeen=true;bSlow(0.6,`Enemy captain ${BT.captName||"Dead captain"} appears! — cut them down and the whole Dead host wavers`);bPop(cq,"Captain","bad");}}
   // 창 던지기 (T)
@@ -7343,7 +7400,7 @@ function grpCmd(k,act_){if(!BT||BT.phase!=="battle"||BT.over)return;if(BT.remote
     const near=(s,r)=>{const fs=bFoes().filter(f=>dd(s,f)<r);const top=BT.wall&&BT.wallAtk===s.side?fs.filter(onWallTop):[];return (top.length?top:fs).sort((p,q)=>dd(s,p)-dd(s,q))[0];};   /* 공성 중 투창은 성벽 위 망자부터 */
     if(k==="inf"){for(const s of sq){bPop(s,"Push!","good");s.buff.push=8;s.buff.shield=0;delete s.buff.shield;const t=near(s,60)||ourAutoTarget(s);if(t){s.state="attack";s.target=t.id;s.hold=false;s.orderT=BT.t;}}bSay("Infantry, push with your shields!");}
     else if(k==="spear"){let n=0;for(const s of sq){const t=near(s,30);if(!t)continue;n++;const big=t.t==="troll"||t.t==="wolf";{const dm=s.alive*7*(big?1.6:1);BT.pend.push({at:BT.t+0.85,fn:()=>{if(act(t))bDamage(s,t,dm);}});}for(let i=0;i<12;i++)BT.proj.push({x0:s.x+rnd(-4,4),z0:s.z+rnd(-2,2),x1:t.x+rnd(-5,5),z1:t.z+rnd(-5,5),t0:BT.t+rnd(0,0.3),dur:0.75,k:"jav",h0:0});BT.pend.push({at:BT.t+0.85,fn:()=>{if(act(t)&&act(s))(BT.clash=BT.clash||[]).push({a:s.id,d:t.id,k:2.2,fly:false});}});}
-      if(!n){BT.gcd[k]=BT.t+3;bSay("Javelins: no enemy within 30m");return;}bSay(`Spearmen, throw! (${n} companies)`);}
+      if(!n){BT.gcd[k]=BT.t+3;bSay("Javelins: no enemy within 30m");return;}bSay(`Spearmen, throw! (${n} ${(n)==1?"company":"companies"})`);}
     else if(k==="archer"){const fs=bFoes();let best=null,bs=-1;for(const f of fs){let sum=0;for(const g of fs)if(dd(f,g)<14)sum+=g.alive;if(sum>bs){bs=sum;best=f;}}
       if(!best){BT.gcd[k]=BT.t+3;bSay("No enemy to shoot.");return;}const pw=sq.reduce((a,s)=>a+s.alive,0),bx=best.x,bz=best.z;BT.pend.push({at:BT.t+1.4,fn:()=>{BT.fires=(BT.fires||[]).concat([{x:bx,z:bz,t:10,t0:10,pw,src:sq[0].id}]);if(!BT.headless){E.shake=Math.max(E.shake||0,0.08);try{sfx("flesh",0.6);}catch(e){}}}});for(const f of fs)if(Math.hypot(f.x-best.x,f.z-best.z)<14)f.morale=Math.max(0,f.morale-10);
       for(const s of sq){bPop(s,"Fire arrows!","good");for(let i=0;i<14;i++){const a=Math.random()*6.283,r=Math.sqrt(Math.random())*12;BT.proj.push({x0:s.x+rnd(-4,4),z0:s.z+rnd(-3,3),x1:best.x+Math.cos(a)*r,z1:best.z+Math.sin(a)*r,t0:BT.t+rnd(0,0.5),dur:1.2+rnd(0,0.15),k:"fire",h0:onWallTop(s)?wallH():0});}}bSay(`Archers, fire arrows! (${fmtN(bs)} Dead packed there)`);}
@@ -7378,7 +7435,7 @@ const SKILL_SEE={inf:"Your infantry charge shields-first into the nearest enemy.
   cav:"The cavalry swing wide and drive into the flank of the largest enemy mass.",
   all:"Drums and a roar go up, and every company's morale rises."};
 function skillTip(G){if(typeof tipOnce!=="function")return;
-  tipOnce("sk_"+G.k,`${G.n}, ${G.sk}`,`${G.skd}<br><br>${SKILL_SEE[G.k]||""}<br><br>Ready again in ${G.cd} seconds.`);}
+  tipOnce("sk_"+G.k,`${G.n}, ${G.sk}`,`${G.skd}<br><br>${SKILL_SEE[G.k]||""}<br><br>Ready again in ${G.cd} ${(G.cd)==1?"second":"seconds"}.`);}
 
 /* ════════ 성 공방전: 망자의 역할 · 사다리 · 투석기 · 돌 던지기 ════════
    망자는 역할을 나눠 성을 친다.
@@ -7600,7 +7657,7 @@ function renderTop(){
   const TIP={food:"Food: people and soldiers eat it daily. Run out and people starve and favor drops. Farms, villages and favor raise it. Above the storage cap (+650 per farm) it rots, so sell it in the Treasury tab. /day is the daily average including village tribute (most food comes from villages) — village shares arrive as tribute every three days",gold:"Gold: spent on recruiting, building, gifts and mercenaries. Earned from markets, villages, trade and loot. /day is the Palace's own earnings only (after soldiers' pay) — village shares arrive as tribute every three days. If it runs out, pay is late and favor drops",pop:"People: grows with housing levels. The base for recruiting; more people means more taxes. Below 60% of the cap there aren't enough hands and farms and markets slow; if soldiers exceed 60% of the people, favor drops daily",sword:"Troops: Palace garrison + expeditions + village garrisons. One company = 100 men",heart:"Favor: production multiplier for food and gold (60%–100%), population growth, and soldiers' starting morale. Below 30, desertions every night; below 20, riots (gold and people lost); at 0, the realm falls. At 80+, volunteers come every five days. Raised by victories, festivals, the chapel, the convent, sparring wins and blessings; lowered by hunger, defeats, unpaid wages and debt"};
   const rc=(ic,v,d,k)=>`<div class="rc" title="${TIP[ic]||""}"><span class="ic">${ICON[ic]}</span><div><div class="v">${v}</div>${d!==null?`<div class="d ${d>0?"up":d<0?"dn":""}">${d>0?"+":""}${d}/day</div>`:`<div class="k">${k}</div>`}</div></div>`;
   $("#resbar").innerHTML=rc("food",fmtN(S.res.food),e.food+e.vf)+rc("gold",fmtN(S.res.gold),e.gold)+
-    rc("pop",fmtN(S.civ),null,`People / ${fmtN(popCap())}`)+rc("sword",fmtN(soldiersAll()),null,`Troops ${allOurComps()} companies`)+rc("heart",Math.round(S.morale),null,"Favor");
+    rc("pop",fmtN(S.civ),null,`People / ${fmtN(popCap())}`)+rc("sword",fmtN(soldiersAll()),null,`Troops ${allOurComps()} ${(allOurComps())==1?"company":"companies"}`)+rc("heart",Math.round(S.morale),null,"Favor");
   S.speed=1;
   $("#timeCtl").innerHTML=`<button data-a="pause" class="${S.paused?"on":""}" aria-label="Pause / Play" title="Pause / Play (P)">${S.paused?ICON.play:ICON.pause}</button><span class="note" style="padding:0 8px;align-self:center;font-family:var(--f-num);font-size:11.5px">${String(Math.floor(S.t*24)).padStart(2,"0")}:00${(()=>{ensureWeather();const k=S.weather.k;return k==="clear"?"":` · ${WEATHER_NAME[k]}`;})()}</span>`;
   $("#timeCtl").innerHTML+=`<button data-a="help" aria-label="Help" title="Help (F1)" style="font-family:var(--f-display);font-size:18px;font-weight:700">?</button><button data-a="music" aria-label="Music" title="Music on/off">${MUS.on?ICON.note:ICON.mute}</button><button data-a="fullscreen" aria-label="Fullscreen" title="Fullscreen (instead of F11)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button><button data-a="settings" aria-label="Settings">${ICON.gear}</button>`;
@@ -7626,12 +7683,12 @@ function renderSide(){
   if(o.kind==="site"){const s=siteById(o.id),st=S.sites[s.id];
     let info="",acts="";
     if(s.kind==="capital"){const e=econ();
-      info=`<dl class="kv"><dt>People</dt><dd>${fmtN(S.civ)} / ${fmtN(popCap())}${laborK()<1?` <span style="color:var(--blood)">Workforce ${Math.round(laborK()*100)}%</span>`:""}</dd><dt>Garrison</dt><dd>${fmtN(compMen(S.garrison))} (${S.garrison.length} companies)</dd><dt>Food</dt><dd>${e.food>=0?"+":""}${e.food}/day</dd><dt>Gold</dt><dd>${e.gold>=0?"+":""}${e.gold}/day</dd><dt>Training</dt><dd>${S.queue.length} companies</dd></dl>`;
+      info=`<dl class="kv"><dt>People</dt><dd>${fmtN(S.civ)} / ${fmtN(popCap())}${laborK()<1?` <span style="color:var(--blood)">Workforce ${Math.round(laborK()*100)}%</span>`:""}</dd><dt>Garrison</dt><dd>${fmtN(compMen(S.garrison))} (${S.garrison.length} ${(S.garrison.length)==1?"company":"companies"})</dd><dt>Food</dt><dd>${e.food>=0?"+":""}${e.food}/day</dd><dt>Gold</dt><dd>${e.gold>=0?"+":""}${e.gold}/day</dd><dt>Training</dt><dd>${S.queue.length} ${(S.queue.length)==1?"company":"companies"}</dd></dl>`;
       acts=`<button class="b gold" data-a="kingdom">Manage Palace</button><button class="b" data-a="compose">Form expedition</button>`;}
     else if(s.kind==="village"){
-      info=`<dl class="kv">${lordOf(s.id)?`<dt>Lord</dt><dd>${esc(lordOf(s.id).name)} — ${esc(lordOf(s.id).title)} <span class="note">(commands the defense if besieged: ${esc(lordOf(s.id).ab)})</span></dd>`:""}<dt>Status</dt><dd>${st.state==="ok"?"Peaceful":st.state==="besieged"?"Besieged":"Ruins"}</dd>${st.state!=="ruined"?`<dt>Pop.</dt><dd>${fmtN(st.pop)}</dd>`:""}${st.state==="besieged"?`<dt>Falls in</dt><dd>${st.doom} days</dd>`:""}${st.state==="ok"&&s.side===0?(()=>{const e=vilEarn(s),a=(S.vAcc||{})[s.id]||{g:0,f:0},nd=3-((S.day|0)%3);return `<dt>Daily income</dt><dd>Gold ${e.g} · Food ${e.f}</dd><dt>Tribute</dt><dd>Banked gold ${a.g} · Food ${a.f} — ${nd===3?"in three days":nd+" days"} to the Palace</dd>`;})():""}</dl>`;
-      if(st.state==="ruined"){const w=canRebuild(s.id);info+=`<p class="note">${st.rebuild?`Rebuilding — ${st.rebuild} days left`:"A ruined village. It can be rebuilt with 400 gold and 150 food."}</p>`;acts=st.rebuild?"":`<button class="b gold" data-a="rebuild" data-id="${s.id}" ${w?"disabled":""} title="${w||""}">Rebuild (gold 400 · food 150)</button>`;}
-      else if(st.state==="besieged"){info+=S.intel&&S.intel[s.id]&&intelFresh(s.id)?forceHtml(`Besiegers · intel ${intelAge(s.id)} days ago`,S.intel[s.id].comps):foeViewHtml(s);acts=`<button class="b gold" data-a="compose" data-t="site:${s.id}">Relief expedition</button>`+spyButtons(s);}
+      info=`<dl class="kv">${lordOf(s.id)?`<dt>Lord</dt><dd>${esc(lordOf(s.id).name)} — ${esc(lordOf(s.id).title)} <span class="note">(commands the defense if besieged: ${esc(lordOf(s.id).ab)})</span></dd>`:""}<dt>Status</dt><dd>${st.state==="ok"?"Peaceful":st.state==="besieged"?"Besieged":"Ruins"}</dd>${st.state!=="ruined"?`<dt>Pop.</dt><dd>${fmtN(st.pop)}</dd>`:""}${st.state==="besieged"?`<dt>Falls in</dt><dd>${st.doom} ${(st.doom)==1?"day":"days"}</dd>`:""}${st.state==="ok"&&s.side===0?(()=>{const e=vilEarn(s),a=(S.vAcc||{})[s.id]||{g:0,f:0},nd=3-((S.day|0)%3);return `<dt>Daily income</dt><dd>Gold ${e.g} · Food ${e.f}</dd><dt>Tribute</dt><dd>Banked gold ${a.g} · Food ${a.f} — ${nd===3?"in three days":nd+" days"} to the Palace</dd>`;})():""}</dl>`;
+      if(st.state==="ruined"){const w=canRebuild(s.id);info+=`<p class="note">${st.rebuild?`Rebuilding — ${st.rebuild} ${(st.rebuild)==1?"day":"days"} left`:"A ruined village. It can be rebuilt with 400 gold and 150 food."}</p>`;acts=st.rebuild?"":`<button class="b gold" data-a="rebuild" data-id="${s.id}" ${w?"disabled":""} title="${w||""}">Rebuild (gold 400 · food 150)</button>`;}
+      else if(st.state==="besieged"){info+=S.intel&&S.intel[s.id]&&intelFresh(s.id)?forceHtml(`Besiegers · intel ${intelAge(s.id)} ${(intelAge(s.id))==1?"day":"days"} ago`,S.intel[s.id].comps):foeViewHtml(s);acts=`<button class="b gold" data-a="compose" data-t="site:${s.id}">Relief expedition</button>`+spyButtons(s);}
       else if(st.state==="ok"){const v=vil(s.id);const tr=siteTrait(s.id);if(tr)info+=`<p class="note"><b>${tr.n}</b> — ${tr.d}</p>`;info+=`<dl class="kv"><dt>Walls</dt><dd>${v.walls?`Stone walls Lv${v.walls}`:"None"}</dd><dt>Garrison</dt><dd>${v.vgar.length?compsText(v.vgar):"None"}${v.vq.length?` (training ${v.vq.length})`:""}</dd></dl>`;
         acts=`${unl("village")?`<button class="b gold" data-a="village" data-id="${s.id}">Manage village (recruit · walls · invest)</button>`:lockedNote("village")}<button class="b" data-a="compose" data-t="site:${s.id}">Send garrison</button>`;}}
     else if(s.kind==="pcapital"||s.kind==="pvillage"){const P=mpOnline(s.owner)?MP.kingdoms[s.owner]:null;info=`<dl class="kv"><dt>Kingdom</dt><dd><b style="color:${MP_COLS[s.owner]}">●</b> ${esc(mpOwnerName(s.owner))}'s kingdom (ally)</dd>${P?`<dt>Troops</dt><dd>${fmtN(P.men)}</dd><dt>Status</dt><dd>${P.busy?"In battle":"Peaceful"}</dd>`:`<dt>Status</dt><dd>Not connected</dd>`}<dt>Here</dt><dd>${st.state==="ruined"?"Ruins":st.state==="besieged"?"Besieged":"Safe"}</dd></dl>`;
@@ -7641,7 +7698,7 @@ function renderSide(){
         <p class="note" style="margin-top:8px">Station an army near an ally's capital or village and it joins any battle fought there.</p>`;}}
     else if(s.kind==="rcapital"||s.kind==="rvillage"){const r=realmOf(s);ensureRealms();const R=S.realms[r.id];
       if(!R.alive)info=`<p class="note">The land of a fallen realm. The Dead hold it now.</p>`;
-      else{info=`<dl class="kv"><dt>Realm</dt><dd>${esc(r.name)} · ${esc(r.ruler)}</dd><dt>Relations</dt><dd>${REL_NAME(R.rel)} (${Math.round(R.rel)})</dd><dt>Pop.</dt><dd>${st.state==="ok"?fmtN(st.pop):"Ruins"}</dd>${s.kind==="rcapital"?`<dt>Army</dt><dd>${R.army.length} companies · ${fmtN(R.army.reduce((a,c)=>a+c.men,0))}</dd>`:""}</dl><p class="desc">${esc(r.desc)}</p>`;
+      else{info=`<dl class="kv"><dt>Realm</dt><dd>${esc(r.name)} · ${esc(r.ruler)}</dd><dt>Relations</dt><dd>${REL_NAME(R.rel)} (${Math.round(R.rel)})</dd><dt>Pop.</dt><dd>${st.state==="ok"?fmtN(st.pop):"Ruins"}</dd>${s.kind==="rcapital"?`<dt>Army</dt><dd>${R.army.length} ${(R.army.length)==1?"company":"companies"} · ${fmtN(R.army.reduce((a,c)=>a+c.men,0))}</dd>`:""}</dl><p class="desc">${esc(r.desc)}</p>`;
         acts=unl("diplo")?`<button class="b gold" data-a="diplo" data-id="${r.id}">Diplomacy</button>`:lockedNote("diplo");}}
     else if(s.kind==="neutral"){
       info=`<p class="desc"><b style="color:var(--gold)">Terms</b> · ${esc(s.pitch)}</p>`+(st.state==="joined"?`<p class="note">Already on the realm's side.</p>`:"");
@@ -7655,21 +7712,21 @@ function renderSide(){
     const eta=a.moving&&a.tx!==undefined?etaDays(a,a.tx,a.tz):0;
     if(a.side===0){const g=a.gen?genById(a.gen):{seal:"A",title:"Royal Army"};
       html=`${winHead("Expedition")}<div class="body"><div style="display:flex;gap:12px;align-items:center"><span class="seal">${g.seal}</span><div><h2>${esc(armyName(a))}</h2><span class="kind">${esc(g.title)}</span></div></div>
-        <dl class="kv"><dt>Mission</dt><dd>${esc(missionName(a))}</dd><dt>Arrival</dt><dd>${a.moving?`~${eta} days`:"Holding position"}</dd></dl><p class="hint" style="margin:4px 0 6px"><kbd>Right-click</kbd> ground to move and camp · right-click a site or enemy for that mission</p>${forceHtml("Forces",a.comps)}
+        <dl class="kv"><dt>Mission</dt><dd>${esc(missionName(a))}</dd><dt>Arrival</dt><dd>${a.moving?`~${eta} ${(eta)==1?"day":"days"}`:"Holding position"}</dd></dl><p class="hint" style="margin:4px 0 6px"><kbd>Right-click</kbd> ground to move and camp · right-click a site or enemy for that mission</p>${forceHtml("Forces",a.comps)}
         ${(()=>{if(a.moving)return "";const vs=villagesOwned().filter(v=>S.sites[v.id].state==="ok"&&Math.hypot(v.x-a.x,v.z-a.z)<ALLY_R);if(!vs.length)return "";return vs.map(v=>{const st=S.sites[v.id];return `<div class="tile"><div class="eyebrow" style="margin-bottom:4px">${esc(v.name)} is nearby — the village helps the army</div><div class="acts">
-          <button class="b sm" data-a="vjoin" data-id="${v.id}" data-a2="${a.id}" ${st.vgar&&st.vgar.length?"":"disabled"} title="The village garrison joins this army">Garrison joins (${st.vgar?st.vgar.length:0} companies)</button>
+          <button class="b sm" data-a="vjoin" data-id="${v.id}" data-a2="${a.id}" ${st.vgar&&st.vgar.length?"":"disabled"} title="The village garrison joins this army">Garrison joins (${st.vgar?st.vgar.length:0} ${(st.vgar?st.vgar.length:0)==1?"company":"companies"})</button>
           <button class="b sm" data-a="vlevyArmy" data-id="${v.id}" data-a2="${a.id}" ${st.pop>=300&&S.res.gold>=40&&S.res.food>=25?"":"disabled"} title="100 villagers become militia and join (gold 40 · food 25)">Village levy joins (pop. ${fmtN(st.pop)})</button></div></div>`;}).join("");})()}
         ${a.moving?(()=>{const lv=a.rush||0;const why=lv>=3?"Max level":S.res.gold<200?"Not enough gold":S.res.food<200?"Not enough food":"";return `<div class="tile"><div class="hd"><span class="nm">Forced march ${lv?`${lv} · speed +${lv*25}%`:""}</span><span class="note" style="margin-left:auto">Gold 200 · Food 200</span></div><div class="ds">Add more carts and cut rest time. Each level gives +25% speed for this march (max 3 levels, +75%). Wears off on arrival; each level adds +6 fatigue.</div><button class="b sm gold" data-a="rush" data-id="${a.id}" ${why?"disabled":""}>${why||`Forced march ${lv+1}`}</button></div>`;})():""}
         ${a.safeUntil>nowD()?`<p class="note">Retreating — can't be caught by the enemy for a while</p>`:""}
         <div class="acts"><button class="b" data-a="retarget" data-id="${a.id}">Change target</button><button class="b" data-a="campT" data-id="${a.id}" title="Choose a destination on the map">Move</button>${S.armies.some(x=>x.side===0&&x!==a)?`<button class="b" data-a="joinT" data-id="${a.id}">Join another army</button>`:""}${a.mission!=="return"?`<button class="b" data-a="recall" data-id="${a.id}">Recall</button>`:""}</div></div>`;}
-    else html=`${winHead("The Dead host")}<div class="body"><h2>The Dead host</h2><dl class="kv"><dt>Action</dt><dd>${esc(missionName(a))}</dd>${a.moving?`<dt>Arrival</dt><dd>~${eta} days</dd>`:""}</dl>${forceHtml("Forces (scouted estimate)",a.comps,true)}
+    else html=`${winHead("The Dead host")}<div class="body"><h2>The Dead host</h2><dl class="kv"><dt>Action</dt><dd>${esc(missionName(a))}</dd>${a.moving?`<dt>Arrival</dt><dd>~${eta} ${(eta)==1?"day":"days"}</dd>`:""}</dl>${forceHtml("Forces (scouted estimate)",a.comps,true)}
       <div class="acts"><button class="b red" data-a="compose" data-t="army:${a.id}">Intercept expedition</button></div></div>`;
   }
   el.innerHTML=fixJosa(html);el.hidden=false;el.className="side panel";
 }
 function forceHtml(title,cs,foe){
   const o={};for(const c of cs){o[c.t]=o[c.t]||{n:0,men:0};o[c.t].n++;o[c.t].men+=c.men;}
-  const rows=Object.entries(o).map(([t,v])=>`<div class="frow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span>${U[t].n}${foe?"":` <span class="note">${v.n} companies</span>`}<span class="n">${foe?"~":""}${fmtN(foe?Math.round(v.men/50)*50||v.men:v.men)}</span></div>`).join("");
+  const rows=Object.entries(o).map(([t,v])=>`<div class="frow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span>${U[t].n}${foe?"":` <span class="note">${v.n} ${(v.n)==1?"company":"companies"}</span>`}<span class="n">${foe?"~":""}${fmtN(foe?Math.round(v.men/50)*50||v.men:v.men)}</span></div>`).join("");
   return `<div><div class="eyebrow" style="margin-bottom:6px">${title} · ${fmtN(compMen(cs))}</div><div class="force">${rows||"<span class=\"note\">None</span>"}</div></div>`;
 }
 
@@ -7680,7 +7737,7 @@ function kingdomModal(){
   if(t==="build")body=`    <div class="tile"><div class="hd"><span class="ic">${ICON.pop}</span><span class="nm">Encourage settlers</span></div><div class="ds">Spend 200 gold to attract settlers. The higher the favor, the more come (now about ${Math.round(120+S.morale*2.2)}). Housing cap ${fmtN(popCap())}.</div><button class="b sm" data-a="settlers" ${S.res.gold<200||S.civ>=popCap()?"disabled":""}>Recruit settlers</button></div><div class="grid2">${Object.keys(BLD).map(k=>{const b=BLD[k],l=S.bld[k],c=bldCost(k),why=canBuild(k);
     return `<div class="tile"><div class="hd"><span class="ic">${ICON[b.icon]}</span><span class="nm">${b.n}</span><span class="pips">${Array.from({length:b.max},(_,i)=>`<i class="${i<l?"f":""}"></i>`).join("")}</span></div>
       <div class="ds">${b.d}</div>${l>=b.max?`<div class="note">Complete</div>`:`<div class="cost">${Object.entries(c).map(([r,v])=>`<span class="${S.res[r]<v?"no":""}">${r==="gold"?"Gold":"Food"} ${v}</span>`).join(" · ")}</div>
-      <button class="b sm" data-a="build" data-k="${k}" ${why?"disabled":""}>${S.bq&&S.bq[k]?`Under construction ${S.bq[k].days} days`:`${l?"Expand":"Build"} · ${bldDays(k)} days`}</button>${S.bq&&S.bq[k]?`<button class="b sm ghost" data-a="cancel" data-k="bld" data-b="${k}" title="Cancel to get 80% back">Cancel construction</button>`:""}`}</div>`;}).join("")}</div>`;
+      <button class="b sm" data-a="build" data-k="${k}" ${why?"disabled":""}>${S.bq&&S.bq[k]?`Under construction ${S.bq[k].days} ${(S.bq[k].days)==1?"day":"days"}`:`${l?"Expand":"Build"} · ${bldDays(k)} ${(bldDays(k))==1?"day":"days"}`}</button>${S.bq&&S.bq[k]?`<button class="b sm ghost" data-a="cancel" data-k="bld" data-b="${k}" title="Cancel to get 80% back">Cancel construction</button>`:""}`}</div>`;}).join("")}</div>`;
   else if(t==="bank")body=`<div class="tile" style="border-color:rgba(226,192,122,.45)"><div class="hd"><span class="ic">${ICON.gold}</span><span class="nm">Merchants' Guild Vault — Loans</span><span class="note" style="margin-left:auto">${S.debt?`Debt: gold ${fmtN(Math.round(S.debt))} · interest 10%/day`:"No debt"}</span></div>
     <div class="ds">Borrow gold in a pinch. It grows 10% a day — a third more in three days — and if the debt passes 2,500 the merchants turn away and favor drops daily. Repay anytime.</div>
     <div class="acts">${[300,600,1000].map(v=>`<button class="b sm" data-a="loan" data-v="${v}" ${(S.debt||0)+v>3000?"disabled":""}>Gold ${v} borrow</button>`).join("")}<button class="b sm gold" data-a="repay" ${S.debt&&S.res.gold>0?"":"disabled"}>Repay (${S.debt?fmtN(Math.min(Math.round(S.debt),S.res.gold)):0})</button></div></div>
@@ -7691,18 +7748,18 @@ function kingdomModal(){
     <div class="acts">${[500,1000].map(v=>`<button class="b sm" data-a="buyFood" data-v="${v}" ${S.res.gold<Math.round(v*0.6)||S.grainBought===(S.day|0)?"disabled":""}>Gold ${Math.round(v*0.6)} → food ${v}</button>`).join("")}</div></div>
 ${visitList(["market","farm","homes"])}<p class="note">Debt up to 3,000 gold. Repaid with caravans, trade and loot.</p>`;
   else if(t==="recruit")body=`<p class="note" style="margin:0">One company is 100 men. Recruiting turns 100 people into soldiers.</p>${visitList(["barracks","range","stable","chapel"])}<div class="grid2">${OURS.map(k=>{const u=U[k],why=canRecruit(k);
-    return `<div class="tile ${u.need&&!S.bld[u.need]?"locked":""}"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(k)} days</span></div>
+    return `<div class="tile ${u.need&&!S.bld[u.need]?"locked":""}"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(k)} ${(trainDays(k))==1?"day":"days"}</span></div>
       <div class="ds">${u.d}</div>
       <div class="stats"><span>ATK<b>${u.atk}</b></span><span>DEF<b>${u.arm}</b></span><span>HP<b>${u.hp}</b></span><span>SPD<b>${u.spd}</b></span><span>RNG<b>${u.rng>20?u.rng:"Melee"}</b></span></div>
       <div class="note"><span style="color:var(--blight)">Strong vs</span> ${COUNTER_TEXT[k][0]} · <span style="color:var(--blood)">Weak vs</span> ${COUNTER_TEXT[k][1]}</div>
       <div class="cost">Gold ${unitCost(k).gold}${unitCost(k).gold<u.cost.gold?" <span style=\"color:var(--blight)\">(local discount)</span>":""} · Food ${u.cost.food} · People 100</div>
       <button class="b sm" data-a="recruit" data-k="${k}" ${why?"disabled":""}>${why||"Recruit 1 company"}</button></div>`;}).join("")}</div>
-    ${drillHtml(OURS)}${S.queue.length?`<div><div class="eyebrow" style="margin:6px 0">Training</div>${S.queue.map(q=>`<div class="qrow"><span class="glyph" style="background:${U[q.t].col}">${U[q.t].g}</span>${U[q.t].n} — 1 company<span class="note" style="margin-left:auto">${q.days} days left</span><button class="b sm ghost" data-a="cancel" data-k="queue" data-q="${q.qid||(q.qid=(S.qidN=(S.qidN||0)+1))}" title="Cancel to get 80% and the people back">Cancel</button></div>`).join("")}</div>`:""}`;
-  else body=`${forceHtml("Palace garrison",S.garrison)}<div class="tile" style="margin-bottom:8px"><div class="eyebrow" style="margin-bottom:4px">How to build strong companies</div><div class="ds">① Recruit companies in the Recruit tab → ② in the same tab, <b>Drill companies</b> (gold 70 · food 30 · 2 days) for ★, once more for ★★ — each star: attack +8%, damage taken -6% → ③ ★★ companies with 90+ men can go <b>elite</b> here (gold ${ELITE_COST.gold}·food ${ELITE_COST.food}·${ELITE_DAYS} days, several companies at once): infantry → <b>Elite Infantry</b> (iron wall), spearmen → <b>Elite Spearmen</b>, archers → <b>Elite Archers</b> (range, rate of fire), cavalry → <b>Elite Cavalry</b> (strongest) — faster than cavalry (13.5), stronger, favored in every matchup, just beware spear walls → ④ ★★★ only from winning real battles → ⑤ ★★★ captains can be promoted to generals in the Great Hall (gold 500)</div></div><div>${S.garrison.map((c,i)=>{const w=canElite(c);return `<div class="qrow"><span class="glyph" style="background:${U[c.t].col}">${U[c.t].g}</span>${U[c.t].n} company <span style="color:var(--gold)">${vetStars(c)}</span> ${eliteMark(c)}<span style="flex:1;margin:0 10px" class="bar"><i style="width:${c.men}%;background:var(--steel)"></i></span><span class="num">${c.men}/100</span>${c.fat?`<span class="note" style="margin-left:8px;color:${c.fat>=60?"var(--blood)":"var(--bone-dim)"}">${fatText(c)} ${c.fat}</span>`:""}
-      ${!c.elite&&!(c.eliteT>0)?`<button class="b sm" style="margin-left:8px" data-a="elite" data-i="${i}" ${w?"disabled":""} title="${w||`Gold ${ELITE_COST.gold} · Food ${ELITE_COST.food} · ${ELITE_DAYS} days`}">Make elite${w?` (${w})`:""}</button>`:""}</div>`;}).join("")||"<p class=\"note\">No garrison.</p>"}</div>
-    <p class="note" style="margin:0">Companies at the Palace refill daily (1 person + 1 gold = 1 soldier) and shed 12 fatigue. At fatigue 100, combat power is 60%. <b>Elite training</b>: turn a ★★ company into an elite type (Elite Infantry, Spearmen, Archers, Cavalry) for gold ${ELITE_COST.gold}·food ${ELITE_COST.food}, ${ELITE_DAYS} days.</p>`;
-  if(t==="tech"){ensureTech();body=`<p class="note" style="margin:0">The chancellor gathers craftsmen and scholars to improve the realm. One at a time.</p>${S.tech.q?`<div class="tile"><div class="hd"><span class="nm">${TECH[S.tech.q.k].n} in progress</span><span class="note" style="margin-left:auto">${S.tech.q.days} days left</span><button class="b sm ghost" data-a="cancel" data-k="tech" title="Cancel to get 80% back">Cancel</button></div></div>`:""}
-    <div class="grid2">${Object.keys(TECH).map(k=>{const t2=TECH[k],w=canTech(k);return `<div class="tile"><div class="hd"><span class="nm">${t2.n}</span><span class="pips">${[0,1,2].map(i=>`<i class="${i<S.tech[k]?"f":""}"></i>`).join("")}</span></div><div class="ds">${t2.d}</div>${S.tech[k]>=3?"<div class=\"note\">Complete</div>":`<div class="cost">Gold ${techCost(k)} · ${5+S.tech[k]*2} days</div><button class="b sm" data-a="tech" data-k="${k}" ${w?"disabled":""} title="${w||""}">${S.tech[k]?"Next level":"Start"}</button>`}</div>`;}).join("")}</div>
+    ${drillHtml(OURS)}${S.queue.length?`<div><div class="eyebrow" style="margin:6px 0">Training</div>${S.queue.map(q=>`<div class="qrow"><span class="glyph" style="background:${U[q.t].col}">${U[q.t].g}</span>${U[q.t].n} — 1 company<span class="note" style="margin-left:auto">${q.days} ${(q.days)==1?"day":"days"} left</span><button class="b sm ghost" data-a="cancel" data-k="queue" data-q="${q.qid||(q.qid=(S.qidN=(S.qidN||0)+1))}" title="Cancel to get 80% and the people back">Cancel</button></div>`).join("")}</div>`:""}`;
+  else body=`${forceHtml("Palace garrison",S.garrison)}<div class="tile" style="margin-bottom:8px"><div class="eyebrow" style="margin-bottom:4px">How to build strong companies</div><ol class="steps"><li>Recruit companies in the Recruit tab.</li><li>Earn stars with <b>Drill companies</b> in the same tab (gold 70, food 30, 2 days). Each star gives attack +8% and damage taken -6%. Twice at most.</li><li>Companies with two stars and 90 or more men can be made <b>elite</b> below (gold ${ELITE_COST.gold}, food ${ELITE_COST.food}, ${ELITE_DAYS} ${(ELITE_DAYS)==1?"day":"days"}).</li><li>The third star comes only from winning real battles. A three-star captain can be promoted to general in the Great Hall (gold 500).</li></ol></div></div><div>${S.garrison.map((c,i)=>{const w=canElite(c);return `<div class="qrow"><span class="glyph" style="background:${U[c.t].col}">${U[c.t].g}</span>${U[c.t].n} company <span style="color:var(--gold)">${vetStars(c)}</span> ${eliteMark(c)}<span style="flex:1;margin:0 10px" class="bar"><i style="width:${c.men}%;background:var(--steel)"></i></span><span class="num">${c.men}/100</span>${c.fat?`<span class="note" style="margin-left:8px;color:${c.fat>=60?"var(--blood)":"var(--bone-dim)"}">${fatText(c)} ${c.fat}</span>`:""}
+      ${!c.elite&&!(c.eliteT>0)?`<button class="b sm" style="margin-left:8px" data-a="elite" data-i="${i}" ${w?"disabled":""} title="${w||`Gold ${ELITE_COST.gold} · Food ${ELITE_COST.food} · ${ELITE_DAYS} ${(ELITE_DAYS)==1?"day":"days"}`}">Make elite${w?` (${w})`:""}</button>`:""}</div>`;}).join("")||"<p class=\"note\">No garrison.</p>"}</div>
+    <p class="note" style="margin:0">Companies at the Palace refill daily (1 person + 1 gold = 1 soldier) and shed 12 fatigue. At fatigue 100, combat power is 60%. <b>Elite training</b>: turn a ★★ company into an elite type (Elite Infantry, Spearmen, Archers, Cavalry) for gold ${ELITE_COST.gold}·food ${ELITE_COST.food}, ${ELITE_DAYS} ${(ELITE_DAYS)==1?"day":"days"}.</p>`;
+  if(t==="tech"){ensureTech();body=`<p class="note" style="margin:0">The chancellor gathers craftsmen and scholars to improve the realm. One at a time.</p>${S.tech.q?`<div class="tile"><div class="hd"><span class="nm">${TECH[S.tech.q.k].n} in progress</span><span class="note" style="margin-left:auto">${S.tech.q.days} ${(S.tech.q.days)==1?"day":"days"} left</span><button class="b sm ghost" data-a="cancel" data-k="tech" title="Cancel to get 80% back">Cancel</button></div></div>`:""}
+    <div class="grid2">${Object.keys(TECH).map(k=>{const t2=TECH[k],w=canTech(k);return `<div class="tile"><div class="hd"><span class="nm">${t2.n}</span><span class="pips">${[0,1,2].map(i=>`<i class="${i<S.tech[k]?"f":""}"></i>`).join("")}</span></div><div class="ds">${t2.d}</div>${S.tech[k]>=3?"<div class=\"note\">Complete</div>":`<div class="cost">Gold ${techCost(k)} · ${5+S.tech[k]*2} ${(5+S.tech[k]*2)==1?"day":"days"}</div><button class="b sm" data-a="tech" data-k="${k}" ${w?"disabled":""} title="${w||""}">${S.tech[k]?"Next level":"Start"}</button>`}</div>`;}).join("")}</div>
     <div><div class="eyebrow" style="margin:8px 0 4px">Our villages' lands</div>${villagesOwned().map(v=>{const tr=siteTrait(v.id);return tr?`<div class="qrow"><span class="ic">${ICON[tr.icon]||""}</span>${v.name} — <b>${tr.n}</b> <span class="note">${tr.d}</span></div>`:"";}).join("")||"<p class=\"note\">No villages.</p>"}</div>`;}
   return `${winHead("Realm — Palace of Astera")}<div class="tabs">${[["build","Build"],["recruit","Recruit"],["garrison","Garrison"],["tech","Upgrades"],["bank","Treasury"]].filter(([k])=>unl("k_"+k)).map(([k,n])=>`<button data-a="ktab" data-k="${k}" aria-selected="${t===k}">${n}</button>`).join("")}</div>${(()=>{const e=econ(),f=e.food+e.vf,sg=v=>`<small class="${v>0?"up":v<0?"dn":""}">${v>0?"+":""}${v}/day</small>`;return `<div class="kres" id="kres"><span>${ICON.gold}<b>${fmtN(Math.floor(S.res.gold))}</b>${sg(e.gold)}</span><span>${ICON.food}<b>${fmtN(Math.floor(S.res.food))}</b>${sg(f)}</span><span>${ICON.pop}<b>${fmtN(S.civ)}</b><small>people</small></span>${S.debt?`<span style="color:#e8a79a">Debt <b>${fmtN(Math.round(S.debt))}</b></span>`:""}</div>`;})()}<div class="wbody">${body}</div>`;
 }
@@ -7720,13 +7777,13 @@ function composeModal(){
   const foe=d.target&&targetForces(d.target);
   const odds=foe&&picked.length?battleOdds(picked.map(i=>S.garrison[i]),foe,"field",0):null;
   return `${winHead("Form expedition")}<div class="wbody">${odds?oddsHtml(odds):foe?"":d.target&&d.target.kind==="site"?`<p class="note">Enemy strength unknown — send a spy for a forecast.</p>`:""}
-    <div><div class="eyebrow" style="margin-bottom:6px">Commanders <span class="note" style="letter-spacing:0;margin-left:6px">Pick several to march together · the first one picked has overall command</span></div><div style="display:grid;gap:6px">${kingHome()?`<button class="gen" data-a="dgen" data-id="king" aria-pressed="${dHas(d,"king")}" ${S.kingWound>0?"disabled":""}><span class="seal" style="color:#e8c46a;border-color:#e8c46a">K</span><span class="nm">${esc(S.ruler)}<small>The king rides out</small></span><span class="st ${S.kingWound>0?"wounded":"ready"}">${S.kingWound>0?`Wounded ${S.kingWound} days`:"Ready"}</span><span class="sub">The king fights in person with 40 royal guards · controlled in third person · King's Roar</span></button>`:""}${S.gens.map(g=>{const G=genById(g.id);return `<button class="gen" data-a="dgen" data-id="${g.id}" aria-pressed="${dHas(d,g.id)}" ${g.status!=="ready"?"disabled":""}>
-      <span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"Ready",march:"On campaign",wounded:`Wounded ${g.wound} days`,dead:"Fallen"}[g.status]}</span>
+    <div><div class="eyebrow" style="margin-bottom:6px">Commanders <span class="note" style="letter-spacing:0;margin-left:6px">Pick several to march together · the first one picked has overall command</span></div><div style="display:grid;gap:6px">${kingHome()?`<button class="gen" data-a="dgen" data-id="king" aria-pressed="${dHas(d,"king")}" ${S.kingWound>0?"disabled":""}><span class="seal" style="color:#e8c46a;border-color:#e8c46a">K</span><span class="nm">${esc(S.ruler)}<small>The king rides out</small></span><span class="st ${S.kingWound>0?"wounded":"ready"}">${S.kingWound>0?`Wounded ${S.kingWound} ${(S.kingWound)==1?"day":"days"}`:"Ready"}</span><span class="sub">The king fights in person with 40 royal guards · controlled in third person · King's Roar</span></button>`:""}${S.gens.map(g=>{const G=genById(g.id);return `<button class="gen" data-a="dgen" data-id="${g.id}" aria-pressed="${dHas(d,g.id)}" ${g.status!=="ready"?"disabled":""}>
+      <span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span><span class="st ${g.status}">${{ready:"Ready",march:"On campaign",wounded:`Wounded ${g.wound} ${(g.wound)==1?"day":"days"}`,dead:"Fallen"}[g.status]}</span>
       <span class="sub">Lv${g.lvl} · ${G.passive} · ${G.ab}</span></button>`;}).join("")}</div></div>
     <div><div class="eyebrow" style="margin-bottom:6px">Assign companies by type (from the Palace garrison)</div><div style="display:grid;gap:5px">${[...OURS,"einf","espear","earcher","ecav","militia"].flatMap(t=>{const vs=[3,2,1,0].filter(v=>avail[t+"#"+v]);if(!vs.length)return OURS.includes(t)?[[t,0]]:[];return vs.map(v=>[t,v]);}).map(([t,v])=>{const key=t+"#"+v,have=(avail[key]||[]).length,n=d.n[key]||0;
-      return `<div class="pickrow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span><div>${U[t].n} <b style="color:${v?"var(--gold)":"var(--steel)"};font-size:12px">${v?"★".repeat(v):"Recruits"}</b><small>Have ${have} companies${v?` · attack +${v*8}% · damage taken -${v*6}%`:""} · ${COUNTER_TEXT[t][0]}</small></div>
+      return `<div class="pickrow"><span class="glyph" style="background:${U[t].col}">${U[t].g}</span><div>${U[t].n} <b style="color:${v?"var(--gold)":"var(--steel)"};font-size:12px">${v?"★".repeat(v):"Recruits"}</b><small>Have ${have} ${(have)==1?"company":"companies"}${v?` · attack +${v*8}% · damage taken -${v*6}%`:""} · ${COUNTER_TEXT[t][0]}</small></div>
       <button class="step" data-a="dn" data-t="${key}" data-d="-1" ${n<=0?"disabled":""}>−</button><span class="n">${n*100}</span><button class="step" data-a="dn" data-t="${key}" data-d="1" ${n>=have?"disabled":""}>+</button></div>`;}).join("")}</div></div>
-    ${(()=>{const vs=villagesOwned().filter(v=>vil(v.id).vgar.length);if(!vs.length)return "";d.vpick=d.vpick||{};return `<div><div class="eyebrow" style="margin-bottom:6px">Village garrison levies <span class="note" style="letter-spacing:0;margin-left:6px">Chosen companies set out from the village and join the main army</span></div><div style="display:grid;gap:5px">${vs.map(v=>{const st=vil(v.id);return `<div class="pickrow" style="grid-template-columns:1fr auto"><div>${esc(v.name)}<small>Pop. ${fmtN(st.pop)} · garrison ${st.vgar.length} companies${st.walls?" · walls "+st.walls:""}</small></div><div class="acts" style="gap:4px">${st.vgar.map((c,i)=>{const on=(d.vpick[v.id]||[]).includes(i);return `<button class="b sm ${on?"on":""}" data-a="dvp" data-v="${v.id}" data-i="${i}" title="${on?"Remove":"Take along"}"><span class="glyph" style="width:16px;height:16px;font-size:9px;background:${U[c.t].col}">${U[c.t].g}</span>${c.men}</button>`;}).join("")}</div></div>`;}).join("")}</div></div>`;})()}
+    ${(()=>{const vs=villagesOwned().filter(v=>vil(v.id).vgar.length);if(!vs.length)return "";d.vpick=d.vpick||{};return `<div><div class="eyebrow" style="margin-bottom:6px">Village garrison levies <span class="note" style="letter-spacing:0;margin-left:6px">Chosen companies set out from the village and join the main army</span></div><div style="display:grid;gap:5px">${vs.map(v=>{const st=vil(v.id);return `<div class="pickrow" style="grid-template-columns:1fr auto"><div>${esc(v.name)}<small>Pop. ${fmtN(st.pop)} · garrison ${st.vgar.length} ${(st.vgar.length)==1?"company":"companies"}${st.walls?" · walls "+st.walls:""}</small></div><div class="acts" style="gap:4px">${st.vgar.map((c,i)=>{const on=(d.vpick[v.id]||[]).includes(i);return `<button class="b sm ${on?"on":""}" data-a="dvp" data-v="${v.id}" data-i="${i}" title="${on?"Remove":"Take along"}"><span class="glyph" style="width:16px;height:16px;font-size:9px;background:${U[c.t].col}">${U[c.t].g}</span>${c.men}</button>`;}).join("")}</div></div>`;}).join("")}</div></div>`;})()}
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="note">Marching troops (+ general's bodyguard 50×${Math.max(1,dGens(d).length)})${dGens(d).length>1?` · overall command ${dGens(d)[0]==="king"?esc(S.ruler):genById(dGens(d)[0]).name}`:""}</span><span class="tot">${fmtN(men)}${(()=>{const vm=Object.entries(d.vpick||{}).reduce((a,[vid,ix])=>a+ix.reduce((b,i)=>b+((vil(vid).vgar[i]||{}).men||0),0),0);return vm?` <small class="note">+ village ${fmtN(vm)}</small>`:"";})()}</span></div>
     ${tgt?`<div class="tile"><div class="hd"><span class="ic">${ICON.flag}</span><span class="nm">Target: ${esc(tgt)}</span></div>${d.target.kind==="site"?foeViewHtml(siteById(d.target.id)):foe?forceHtml("Expected enemy forces",foe,true):""}${d.target.kind==="site"&&activeWeak(d.target.id).length?`<p class="note" style="color:var(--gold)">Weaknesses found by spies: ${activeWeak(d.target.id).map(k=>WEAK[k].d).join(" · ")}</p>`:""}</div>`:""}
     ${!ready.length&&!kingHome()?`<p class="note" style="color:var(--blood)">No commander available to march.</p>`:""}
@@ -7755,17 +7812,17 @@ function villageModal(id){
       ${st.walls>=3?`<div class="note">Complete</div>`:`<div class="cost">Gold ${wc.gold} · Food ${wc.food}</div><button class="b sm gold" data-a="vwall" data-id="${id}" ${ww?"disabled":""}>${ww||(st.walls?"Raise":"Build walls")}</button>`}</div>
     ${(()=>{const tr=siteTrait(id);if(!tr||(tr.id!=="ore"&&tr.id!=="river"))return "";const k=tr.id==="ore"?{n:"mine expansion",d:"Dig deeper shafts for gold +45/day",c:350,key:"mine"}:{n:"Ferry toll",d:"Toll houses on the bridge and ferry, gold +30/day",c:280,key:"toll"};const on=st[k.key],bt=st[k.key+"T"];
       return `<div class="tile"><div class="hd"><span class="ic">${ICON.gold}</span><span class="nm">${k.n}</span>${on?"<span class=\"note\" style=\"margin-left:auto\">Running</span>":bt?`<span class="note" style="margin-left:auto">Building ${bt}</span>`:""}</div><div class="ds">${k.d}</div>${on?"":`<div class="cost">Gold ${k.c} · 3 days</div>${bt?"":`<button class="b sm gold" data-a="vinvest" data-id="${id}" data-k="${k.key}" data-c="${k.c}" ${S.res.gold<k.c?"disabled":""}>Invest</button>`}`}</div>`;})()}
-    <div><div class="eyebrow" style="margin:6px 0">Village recruiting — 100 villagers become soldiers (Palace population unaffected)</div><div class="grid2"><div class="tile" style="border-color:rgba(207,74,60,.4)"><div class="hd"><span class="glyph" style="background:${U.militia.col}">M</span><span class="nm">Emergency levy</span><span class="note" style="margin-left:auto">Instant</span></div><div class="ds">${U.militia.d} Low attack and defense.</div><div class="cost">Gold 40 · Food 25 · village pop. 100</div><button class="b sm red" data-a="vlevy" data-id="${id}" ${st.pop<300||S.res.gold<40||S.res.food<25?"disabled":""}>Call up 100 militia</button></div>${VIL_UNITS.map(t=>{const u=U[t],w=canVilRecruit(id,t);return `<div class="tile"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(t)+1} days</span></div>
+    <div><div class="eyebrow" style="margin:6px 0">Village recruiting — 100 villagers become soldiers (Palace population unaffected)</div><div class="grid2"><div class="tile" style="border-color:rgba(207,74,60,.4)"><div class="hd"><span class="glyph" style="background:${U.militia.col}">M</span><span class="nm">Emergency levy</span><span class="note" style="margin-left:auto">Instant</span></div><div class="ds">${U.militia.d} Low attack and defense.</div><div class="cost">Gold 40 · Food 25 · village pop. 100</div><button class="b sm red" data-a="vlevy" data-id="${id}" ${st.pop<300||S.res.gold<40||S.res.food<25?"disabled":""}>Call up 100 militia</button></div>${VIL_UNITS.map(t=>{const u=U[t],w=canVilRecruit(id,t);return `<div class="tile"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(t)+1} ${(trainDays(t)+1)==1?"day":"days"}</span></div>
       <div class="cost">Gold ${u.cost.gold} · Food ${u.cost.food} · village pop. 100</div><button class="b sm" data-a="vrec" data-id="${id}" data-k="${t}" ${w?"disabled":""}>${w||"Recruit 1 company"}</button></div>`;}).join("")}</div></div>
-    ${forceHtml("Village garrison",st.vgar)}${st.vq.length?`<div>${st.vq.map(q=>`<div class="qrow"><span class="glyph" style="background:${U[q.t].col}">${U[q.t].g}</span>${U[q.t].n} — 1 company<span class="note" style="margin-left:auto">${q.days} days left</span></div>`).join("")}</div>`:""}
+    ${forceHtml("Village garrison",st.vgar)}${st.vq.length?`<div>${st.vq.map(q=>`<div class="qrow"><span class="glyph" style="background:${U[q.t].col}">${U[q.t].g}</span>${U[q.t].n} — 1 company<span class="note" style="margin-left:auto">${q.days} ${(q.days)==1?"day":"days"} left</span></div>`).join("")}</div>`:""}
     <p class="note" style="margin:0">The garrison guards the village. To use it on campaign, send it to the Palace.</p></div>
-    <div class="wfoot"><button class="b" data-a="vmove" data-id="${id}" ${st.pop>=400?"":"disabled"}>200 villagers to the Palace</button><button class="b" data-a="vfill" data-id="${id}" ${S.civ>=500?"":"disabled"} title="200 Palace folk move to this village (food 40, ${migrDays(id)} days)">200 Palace folk to this village (${migrDays(id)} days)</button>${(S.migr||[]).filter(m=>m.id===id).map(m=>`<span class="note">Settlers ${m.n}, ${m.days} days to arrival</span>`).join("")}<button class="b" data-a="vsend" data-id="${id}" ${st.vgar.length?"":"disabled"}>Send garrison to the Palace</button></div>`;
+    <div class="wfoot"><button class="b" data-a="vmove" data-id="${id}" ${st.pop>=400?"":"disabled"}>200 villagers to the Palace</button><button class="b" data-a="vfill" data-id="${id}" ${S.civ>=500?"":"disabled"} title="200 Palace folk move to this village (food 40, ${migrDays(id)} ${(migrDays(id))==1?"day":"days"})">200 Palace folk to this village (${migrDays(id)} ${(migrDays(id))==1?"day":"days"})</button>${(S.migr||[]).filter(m=>m.id===id).map(m=>`<span class="note">Settlers ${m.n}, ${m.days} ${(m.days)==1?"day":"days"} to arrival</span>`).join("")}<button class="b" data-a="vsend" data-id="${id}" ${st.vgar.length?"":"disabled"}>Send garrison to the Palace</button></div>`;
 }
 // 군대 목록: 지도에서 군대를 찍지 않아도 여기서 명령한다
 function armiesModal(){
   const ours=S.armies.filter(a=>a.side===0);
   return `${winHead("Our Armies")}<div class="wbody">${ours.length?ours.map(a=>{const eta=a.moving&&a.tx!==undefined?etaDays(a,a.tx,a.tz):0;const fat=Math.round(a.comps.reduce((x,c)=>x+(c.fat||0),0)/Math.max(1,a.comps.length));
-    return `<div class="tile"><div class="hd"><span class="seal" style="width:30px;height:30px;font-size:13px">${a.gen?genById(a.gen).seal:"A"}</span><span class="nm">${esc(armyName(a))}</span><span class="note" style="margin-left:auto">${esc(missionName(a))}${a.moving?` · ~${eta} days`:""}</span></div>
+    return `<div class="tile"><div class="hd"><span class="seal" style="width:30px;height:30px;font-size:13px">${a.gen?genById(a.gen).seal:"A"}</span><span class="nm">${esc(armyName(a))}</span><span class="note" style="margin-left:auto">${esc(missionName(a))}${a.moving?` · ~${eta} ${(eta)==1?"day":"days"}`:""}</span></div>
       <div class="ds">${compsText(a.comps)} · ${fmtN(compMen(a.comps))}${fat?` · fatigue ${fat}`:""}${a.lentFrom?" · allied reinforcements":""}</div>
       <div class="acts"><button class="b sm gold" data-a="amove" data-id="${a.id}">Move (pick on map)</button><button class="b sm" data-a="atarget" data-id="${a.id}">Set target</button>${ours.length>1?`<button class="b sm" data-a="ajoin" data-id="${a.id}">Join</button>`:""}<button class="b sm" data-a="arecall" data-id="${a.id}">Recall</button><button class="b sm" data-a="aview" data-id="${a.id}">View on map</button></div></div>`;}).join("")
     :"<p class=\"note\">No armies in the field. Send one out from Form expedition.</p>"}
@@ -7773,14 +7830,14 @@ function armiesModal(){
 }
 function joinModal(id){const a=armyById(id);const ours=S.armies.filter(x=>x.side===0&&x!==a);
   return `${winHead("Choose an army to join")}<div class="wbody"><p class="note" style="margin:0">${esc(armyName(a))} (${fmtN(compMen(a.comps))}) goes to it and they become one. If the king is there, he takes overall command.</p>
-    ${ours.map(t=>`<button class="gen" data-a="ajoinTo" data-id="${a.id}" data-t="${t.id}"><span class="seal" style="width:34px;height:34px;font-size:14px">${t.gen?genById(t.gen).seal:"A"}</span><span class="nm">${esc(armyName(t))}<small>${esc(missionName(t))}</small></span><span class="st">${etaDays(a,t.x,t.z)} days away</span><span class="sub">${compsText(t.comps)} · ${fmtN(compMen(t.comps))}</span></button>`).join("")}
+    ${ours.map(t=>`<button class="gen" data-a="ajoinTo" data-id="${a.id}" data-t="${t.id}"><span class="seal" style="width:34px;height:34px;font-size:14px">${t.gen?genById(t.gen).seal:"A"}</span><span class="nm">${esc(armyName(t))}<small>${esc(missionName(t))}</small></span><span class="st">${etaDays(a,t.x,t.z)} ${(etaDays(a,t.x,t.z))==1?"day":"days"} away</span><span class="sub">${compsText(t.comps)} · ${fmtN(compMen(t.comps))}</span></button>`).join("")}
   </div><div class="wfoot"><button class="b ghost" data-a="close">Cancel</button></div>`;}
 function armyGo(id,mode,msg){const a=armyById(+id);if(!a)return;UI.closeModal();if(UI.mode!=="map")openMap();selectObj({kind:"army",id:a.id});E.ctrl.set(a.x,a.z);startTargeting({mode,army:a.id},msg);}
 function diploModal(id){
   const r=realmById(id);ensureRealms();const R=S.realms[id];const rel=Math.round(R.rel);
   return `${winHead(esc(r.name))}<div class="wbody"><div style="display:flex;gap:12px;align-items:center"><span class="seal" style="color:${r.col};border-color:${r.col}">${r.seal}</span><div><h2>${esc(r.name)}</h2><span class="kind">${esc(r.ruler)}</span></div></div>
     <p class="desc">${esc(r.desc)}</p>
-    <dl class="kv"><dt>Relations</dt><dd>${REL_NAME(rel)} (${rel}) ${rel>=70?"— allied":rel>=40?"— to alliance: "+(70-rel):""}</dd><dt>Army</dt><dd>${R.army.length} companies${R.lent.length?` (lent to us: ${R.lent.length}, ${Math.max(0,R.lentUntil-S.day)} days left)`:""}</dd><dt>Treasury</dt><dd>Gold ${fmtN(R.gold)}</dd></dl>
+    <dl class="kv"><dt>Relations</dt><dd>${REL_NAME(rel)} (${rel}) ${rel>=70?"— allied":rel>=40?"— to alliance: "+(70-rel):""}</dd><dt>Army</dt><dd>${R.army.length} ${(R.army.length)==1?"company":"companies"}${R.lent.length?` (lent to us: ${R.lent.length}, ${Math.max(0,R.lentUntil-S.day)} ${(Math.max(0,R.lentUntil-S.day))==1?"day":"days"} left)`:""}</dd><dt>Treasury</dt><dd>Gold ${fmtN(R.gold)}</dd></dl>
     <div><div class="eyebrow" style="margin-bottom:6px">Ways to improve relations</div><p class="note">Envoys (free, every 5 days) · as renown builds (rescuing villages, razing forts, slaying Dead captains), the floor of relations rises (renown now ${S.renown||0}, floor ${relBase()}) · intercepting raids on them · gifts. Lowered by: leaving armies on their land for long.</p></div>
     <div class="acts"><button class="b gold" data-a="envoy" data-id="${id}" ${canEnvoy(r)?"disabled":""} title="Raises relations without gold. Sometimes rebuffed">Send envoy${canEnvoy(r)?` (${canEnvoy(r)})`:" (free)"}</button><button class="b" data-a="gift" data-id="${id}" data-v="200" ${S.res.gold<200?"disabled":""}>Gift 200 gold (+${giftRel(200)})</button><button class="b" data-a="gift" data-id="${id}" data-v="600" ${S.res.gold<600?"disabled":""}>Gift 600 gold (+${giftRel(600)})</button>
     <button class="b" data-a="trade" data-id="${id}" ${canTrade(r)?"disabled":""} title="${canTrade(r)||"Carries 150 food and returns with gold in three days"}">Trade caravan ${canTrade(r)?`(${canTrade(r)})`:`(gold +${Math.round(320+R.rel*2)})`}</button>
@@ -7800,7 +7857,7 @@ function startTargeting(o,msg){UI.targeting=o;const el=$("#targeting");el.innerH
 /* ── 장군·연대기 ── */
 function gensModal(){
   return `${winHead("Generals")}<div class="wbody">${S.gens.map(g=>{const G=genById(g.id);return `<div class="gen" style="grid-template-columns:auto 1fr auto"><span class="seal">${G.seal}</span><span class="nm">${G.name}<small>${G.title}</small></span>
-    <span class="st ${g.status}">${{ready:"Ready",march:"On campaign",wounded:`Wounded ${g.wound} days`,dead:"Fallen"}[g.status]}</span>
+    <span class="st ${g.status}">${{ready:"Ready",march:"On campaign",wounded:`Wounded ${g.wound} ${(g.wound)==1?"day":"days"}`,dead:"Fallen"}[g.status]}</span>
     <span class="sub">${esc(G.bio)}<br><b style="color:var(--bone)">Lv${g.lvl}</b> (XP ${g.xp}) · passive: ${G.passive}<br>Ability <b style="color:var(--gold)">${G.ab}</b> (${G.cd}s): ${G.abd}</span></div>`;}).join("")}</div>`;
 }
 function chronModal(){return `${winHead("Royal Chronicle")}<div class="wbody">${S.log.slice().reverse().map(l=>`<div class="qrow" style="align-items:flex-start"><span class="num" style="color:var(--gold-dim);font-size:11px;min-width:40px">${l.d}</span><span style="${l.k==="bad"?"color:#f0b0a6":l.k==="gold"?"color:var(--gold)":l.k==="chron"?"font-style:italic;color:var(--steel)":""}">${esc(l.t)}</span></div>`).join("")}</div>`;}
@@ -7951,7 +8008,7 @@ document.addEventListener("click",e=>{
     case"guideOffResume":if(guidePhase()===2)S.guide2Off=true;else S.guideOff=true;UI.closeModal();UI.modalBlocking=false;S.paused=false;renderGuide();break;
     case"guideSkip":{S.tut=S.tut||{};const sk=guidePhase()===2?"skip2":"skip";S.tut[sk]=(S.tut[sk]||[]).concat([S.tut.curI]);if(UI.modalOpen){UI.closeModal();UI.modalBlocking=false;S.paused=false;}renderGuide();break;}
     case"guideFold":S.tut=S.tut||{};S.tut.open=!S.tut.open;renderGuide();break;
-    case"woundCare":{const day=S.day|0;if(!(S.kingWound>0)||S.woundCare===day||S.res.gold<80)break;S.woundCare=day;S.res.gold-=80;S.kingWound=Math.max(0,S.kingWound-4);KC.max=kingMaxHp();KC.hp=Math.min(KC.hp,KC.max);if(!S.kingWound){KC.max=kingMaxHp();logMsg("In the sisters' hands, the king's wound has healed.","gold");}renderTop();UI.bannerSay(S.kingWound?`The wound is much better — ${S.kingWound} days left`:"The wound has fully healed");conventVisit();break;}
+    case"woundCare":{const day=S.day|0;if(!(S.kingWound>0)||S.woundCare===day||S.res.gold<80)break;S.woundCare=day;S.res.gold-=80;S.kingWound=Math.max(0,S.kingWound-4);KC.max=kingMaxHp();KC.hp=Math.min(KC.hp,KC.max);if(!S.kingWound){KC.max=kingMaxHp();logMsg("In the sisters' hands, the king's wound has healed.","gold");}renderTop();UI.bannerSay(S.kingWound?`The wound is much better — ${S.kingWound} ${(S.kingWound)==1?"day":"days"} left`:"The wound has fully healed");conventVisit();break;}
     case"conventHeal":{const day=S.day|0;if(S.conventDay===day)break;S.conventDay=day;KC.max=kingMaxHp();KC.hp=KC.max;sfx("cheer",0.2);UI.bannerSay("The sisters anointed the king's sword and brow. Max HP +20% for today");conventVisit();break;}
     case"conventMor":{const day=S.day|0;if(S.conventMor===day||S.res.gold<30)break;S.conventMor=day;S.res.gold-=30;S.morale=Math.min(100,S.morale+5);logMsg("Donated 30 gold to the convent. The wounded will remember their king. Favor +5","gold");renderTop();conventVisit();break;}
     case"duelStart":startDuel(b.dataset.id);break;
@@ -8036,7 +8093,7 @@ document.addEventListener("click",e=>{
     case"continue":gateThen(continueGame);break;
     case"resetGame":UI.openModal(`${winHead("Reset game")}<div class="wbody"><p class="story" style="font-size:17px;text-align:center">Really reset?</p><p class="note" style="text-align:center">Your current progress (day ${S.day}) will be lost and you'll start over from day 1. This can't be undone.</p></div><div class="wfoot"><button class="b ghost" data-a="settings">No</button><button class="b" data-a="resetGo" style="border-color:rgba(201,71,59,.7);color:#f0b0a4">Yes</button></div>`,{narrow:true});break;
     case"resetGo":UI.closeModal();UI.modalBlocking=false;LOADED=null;try{localStorage.removeItem("ashen-crown-v3");localStorage.removeItem(bakKey(S&&S.slot||1));if(S&&S.slot&&S.slot!==1)localStorage.removeItem(slotKey(S.slot));}catch(e){}BT=null;startNewGame();break;
-    case"vjoin":{const st=vil(b.dataset.id),a=armyById(+b.dataset.a2);if(a&&st.vgar&&st.vgar.length){a.comps.push(...st.vgar);logMsg(`${siteById(b.dataset.id).name} garrison: ${st.vgar.length} companies, ${armyName(a)}.`,"gold");st.vgar=[];renderSide();renderTop();syncArmies();saveGame();}break;}
+    case"vjoin":{const st=vil(b.dataset.id),a=armyById(+b.dataset.a2);if(a&&st.vgar&&st.vgar.length){a.comps.push(...st.vgar);logMsg(`${siteById(b.dataset.id).name} garrison: ${st.vgar.length} ${(st.vgar.length)==1?"company":"companies"}, ${armyName(a)}.`,"gold");st.vgar=[];renderSide();renderTop();syncArmies();saveGame();}break;}
     case"vlevyArmy":{const st=vil(b.dataset.id),a=armyById(+b.dataset.a2);if(a&&st.state==="ok"&&st.pop>=300&&S.res.gold>=40&&S.res.food>=25){S.res.gold-=40;S.res.food-=25;st.pop-=100;a.comps.push({t:"militia",men:100});logMsg(`${siteById(b.dataset.id).name}: 100 young people joined as militia — ${armyName(a)}.`);renderSide();renderTop();syncArmies();saveGame();}break;}
     case"rush":if(rushArmy(+b.dataset.id)){renderTop();UI.dirty=true;renderSide();saveGame();}break;
     case"quitApp":if(window.deskApi){saveGame();setTimeout(()=>deskApi.quit(),300);}break;
@@ -8178,11 +8235,11 @@ function buildingModal(k){
     <div class="tile"><div class="hd"><span class="ic">${ICON[b.icon]}</span><span class="nm">${b.n}</span><span class="pips">${Array.from({length:b.max},(_,i)=>`<i class="${i<l?"f":""}"></i>`).join("")}</span></div>
       <div class="ds">${b.d}</div>${l>=b.max?`<div class="note">Complete</div>`:`<div class="cost">${Object.entries(c).map(([r,v])=>`<span class="${S.res[r]<v?"no":""}">${r==="gold"?"Gold":"Food"} ${v}</span>`).join(" · ")}</div>
       <button class="b sm gold" data-a="bld" data-k="${k}" ${why?"disabled":""}>${l?"Expand":"Build"}</button>`}</div>
-    ${units.length?`<div class="grid2">${units.map(t=>{const u=U[t],w=canRecruit(t);return `<div class="tile"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(t)} days</span></div>
+    ${units.length?`<div class="grid2">${units.map(t=>{const u=U[t],w=canRecruit(t);return `<div class="tile"><div class="hd"><span class="glyph" style="background:${u.col}">${u.g}</span><span class="nm">${u.n}</span><span class="note" style="margin-left:auto">${trainDays(t)} ${(trainDays(t))==1?"day":"days"}</span></div>
       <div class="ds">${u.d}</div><div class="cost">Gold ${unitCost(t).gold} · Food ${u.cost.food} · People 100</div><button class="b sm" data-a="brec" data-k="${t}" ${w?"disabled":""}>${w||"Recruit 1 company"}</button></div>`;}).join("")}</div>`:""}
     ${visitHtml(k)}
     ${units.length?drillHtml(units):""}
-    ${S.queue.length&&units.length?`<div>${S.queue.filter(q=>units.includes(q.t)).map(q=>`<div class="qrow"><span class="glyph" style="background:${U[q.t].col}">${U[q.t].g}</span>${U[q.t].n} — 1 company<span class="note" style="margin-left:auto">${q.days} days left</span><button class="b sm ghost" data-a="cancel" data-k="queue" data-q="${q.qid||(q.qid=(S.qidN=(S.qidN||0)+1))}" title="Cancel to get 80% and the people back">Cancel</button></div>`).join("")}</div>`:""}
+    ${S.queue.length&&units.length?`<div>${S.queue.filter(q=>units.includes(q.t)).map(q=>`<div class="qrow"><span class="glyph" style="background:${U[q.t].col}">${U[q.t].g}</span>${U[q.t].n} — 1 company<span class="note" style="margin-left:auto">${q.days} ${(q.days)==1?"day":"days"} left</span><button class="b sm ghost" data-a="cancel" data-k="queue" data-q="${q.qid||(q.qid=(S.qidN=(S.qidN||0)+1))}" title="Cancel to get 80% and the people back">Cancel</button></div>`).join("")}</div>`:""}
   </div>${k==="walls"?`<div class="wfoot"><button class="b gold" data-a="compose">Form expedition</button></div>`:""}`;
 }
 // 옷장 미리보기: 갑주마다 실제 모형을 한 번 찍어 둔다
@@ -8286,6 +8343,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.151","Houses: varied timber framing, joist ends under the upper floor, bargeboards and ridge, door frames and doorstep stones, window sills; some have a lean-to shed or a dormer, and a barrel, woodpile or bench by the door · Walls: corbels under the parapet, arrow slits and patched masonry · Towers: flared base, string course, corbels and arrow slits at different heights · Spells and prayers: thin wisps rising from the ground, low dark mist and scattering motes instead of big glowing blobs; the necromancer's bolt is a small dark orb trailing smoke · 'How to build strong companies' in the Garrison tab is now four short steps · English: key names removed on phones, sign-in page in English, singular and plural handled (1 company)"],
  ["0.9.150","Full pass over every line of text: press-this and click-that instructions and nagging phrasing are gone from descriptions, the guide and error messages · Phones no longer mention keyboard or mouse; the Controls tab and war-map notes in Help appear on PC only · Soldiers pushed off a wall no longer hang in the air at wall height · On phones the mount button is no longer cut off at the right edge · Notifications no longer cover the battle result table · Outdated wording removed"],
  ["0.9.149","Guidance text shortened to read like other games: the line at the bottom is now an Objective that states the task without telling you which button to press · The raid bar shows only the outlook, without urging you to recruit · Settings reorganised into Display, Sound, Mouse, Language, Claude, Game and Saves, one row each; duplicate buttons and rarely used options removed · Switching to English also switches the king's name in a game started in Korean"],
  ["0.9.148","Two typefaces only: a sans for the interface and a serif for titles and story text. Wide letter-spacing, the decorative display face and monospaced numbers are gone · Units flash briefly and kick up dust when they use a skill. Infantry already in contact shove the enemy back on the spot, javelins fly in twice the number, stick in the ground and knock back what they hit, and War Cry and Flank Charge shake the screen slightly · The palace roof no longer covers the lower half of the deployment view · On phones the title menu no longer overlaps the subtitle · Title menu text no longer washes out against the bright sky · Outdated wording in Help and Settings cleaned up"],
@@ -8446,7 +8504,7 @@ function loginGo(){if(!FB_CFG)return;fbLoad().then(()=>{
   firebase.auth().signInWithPopup(p).then(()=>{toast("Logged in — saves now go to the cloud");try{localStorage.removeItem("dd-guest");}catch(e){}}).catch(e=>{const c=(e&&e.code)||String(e);console.warn("login",e);if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;LOGIN.lastErr=c;toast("Google sign-in failed ("+c+") — signing in through the browser");loginCode();});
 }).catch(e=>{LOGIN.lastErr="load";toast("Can't reach the login server (Google) — an internet connection is required");});}
 function loginCode(){fbLoad().then(()=>{const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let c="";const r=crypto.getRandomValues(new Uint8Array(8));for(const x of r)c+=A[x%A.length];LOGIN.code=c;
-  const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?c=${c}`;
+  const url=`${location.protocol==="https:"&&/github\.io$/.test(location.hostname)?location.origin+location.pathname.replace(/[^/]*$/,""):"https://kjhclider.github.io/deep-dark/"}login.html?l=${LANG}&c=${c}`;
   /* 코드는 보이지 않는다: 브라우저(크롬)에서 구글 로그인 페이지를 바로 열고, 끝나면 이 화면이 저절로 넘어간다 */
   UI.openModal(`${winHead("Google sign-in")}<div class="wbody"><p class="story" style="font-size:15px">A Google sign-in window opened in your browser. Press <b>Sign in with Google</b> and pick an account — you'll come back here automatically.</p>
     <p class="note" id="lgWait"><span class="spin"></span> Waiting…</p>${LOGIN.lastErr?`<p class="note" style="color:#e8a79a">Previous error: ${esc(LOGIN.lastErr)}</p>`:""}</div><div class="wfoot"><button class="b ghost" data-a="loginCancel">Cancel</button><button class="b gold" data-a="loginOpen" data-u="${esc(url)}">Browser didn't open? Open it</button></div>`,{narrow:true});
@@ -8866,7 +8924,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">Battle practice<small>Straight to the battlefield — your game stays as it is</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">Load save file<small>Continue from an exported .json file</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.150 · What's new</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.151 · What's new</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
