@@ -640,6 +640,17 @@ body.bTp .lbl.sq{display:none}
 .tfoot{letter-spacing:0}
 .glyph,.seal,.lbl.sq i{font-family:var(--f-body);font-weight:700}
 kbd{font-family:var(--f-body)!important}
+/* 설정: 이름은 왼쪽, 조작은 오른쪽 한 줄씩 */
+.setbody{gap:0;padding-top:4px}
+.set{padding:14px 0;border-bottom:1px solid var(--line)}.set:last-of-type{border-bottom:0}
+.set h4{margin:0 0 8px;font-size:12px;font-weight:500;color:var(--bone-dim)}
+.setrow{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:12px;min-height:36px}
+.setrow>span{font-size:14px}.setrow>div{display:flex;align-items:center;gap:10px;min-width:0}
+.setrow input[type=range]{flex:1;min-width:0;accent-color:#b9a274}
+.seg{display:flex}.seg .b{border-radius:0;margin-left:-1px}.seg .b:first-child{border-radius:2px 0 0 2px;margin-left:0}.seg .b:last-child{border-radius:0 2px 2px 0}.seg .b.on{position:relative;z-index:1}
+.setv{color:var(--bone-dim);font-size:13px}
+.setin{width:100%;box-sizing:border-box;margin:6px 0 8px;padding:8px 10px;background:#0d0c0b;color:var(--bone);border:1px solid var(--line-2);border-radius:2px;font:inherit}
+.set .note{margin:8px 0 0}.setcred{opacity:.6;margin:10px 0 0;font-size:11.5px}
 html[lang=en] .kh-row{grid-template-columns:54px 1fr}
 .tb{background:rgba(10,9,8,.74)}.tb.main{background:rgba(22,19,15,.8)}
 @media (max-height:520px){
@@ -5543,24 +5554,24 @@ function tutDockClass(){const T=tutTarget();const b=document.querySelector('#doc
 /* 미션이 뜨면 '지금 어디로 가서 무엇을 누르나'를 화면 아래 가운데에 한 줄로 — 왕의 위치에 따라 바뀐다 */
 function tutNowText(){const T=tutTarget();if(!T&&!(S&&S.tut&&S.tut.curI!==undefined))return "";
   const items=guideItems(),cur=items[S.tut.curI];if(!cur||cur[3])return "";const key=COARSE?"the button below":"E";
-  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?(COARSE?`<b>${esc(sp.name)}</b> — you're here`:`<b>${esc(sp.name)}</b> — you're here — ${extra||key+" to interact"}`):`<b>${esc(sp.name)}</b>: walk there — follow the yellow path on the ground`;};
+  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?`<b>${esc(sp.name)}</b>`:`<b>${esc(sp.name)}</b>: walk there`;};
   const m=UI.mode;
-  if(T&&T.ui==="kingdom")return m==="map"?"Press the <b>Realm</b> button below (glowing)":"Press the <b>Realm</b> button below (glowing) — when the window opens, the glowing tab";
+  if(T&&T.ui==="kingdom")return "Open <b>Realm</b>";
   if(m==="capital"&&T){const want=T.cap||(T.pal?"keep":T.map?"table":null);const sp=want&&CAP.spots&&CAP.spots.find(x=>x.id===want);
-    if(T.map&&sp){const t=go(CAP.pos,sp,`${key} — open the map`);return t+(COARSE||Math.hypot(sp.x-CAP.pos.x,sp.z-CAP.pos.z)<4.5?"":` · or <b>M</b>`);}
+    if(T.map&&sp){const t=go(CAP.pos,sp,`${key} — open the map`);return t;}
     if(T.pal&&sp)return go(CAP.pos,sp,`${key} — enter the Great Hall`);
     if(sp)return go(CAP.pos,sp);}
   if(m==="palace"&&T){if(T.pal){const sp=PAL.spots&&PAL.spots.find(x=>x.id===T.pal);if(sp)return go(PAL.pos,sp);}
-    const dr=PAL.spots&&PAL.spots.find(x=>x.id==="door");if(dr){const d=Math.hypot(dr.x-PAL.pos.x,dr.z-PAL.pos.z);return `Walk out through the <b>Great Hall doors</b> — when they open, keep going into the yard`;}}
-  if(m==="map"&&T){if(T.cap||T.pal)return "Press <b>To Palace</b> at top left to return to the capital";
-    if(T.map){const s=T.map;if(UI.sel&&UI.sel.kind==="site"&&UI.sel.id===s.id)return `In the right panel — ${cur[2]}`;
+    const dr=PAL.spots&&PAL.spots.find(x=>x.id==="door");if(dr){const d=Math.hypot(dr.x-PAL.pos.x,dr.z-PAL.pos.z);return `Leave by the <b>hall door</b>`;}}
+  if(m==="map"&&T){if(T.cap||T.pal)return "Return to the <b>palace</b>";
+    if(T.map){const s=T.map;if(UI.sel&&UI.sel.kind==="site"&&UI.sel.id===s.id)return `${cur[2]}`;
       const p=worldToScreen(s.x,worldH(s.x,s.z)+5,s.z),off=!p.vis||p.x<20||p.x>E.W-20||p.y<20||p.y>E.H-20;
-      return `The lit <b>${esc(s.name)}</b> — click it${off?" — drag the map toward the ➤ at the screen edge":""}`;}}
+      return `<b>${esc(s.name)}</b>: select it`;}}
   return cur[2]?`${cur[2]}`:"";}
 function tutNowTick(){let el=$("#tutNow");if(!el){el=document.createElement("div");el.id="tutNow";document.body.appendChild(el);}
   const ok=S&&!S.title&&!S.practice&&!UI.modalOpen&&!BT&&!(typeof DUEL!=="undefined"&&DUEL.on)&&(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")&&S.tut&&S.tut.pend===undefined;
   let t="";if(ok){try{t=tutNowText();}catch(e){t="";}}
-  if(!t){el.hidden=true;return;}if(el._t!==t){el._t=t;el.innerHTML=fixJosa(`<span class="tn-h">Now</span><span class="tn-t">${t}</span>`);}el.hidden=false;}
+  if(!t){el.hidden=true;return;}if(el._t!==t){el._t=t;el.innerHTML=fixJosa(`<span class="tn-h">Objective</span><span class="tn-t">${t}</span>`);}el.hidden=false;}
 
 /* ════════ 처음 마주칠 때 한 번 뜨는 안내 카드 (게임을 멈추지 않는다) ════════ */
 const HINTS={
@@ -5881,7 +5892,7 @@ function goalBarTick(){let el=$("#goalBar");if(!el){el=document.createElement("d
      (기준: 성벽을 올린 왕궁 1,400 대 망자 7,000이 팽팽 — 우리 병사 하나가 망자 대여섯을 막는다) */
   const nd=nextSurgeDay(),d=nd-S.day,wv=(S.camp&&S.camp.surges||0)+1,foe=surgeMen(wv),us=ourMen();
   const wall=1+0.18*((S.bld&&S.bld.walls)||0),vet=1+0.08*avgVet(),R=foe/Math.max(1,us*wall*vet);
-  const [word,col,k]=R<=3?["Comfortable","#8fc06a",1]:R<=4.5?["Holdable","#a9c46a",0.78]:R<=6?["Tight — archers on the walls are key","#e2b04a",0.55]:R<=8?["Precarious — recruit more and raise the walls","#e0803f",0.33]:["Hard to hold — recruit now","#d0533f",0.14];
+  const [word,col,k]=R<=3?["Comfortable","#8fc06a",1]:R<=4.5?["Holdable","#a9c46a",0.78]:R<=6?["Even","#e2b04a",0.55]:R<=8?["Precarious","#e0803f",0.33]:["Hard to hold","#d0533f",0.14];
   const urgent=d<=3;const h=`<span class="gb-k">${d<=0?"The Great Raid is here":`Great Raid in <b>D-${d}</b>`}</span><span class="gb-v">Dead ~<b>${fmtN(foe)}</b></span><span class="gb-v" style="opacity:.8">Defense outlook</span><span class="gb-bar" title="Our soldiers are much stronger than the Dead — an outlook that counts walls, archers and veterancy"><i style="width:${Math.round(k*100)}%;background:${col}"></i></span><span class="gb-w" style="color:${col}">${word.split(" — ")[0]}${word.includes(" — ")?`<small class="gb-more"> — ${word.split(" — ")[1]}</small>`:""}</span>`;
   if(el._h!==h){el._h=h;el.innerHTML=h;}el.className=urgent?"urgent":"";el.hidden=false;}
 
@@ -8187,38 +8198,31 @@ function wardrobeModal(){
       <div class="ds">${sk.desc}</div><div class="note">${ok?"Available":`Locked — ${sk.unlock.t}`}</div></button>`;}).join("")}</div></div>`;
 }
 function settingsModal(){
-  const q=QUALITY.level;
-  return `${winHead("Settings")}<div class="wbody"><div><div class="eyebrow" style="margin-bottom:8px">Graphics quality (reloads when changed)</div>
-    <div class="acts">${[["high","High","Shadows · bloom · high resolution"],["mid","Medium","Lower resolution"],["low","Low","Shadows & post-processing off"]].map(([k,n,d])=>`<button class="b ${q===k?"gold":""}" data-a="quality" data-v="${k}" title="${d}">${n}</button>`).join("")}</div>
-    <p class="note">If it stutters, switch to Medium or Low. Progress is saved automatically.</p></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">Battle practice</div><div class="acts"><button class="b" data-a="practice">Jump straight into a battle</button></div><p class="note">Your current game is saved and a practice battle opens. When it ends you return to the title screen and you can pick your game back up.</p></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">Display</div><div class="acts"><button class="b" data-a="fullscreen">Toggle fullscreen${window.deskApi?" (F11)":""}</button>${window.deskApi?`<button class="b" data-a="quitApp" style="border-color:rgba(201,71,59,.6);color:#e8a79a">Quit game (saves)</button>`:""}<button class="b" data-a="music">Toggle music</button></div><div class="acts" style="margin-top:8px"><button class="b ${!E.soft?"gold":""}" data-a="mouseMode" data-v="lock">Locked mouse view</button><button class="b ${E.soft?"gold":""}" data-a="mouseMode" data-v="soft">Cursor visible view</button></div><p class="note">Locked: press Alt and the cursor hides and the view turns as you move the mouse (Alt again for the cursor) · Cursor visible: moving with the cursor turns the view, and holding it at the screen edge keeps turning</p><p class="note">In a narrow window, the music and fullscreen buttons at top right move here.</p></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">Lord of the Dead — your Claude</div>
-    ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?(()=>{const k=deskKey();const st=!k?"Not connected — no key":(AI.off?"Key saved · disconnected":(AI.checked?"Connected":"Key saved · not yet verified"));return `<div class="tile" style="margin-bottom:8px"><div class="hd"><span class="nm">Claude connection (API key)</span><span class="tg">${st}</span></div><div class="ds">${k?`Saved key: ${k.slice(0,10)}…${k.slice(-4)}`:"Enter a key issued at console.anthropic.com → API Keys."} The key is stored only on this device.</div><input id="apiKeyIn" type="password" placeholder="${k?"Paste to replace with a new key":"sk-ant-…"}" autocomplete="off" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">Save key and connect</button>${k?`<button class="b" data-a="gateRetry">Check connection</button><button class="b ghost" data-a="apiKeyDel">Delete key</button>`:""}</div></div>`;})():`<p class="note" style="margin-bottom:6px">On this screen (claude.ai) it connects automatically with your signed-in Claude account — no key needed. Status: ${AI.ok()?(AI.checked?"Connected":"Available"):"Not connected"}</p>`}
-    
-    <p class="note">${AI.sample?(AI.off?"Lost connection to Claude — until it reconnects, the Dead follow basic rules. Reopen the game and it will ask to connect again.":"Your Claude decides invasion targets, Great Raids and battle tactics itself. It remembers past battles, reads your army's makeup and strikes your weak points — no two games play out the same. Each decision uses a little Claude usage (it asks permission the first time). After each battle, a captured herald reveals the Lord's intent."):((window.deskApi||APP_MODE)?"Enter an API key in the box above to connect.":"Claude can't be called from this screen.")}</p></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Music</div>
-    <div class="acts" style="align-items:center"><button id="musOn" class="b ${MUS.on?"gold":""}" data-a="music">${MUS.on?"On":"Off"}</button>
-    <input type="range" min="0" max="100" value="${Math.round(MUS.vol*100)}" id="musVol" style="flex:1;accent-color:#c9a45a" aria-label="Volume"></div>
-    <p class="note">The music changes for the Palace, night, map and battle.</p>
-    <div class="eyebrow" style="margin:10px 0 8px">Sound effects (blades · footsteps · hits)</div>
-    <div class="acts" style="align-items:center"><button id="sfxOn" class="b ${MUS.sfxOn?"gold":""}" data-a="sfxtoggle">${MUS.sfxOn?"On":"Off"}</button>
-    <input type="range" min="0" max="100" value="${Math.round(MUS.sfxVol*100)}" id="sfxVol" style="flex:1;accent-color:#c9a45a" aria-label="Effects volume"></div></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Brightness</div>
-    <div class="kv" style="grid-template-columns:auto 1fr auto;align-items:center;gap:8px 12px"><dt>Brightness</dt><dd style="text-align:left"><input type="range" min="60" max="160" value="${Math.round((UI.bright||1)*100)}" id="brightV" style="width:100%;accent-color:#c9a45a"></dd><dd class="num" id="brightVv">${(UI.bright||1).toFixed(2)}</dd></div></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Game</div>
-    <div class="acts"><button class="b" data-a="resetGame" style="border-color:rgba(201,71,59,.6);color:#e8a79a">Reset game — start over</button></div>
-    <p class="note">Your current progress (day ${S.day}) will be erased and you'll start over from day 1. This can't be undone.</p></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Camera</div>
-    <div class="kv" style="grid-template-columns:auto 1fr auto;align-items:center;gap:8px 12px"><dt>Mouse sensitivity</dt><dd style="text-align:left"><input type="range" min="20" max="300" value="${Math.round(SENS.v*100)}" id="sensV" style="width:100%;accent-color:#c9a45a"></dd><dd class="num" id="sensVv">${SENS.v.toFixed(2)}</dd>
-    <dt>Follow king turning</dt><dd style="text-align:left"><input type="range" min="0" max="200" value="${Math.round(SENS.follow*100)}" id="sensF" style="width:100%;accent-color:#c9a45a"></dd><dd class="num" id="sensFv">${SENS.follow===0?"Off":SENS.follow.toFixed(2)}</dd></div>
-    <p class="note">The king always faces where the camera looks. The value below only applies in views like the battlefield overview.</p></div>
-    ${saveMgmtHtml()}${langBtnHtml()}
-    ${APP_MODE?`<div style="margin-top:14px"><div class="acts"><button class="b" data-a="practice">Battle practice</button></div></div>`:""}
-    <div style="margin-top:14px"><div class="acts"><button class="b" data-a="controls">Controls</button><button class="b" data-a="glossary">Numbers explained</button><button class="b" data-a="changes">What's new</button></div></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Controls</div>
-    <p class="note">WASD move · Shift run · arrow keys ←→ turn view, ↑↓ tilt · Alt toggles cursor/view mode · E interact · M map</p></div>
-    <p class="note" style="margin-top:14px;opacity:.7">Terrain & stone photo textures: Babylon.js Assets (CC BY 4.0)</p></div>`;
+  const q=QUALITY.level,desk=!!window.deskApi,needKey=(desk||APP_MODE)&&!(window.claude&&window.claude.use);
+  const sec=(t,body)=>`<section class="set"><h4>${t}</h4>${body}</section>`;
+  const row=(label,ctl)=>`<div class="setrow"><span>${label}</span><div>${ctl}</div></div>`;
+  const rng=(id,min,max,v,lab)=>`<input type="range" min="${min}" max="${max}" value="${v}" id="${id}" aria-label="${lab}">`;
+  const claude=needKey?(()=>{const k=deskKey();const st=!k?"Not connected":(AI.off?"Disconnected":(AI.checked?"Connected":"Not checked yet"));
+      return row("Status",`<span class="setv">${st}${k?` (${k.slice(0,10)}…${k.slice(-4)})`:""}</span>`)+
+        `<input id="apiKeyIn" class="setin" type="password" placeholder="${k?"Paste to replace with a new key":"sk-ant-…"}" autocomplete="off"><div class="acts"><button class="b" data-a="apiKeySave">Save key and connect</button>${k?`<button class="b" data-a="gateRetry">Check connection</button><button class="b ghost" data-a="apiKeyDel">Delete key</button>`:""}</div>
+        <p class="note">Claude plays the Lord of the Dead and decides the invasions and schemes itself. Get a key at console.anthropic.com; it is stored on this device only. Without a key the dead follow basic rules.</p>`;})()
+    :row("Status",`<span class="setv">${AI.ok()?(AI.checked?"Connected":"Available"):"Not connected"}</span>`);
+  return `${winHead("Settings")}<div class="wbody setbody">
+    ${sec("Screen",row("Graphics",`<div class="seg">${[["high","High"],["mid","Medium"],["low","Low"]].map(([k,n])=>`<button class="b sm ${q===k?"on":""}" data-a="quality" data-v="${k}">${n}</button>`).join("")}</div>`)+
+      row("Brightness",rng("brightV",60,160,Math.round((UI.bright||1)*100),"Brightness")+`<span id="brightVv" hidden></span>`)+
+      row("Fullscreen",`<button class="b sm" data-a="fullscreen">Toggle</button>`))}
+    ${sec("Sound",row("Music",`<button id="musOn" class="b sm ${MUS.on?"on":""}" data-a="music">${MUS.on?"On":"Off"}</button>`+rng("musVol",0,100,Math.round(MUS.vol*100),"Volume"))+
+      row("Sound effects",`<button id="sfxOn" class="b sm ${MUS.sfxOn?"on":""}" data-a="sfxtoggle">${MUS.sfxOn?"On":"Off"}</button>`+rng("sfxVol",0,100,Math.round(MUS.sfxVol*100),"Effects volume")))}
+    ${COARSE?"":sec("Mouse",row("Camera look",`<div class="seg"><button class="b sm ${!E.soft?"on":""}" data-a="mouseMode" data-v="lock" title="Press Alt to hide the cursor; the view then follows the mouse">Cursor hidden</button><button class="b sm ${E.soft?"on":""}" data-a="mouseMode" data-v="soft" title="The view turns as you move the visible cursor and keeps turning at the screen edge">Cursor visible</button></div>`)+
+      row("Sensitivity",rng("sensV",20,300,Math.round(SENS.v*100),"Mouse sensitivity")+`<span id="sensVv" hidden></span>`))}
+    ${sec("Language",row("Display language",`<button class="b sm" data-a="lang">${LANG_OTHER}</button>`))}
+    ${sec("Lord of the Dead (Claude)",claude)}
+    ${sec("Game",`<div class="acts"><button class="b sm" data-a="practice">Practice battle</button><button class="b sm" data-a="controls">Controls</button><button class="b sm" data-a="glossary">Glossary</button><button class="b sm" data-a="changes">What's new</button></div>`)}
+    ${sec("Saves",`<div class="acts"><button class="b sm" data-a="saveExport" ${S&&!S.title&&!S.practice?"":"disabled"}>Export to file</button><button class="b sm" data-a="saveImport">Import from file</button><button class="b sm ghost" data-a="savePaste">Import by pasting</button></div>
+      <p class="note">Your game saves automatically. Export it to a file to move it to another device.</p>
+      <div class="acts" style="margin-top:10px"><button class="b sm red" data-a="resetGame">Start over from the beginning</button>${desk?`<button class="b sm" data-a="quitApp">Save and quit</button>`:""}</div>
+      <p class="note">Starting over erases your current game (day ${S.day}) and cannot be undone.</p>`)}
+    <p class="note setcred">Terrain and stone photo textures: Babylon.js Assets (CC BY 4.0)</p></div>`;
 }
 function toggleBattleView(force){if(!BT||!BT.cmd)return;const toTp=(force!==undefined?force:E.camMode!=="tp")&&!!BT.king&&!BT.kingDown&&!KC.ko;if(!toTp)hideKingHud();if(!toTp&&E.camMode!=="tp"&&force===undefined){bSay(BT.king?"The king is down and the royal guard carried him to the rear — command from the overview.":"Battles led by a general are commanded from the overview.");return;}   // 장군이 이끌면 전체 시점만
   if(!toTp){setCamMode("rts");const os=bOurs().filter(s=>act(s)&&s.state!=="rout");const cx=os.length?os.reduce((a,s)=>a+s.x,0)/os.length:cmdPos().x,cz=os.length?os.reduce((a,s)=>a+s.z,0)/os.length:cmdPos().z;E.ctrl.set(cx,cz-22,105,0,0.56,true);}   // 전체 시점: 우리 진영 뒤 높은 곳에서 비스듬히 전장을 내려다본다
@@ -8240,12 +8244,12 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
   // [제목, 왜 하는가, 어떻게, 완료 조건]
   return [
   ["Walk the Palace","The king is a body you move yourself. The Dead won't come for the first 7 days, so learn your way around the castle.",(COARSE?"Walk around the castle and look at the buildings":"WASD move · Shift run · Alt switches between view mode (turn with mouse) and cursor mode · E at a building opens the door"),(T.walk||0)>25],
-  ["Cut the training dummies","Higher prowess raises the king's HP and damage. The longer the king lasts on the field, the more his soldiers' morale holds.","Cut the dummies at the southwest training yard (right-click) — follow the yellow dotted line on the ground. Chain hits to gain more",(S.kingSkill||0)>0],
+  ["Cut the training dummies","Higher prowess raises the king's HP and damage. The longer the king lasts on the field, the more his soldiers' morale holds.","Strike the training dummy in the southwest yard (right-click). Consecutive hits raise it faster",(S.kingSkill||0)>0],
   ["Open the map at the war table","The whole realm is ruled from the map. Villages, forts and neighboring realms are there.","At the table in front of the Great Hall, E, or M. M again to come back",!!UI.mapSeen],
   ["Enter the Great Hall and meet your ministers","Inside the Great Hall are the ministers who run the realm: Chancellor (building, recruiting), Treasurer (taxes), Spymaster (spies), High Priest (blessings), Chamberlain (petitions), the war council table, the wardrobe, and the generals.","Walk in through the Great Hall's big doors. E in front of a minister. The chamberlain collects the people's petitions (audiences) — E in front of him, or sit on the throne, to hear them",!!(T.palace&&T.court)],
   ["Set taxes with the Treasurer","Taxes balance gold against favor. Early on, protecting favor makes the population grow faster.","In the Great Hall, Treasurer Bella on the right, E → Tax policy",!!(T.court&2)],
   ["Upgrade a building","Building levels drive recruiting speed, taxes, food and population. Spare gold goes here first.","'Realm' below → Build. Start with farms (food), market (gold), housing (people)",bldSum>T.bld0||!!(S.bq&&Object.keys(S.bq).length)],
-  ["Recruit soldiers","The garrison is the Palace's shield. Training takes days, so recruit before the attack comes.","At the barracks door (E) or Realm → Recruit. Mix infantry, spearmen and archers",S.queue.length>0||S.garrison.length>8],
+  ["Recruit soldiers","The garrison is the Palace's shield. Training takes days, so recruit before the attack comes.","Barracks door (E) or Realm → Recruit. Raise a mix of infantry, spearmen and archers",S.queue.length>0||S.garrison.length>8],
   ["Answer an event","The world doesn't sit still. Merchants, refugees, scouts, wolves… when an event comes, the game pauses and asks you to choose. For events that need an army, 'View on map' takes you to the map to pick one. If it's not urgent, defer it with 'Hear it a day later'.","Fishermen will come by shortly. Just pick an option",!!T.evDone],
   ["Drill a company","Fresh companies are weak. Drilling earns ★ for attack and defense, and at ★★ you can raise them into elites (infantry, spearmen, archers, cavalry).","Realm → Recruit tab → 'Drill companies' list, drill one company (gold 70 · food 30 · 2 days). Also at the barracks door (E). Elite training is in the Garrison tab",S.garrison.some(c=>(c.vet||0)>0||c.drill>0||c.elite||c.eliteT>0)],
   ["Invest in a village","Village population drives taxes, food and village recruiting. Mines and toll houses add gold every day.","Click the gold-blinking mine or riverside village → Manage village → Mine expansion/Toll house. Village recruiting or walls work too",villagesOwned().some(v=>{const st=S.sites[v.id];return st.mine||st.toll||st.mineT||st.tollT||(st.vgar&&st.vgar.length)||(st.vq&&st.vq.length)||st.wallQ;})],
@@ -8257,7 +8261,7 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
 function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(jb&&UI.mode!=="map")jb.hidden=true;}const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
   if(off||!(UI.mode==="capital"||UI.mode==="map"||UI.mode==="palace")){el.hidden=true;document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));return;}
   S.tut=S.tut||{};if(S.tut.ph!==ph){S.tut.ph=ph;S.tut.curI=undefined;S.tut.pend=undefined;}
-  const items=guideItems();if(items.every(i=>i[3])){if(ph===1)S.guideOff=true;else S.guide2Off=true;el.hidden=true;toast(ph===1?"First week's guide complete. Now go after the forts of the Dead.":"Second week's guide complete. The realm is in your hands now.");return;}
+  const items=guideItems();if(items.every(i=>i[3])){if(ph===1)S.guideOff=true;else S.guide2Off=true;el.hidden=true;toast(ph===1?"First-week guide complete.":"Second-week guide complete.");return;}
   const done=items.filter(i=>i[3]).length,cur=items.find(i=>!i[3]),ci=items.indexOf(cur);
   try{guideGlow(ph,ci,cur);}catch(e){}
   if(S.day===7&&!S.tut.warned){S.tut.warned=true;toast("Today is the last day to prepare — the Dead move from tomorrow. The guide disappears tonight.");}
@@ -8278,6 +8282,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.149","Guidance text shortened to read like other games: the line at the bottom is now an Objective that states the task without telling you which button to press · The raid bar shows only the outlook, without urging you to recruit · Settings reorganised into Display, Sound, Mouse, Language, Claude, Game and Saves, one row each; duplicate buttons and rarely used options removed · Switching to English also switches the king's name in a game started in Korean"],
  ["0.9.148","Two typefaces only: a sans for the interface and a serif for titles and story text. Wide letter-spacing, the decorative display face and monospaced numbers are gone · Units flash briefly and kick up dust when they use a skill. Infantry already in contact shove the enemy back on the spot, javelins fly in twice the number, stick in the ground and knock back what they hit, and War Cry and Flank Charge shake the screen slightly · The palace roof no longer covers the lower half of the deployment view · On phones the title menu no longer overlaps the subtitle · Title menu text no longer washes out against the bright sky · Outdated wording in Help and Settings cleaned up"],
  ["0.9.147","A calmer, less machine-made look: gold gradient lettering, glowing borders, diamond ornaments and metallic buttons are gone in favour of dark panels with thin borders · One skill per branch (infantry Shove, spearmen Javelins, archers Fire Arrows, cavalry Flank Charge, army War Cry); the overlapping company abilities (R) were folded in · Fire arrows arc high, stick in the ground and set separate fires that die out one by one, with black smoke, sparks, burning dead and scorch marks afterwards · Arrows now have shafts, heads and fletching, and spent arrows stay stuck in the ground for a few seconds · No more coloured rings under units using skills · The dead's fire pots fly as pots, not arrows · Every tree differs in size, height, lean and colour · Houses vary in plaster and roof colour, roof pitch and chimneys, some built of stone · Walls get a plinth, string course and buttresses, with stone colour varying by section · Armies marching on the map no longer slide as a rigid block · Battle screen cleanup: unit cards and floating labels hidden in the king's view, enemy labels show only the unit letter, king panel shows bars only, duplicate buttons removed, unit cards hidden on phones, the army/dead balance bar no longer covers the middle of the phone screen · Palace minimap labels no longer overlap · Fountain water no longer looks striped · Emoji icons removed"],
  ["0.9.146","English version: switch between 한국어 and English with the language button on the title screen or in Settings. First-time players get their device's language. The Lord of the Dead (Claude) speaks English in the English version"],
@@ -8803,6 +8808,9 @@ beginBattle=function(direct){if(UI.mode!=="battle"){UI.prevMode=UI.mode;UI.prevS
 
 /* ── 타이틀: 왕궁 위를 천천히 도는 카메라 ── */
 const KING_NAME="Edric";
+/* 저장된 판의 왕 이름은 지금 언어를 따른다 (한국어로 시작한 판을 영어로 열어도) */
+const _KN_OTHER=[String.fromCharCode(50640,46300,47533),"Edric"];function fixRuler(o){if(o&&_KN_OTHER.includes(o.ruler)&&o.ruler!==KING_NAME)o.ruler=KING_NAME;}
+setInterval(()=>{try{fixRuler(typeof S!=="undefined"?S:null);fixRuler(typeof LOADED!=="undefined"?LOADED:null);}catch(e){}},500);
 /* ── 타이틀: 노을을 등진 왕과 장군의 실루엣 ── */
 const TT={scene:null,t:0};
 function buildTitleScene(){
@@ -8848,13 +8856,13 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
   $("#whud").hidden=true;$("#bhud").hidden=true;$("#prompt").hidden=true;
   const has=!fresh&&LOADED;
   $("#title").innerHTML=`<div class="tlogo"><span class="tline"></span><h1 class="ttl">Deep Dark</h1><span class="tline"></span><p class="tsub">Legions of the Dead</p></div>
-    ${APP_MODE?`${typeof loginTitleHtml==="function"?loginTitleHtml():""}<div class="tmenu" ${typeof loginOn==="function"&&loginOn()&&!LOGIN.user&&(()=>{try{return localStorage.getItem("dd-guest")!=="1";}catch(e){return false;}})()?"hidden":""}><button class="tb main" data-a="${has?"continue":"start"}">Single player<small>${has?`${LOADED.day} · ${esc(LOADED.ruler||KING_NAME)} — continue`:"Found a new realm"}</small></button><button class="tb" data-a="multi">Multiplayer<small>2–4 co-op — Google sign-in</small></button></div>`:""}
+    ${APP_MODE?`${typeof loginTitleHtml==="function"?loginTitleHtml():""}<div class="tmenu" ${typeof loginOn==="function"&&loginOn()&&!LOGIN.user&&(()=>{try{return localStorage.getItem("dd-guest")!=="1";}catch(e){return false;}})()?"hidden":""}><button class="tb main" data-a="${has?"continue":"start"}">Single player<small>${has?`${LOADED.day} · ${esc((fixRuler(LOADED),LOADED.ruler)||KING_NAME)} — continue`:"Found a new realm"}</small></button><button class="tb" data-a="multi">Multiplayer<small>2–4 co-op — Google sign-in</small></button></div>`:""}
     <div class="tmenu" ${APP_MODE?"hidden":""}>
-      ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day} · ${esc(LOADED.ruler||KING_NAME)}</small></button>`:`<button class="tb main" data-a="start">START<small>From the old king's last night</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">Start without prologue<small>Straight to day 1 at the Palace</small></button>`}
+      ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day} · ${esc((fixRuler(LOADED),LOADED.ruler)||KING_NAME)}</small></button>`:`<button class="tb main" data-a="start">START<small>From the old king's last night</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">Start without prologue<small>Straight to day 1 at the Palace</small></button>`}
       <button class="tb" data-a="practice">Battle practice<small>Straight to the battlefield — your game stays as it is</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">Load save file<small>Continue from an exported .json file</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.148 · What's new</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.149 · What's new</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){

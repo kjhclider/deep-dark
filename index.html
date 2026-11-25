@@ -640,6 +640,17 @@ body.bTp .lbl.sq{display:none}
 .tfoot{letter-spacing:0}
 .glyph,.seal,.lbl.sq i{font-family:var(--f-body);font-weight:700}
 kbd{font-family:var(--f-body)!important}
+/* 설정: 이름은 왼쪽, 조작은 오른쪽 한 줄씩 */
+.setbody{gap:0;padding-top:4px}
+.set{padding:14px 0;border-bottom:1px solid var(--line)}.set:last-of-type{border-bottom:0}
+.set h4{margin:0 0 8px;font-size:12px;font-weight:500;color:var(--bone-dim)}
+.setrow{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:12px;min-height:36px}
+.setrow>span{font-size:14px}.setrow>div{display:flex;align-items:center;gap:10px;min-width:0}
+.setrow input[type=range]{flex:1;min-width:0;accent-color:#b9a274}
+.seg{display:flex}.seg .b{border-radius:0;margin-left:-1px}.seg .b:first-child{border-radius:2px 0 0 2px;margin-left:0}.seg .b:last-child{border-radius:0 2px 2px 0}.seg .b.on{position:relative;z-index:1}
+.setv{color:var(--bone-dim);font-size:13px}
+.setin{width:100%;box-sizing:border-box;margin:6px 0 8px;padding:8px 10px;background:#0d0c0b;color:var(--bone);border:1px solid var(--line-2);border-radius:2px;font:inherit}
+.set .note{margin:8px 0 0}.setcred{opacity:.6;margin:10px 0 0;font-size:11.5px}
 html[lang=en] .kh-row{grid-template-columns:54px 1fr}
 .tb{background:rgba(10,9,8,.74)}.tb.main{background:rgba(22,19,15,.8)}
 @media (max-height:520px){
@@ -5543,24 +5554,24 @@ function tutDockClass(){const T=tutTarget();const b=document.querySelector('#doc
 /* 미션이 뜨면 '지금 어디로 가서 무엇을 누르나'를 화면 아래 가운데에 한 줄로 — 왕의 위치에 따라 바뀐다 */
 function tutNowText(){const T=tutTarget();if(!T&&!(S&&S.tut&&S.tut.curI!==undefined))return "";
   const items=guideItems(),cur=items[S.tut.curI];if(!cur||cur[3])return "";const key=COARSE?"아래 버튼":"E";
-  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?(COARSE?`<b>${esc(sp.name)}</b> 앞이다`:`<b>${esc(sp.name)}</b> 앞이다 — ${extra||key+"를 눌러라"}`):`<b>${esc(sp.name)}</b>(으)로 걸어가라 — 바닥의 노란 길을 따라`;};
+  const go=(pos,sp,extra)=>{if(!sp)return "";const d=Math.hypot(sp.x-pos.x,sp.z-pos.z);return d<4.5?`<b>${esc(sp.name)}</b>`:`<b>${esc(sp.name)}</b>(으)로 간다`;};
   const m=UI.mode;
-  if(T&&T.ui==="kingdom")return m==="map"?"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼)":"아래 <b>내정</b> 버튼을 눌러라 (빛나는 버튼) — 창이 열리면 빛나는 탭";
+  if(T&&T.ui==="kingdom")return "<b>내정</b>을 연다";
   if(m==="capital"&&T){const want=T.cap||(T.pal?"keep":T.map?"table":null);const sp=want&&CAP.spots&&CAP.spots.find(x=>x.id===want);
-    if(T.map&&sp){const t=go(CAP.pos,sp,`${key}를 눌러 지도를 편다`);return t+(COARSE||Math.hypot(sp.x-CAP.pos.x,sp.z-CAP.pos.z)<4.5?"":` · 또는 <b>M</b>`);}
+    if(T.map&&sp){const t=go(CAP.pos,sp,`${key}를 눌러 지도를 편다`);return t;}
     if(T.pal&&sp)return go(CAP.pos,sp,`${key}를 눌러 대전으로 들어간다`);
     if(sp)return go(CAP.pos,sp);}
   if(m==="palace"&&T){if(T.pal){const sp=PAL.spots&&PAL.spots.find(x=>x.id===T.pal);if(sp)return go(PAL.pos,sp);}
-    const dr=PAL.spots&&PAL.spots.find(x=>x.id==="door");if(dr){const d=Math.hypot(dr.x-PAL.pos.x,dr.z-PAL.pos.z);return `<b>대전 문</b>으로 걸어 나가라 — 문이 열리면 그대로 마당으로`;}}
-  if(m==="map"&&T){if(T.cap||T.pal)return "왼쪽 위 <b>왕궁으로</b> 버튼을 눌러 왕도로 돌아가라";
-    if(T.map){const s=T.map;if(UI.sel&&UI.sel.kind==="site"&&UI.sel.id===s.id)return `오른쪽 창에서 — ${cur[2]}`;
+    const dr=PAL.spots&&PAL.spots.find(x=>x.id==="door");if(dr){const d=Math.hypot(dr.x-PAL.pos.x,dr.z-PAL.pos.z);return `<b>대전 문</b>으로 나간다`;}}
+  if(m==="map"&&T){if(T.cap||T.pal)return "<b>왕궁</b>으로 돌아간다";
+    if(T.map){const s=T.map;if(UI.sel&&UI.sel.kind==="site"&&UI.sel.id===s.id)return `${cur[2]}`;
       const p=worldToScreen(s.x,worldH(s.x,s.z)+5,s.z),off=!p.vis||p.x<20||p.x>E.W-20||p.y<20||p.y>E.H-20;
-      return `빛기둥이 선 <b>${esc(s.name)}</b>을(를) 눌러라${off?" — 화면 가장자리의 ➤ 쪽으로 지도를 끌어라":""}`;}}
+      return `<b>${esc(s.name)}</b>을(를) 고른다`;}}
   return cur[2]?`${cur[2]}`:"";}
 function tutNowTick(){let el=$("#tutNow");if(!el){el=document.createElement("div");el.id="tutNow";document.body.appendChild(el);}
   const ok=S&&!S.title&&!S.practice&&!UI.modalOpen&&!BT&&!(typeof DUEL!=="undefined"&&DUEL.on)&&(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")&&S.tut&&S.tut.pend===undefined;
   let t="";if(ok){try{t=tutNowText();}catch(e){t="";}}
-  if(!t){el.hidden=true;return;}if(el._t!==t){el._t=t;el.innerHTML=fixJosa(`<span class="tn-h">지금 할 일</span><span class="tn-t">${t}</span>`);}el.hidden=false;}
+  if(!t){el.hidden=true;return;}if(el._t!==t){el._t=t;el.innerHTML=fixJosa(`<span class="tn-h">목표</span><span class="tn-t">${t}</span>`);}el.hidden=false;}
 
 /* ════════ 처음 마주칠 때 한 번 뜨는 안내 카드 (게임을 멈추지 않는다) ════════ */
 const HINTS={
@@ -5881,7 +5892,7 @@ function goalBarTick(){let el=$("#goalBar");if(!el){el=document.createElement("d
      (기준: 성벽을 올린 왕궁 1,400 대 망자 7,000이 팽팽 — 우리 병사 하나가 망자 대여섯을 막는다) */
   const nd=nextSurgeDay(),d=nd-S.day,wv=(S.camp&&S.camp.surges||0)+1,foe=surgeMen(wv),us=ourMen();
   const wall=1+0.18*((S.bld&&S.bld.walls)||0),vet=1+0.08*avgVet(),R=foe/Math.max(1,us*wall*vet);
-  const [word,col,k]=R<=3?["넉넉하다","#8fc06a",1]:R<=4.5?["버틸 만하다","#a9c46a",0.78]:R<=6?["팽팽하다 — 성벽 위 궁병이 열쇠","#e2b04a",0.55]:R<=8?["위태롭다 — 더 뽑고 성벽을 올려라","#e0803f",0.33]:["막기 어렵다 — 지금 징병하라","#d0533f",0.14];
+  const [word,col,k]=R<=3?["넉넉하다","#8fc06a",1]:R<=4.5?["버틸 만하다","#a9c46a",0.78]:R<=6?["팽팽하다","#e2b04a",0.55]:R<=8?["위태롭다","#e0803f",0.33]:["막기 어렵다","#d0533f",0.14];
   const urgent=d<=3;const h=`<span class="gb-k">${d<=0?"대습격이 왔다":`대습격까지 <b>D-${d}</b>`}</span><span class="gb-v">망자 약 <b>${fmtN(foe)}</b></span><span class="gb-v" style="opacity:.8">방어 전망</span><span class="gb-bar" title="우리 병사는 망자보다 훨씬 강하다 — 성벽·궁병·숙련까지 따진 전망"><i style="width:${Math.round(k*100)}%;background:${col}"></i></span><span class="gb-w" style="color:${col}">${word.split(" — ")[0]}${word.includes(" — ")?`<small class="gb-more"> — ${word.split(" — ")[1]}</small>`:""}</span>`;
   if(el._h!==h){el._h=h;el.innerHTML=h;}el.className=urgent?"urgent":"";el.hidden=false;}
 
@@ -8187,38 +8198,31 @@ function wardrobeModal(){
       <div class="ds">${sk.desc}</div><div class="note">${ok?"사용 가능":`잠김 — ${sk.unlock.t}`}</div></button>`;}).join("")}</div></div>`;
 }
 function settingsModal(){
-  const q=QUALITY.level;
-  return `${winHead("설정")}<div class="wbody"><div><div class="eyebrow" style="margin-bottom:8px">그래픽 품질 (바꾸면 다시 불러온다)</div>
-    <div class="acts">${[["high","높음","그림자·빛 번짐·고해상도"],["mid","보통","해상도를 낮춘다"],["low","낮음","그림자·후처리 끔"]].map(([k,n,d])=>`<button class="b ${q===k?"gold":""}" data-a="quality" data-v="${k}" title="${d}">${n}</button>`).join("")}</div>
-    <p class="note">버벅이면 보통이나 낮음으로 바꾼다. 진행 상황은 자동 저장된다.</p></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">전투 연습</div><div class="acts"><button class="b" data-a="practice">전투 장면만 바로 해 보기</button></div><p class="note">지금 판은 저장해 두고 연습 전투를 연다. 끝나면 처음 화면으로 돌아오고, 하던 판을 이어 할 수 있다.</p></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">화면</div><div class="acts"><button class="b" data-a="fullscreen">전체 화면 켜기/끄기${window.deskApi?" (F11)":""}</button>${window.deskApi?`<button class="b" data-a="quitApp" style="border-color:rgba(201,71,59,.6);color:#e8a79a">게임 끄기 (저장하고)</button>`:""}<button class="b" data-a="music">배경음악 켜기/끄기</button></div><div class="acts" style="margin-top:8px"><button class="b ${!E.soft?"gold":""}" data-a="mouseMode" data-v="lock">마우스 잠금 시점</button><button class="b ${E.soft?"gold":""}" data-a="mouseMode" data-v="soft">커서 보이며 시점</button></div><p class="note">잠금: Alt를 누르면 커서가 숨고 마우스를 움직이는 대로 시점이 돈다(Alt를 다시 누르면 커서) · 커서 보이기: 커서를 둔 채 움직이면 돌고, 화면 끝에 대면 계속 돈다</p><p class="note">창이 좁으면 오른쪽 위의 음악·전체 화면 버튼이 여기로 들어온다.</p></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">망자의 군주 — 당신의 Claude</div>
-    ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?(()=>{const k=deskKey();const st=!k?"연결 안 됨 — 키가 없다":(AI.off?"키 있음 · 연결 끊김":(AI.checked?"연결됨":"키 있음 · 아직 확인 전"));return `<div class="tile" style="margin-bottom:8px"><div class="hd"><span class="nm">Claude 연결 (API 키)</span><span class="tg">${st}</span></div><div class="ds">${k?`저장된 키: ${k.slice(0,10)}…${k.slice(-4)}`:"console.anthropic.com → API Keys에서 발급한 키를 넣는다."} 키는 이 기기에만 저장된다.</div><input id="apiKeyIn" type="password" placeholder="${k?"새 키로 바꾸려면 붙여넣기":"sk-ant-…"}" autocomplete="off" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">키 저장하고 연결</button>${k?`<button class="b" data-a="gateRetry">연결 다시 확인</button><button class="b ghost" data-a="apiKeyDel">키 지우기</button>`:""}</div></div>`;})():`<p class="note" style="margin-bottom:6px">이 화면(claude.ai)에서는 로그인한 Claude 계정으로 자동 연결된다 — 키가 필요 없다. 상태: ${AI.ok()?(AI.checked?"연결됨":"연결 가능"):"연결 안 됨"}</p>`}
-    
-    <p class="note">${AI.sample?(AI.off?"Claude 연결이 끊겼다 — 다시 연결될 때까지 망자는 기본 규칙으로 버틴다. 게임을 다시 열면 연결을 다시 묻는다.":"당신의 Claude가 침공 목표·대습격·전투 계략을 직접 정한다. 지난 전투를 기억하고 왕의 병력 구성을 보고 약한 곳을 노린다 — 같은 판이 두 번 나오지 않는다. 결정할 때마다 Claude 사용량이 조금 든다(처음 한 번 허락을 묻는다). 전투가 끝나면 사로잡은 전령이 군주의 속셈을 털어놓는다."):((window.deskApi||APP_MODE)?"위 칸에 API 키를 넣으면 연결된다.":"이 화면에서는 Claude를 부를 수 없다.")}</p></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">배경음악</div>
-    <div class="acts" style="align-items:center"><button id="musOn" class="b ${MUS.on?"gold":""}" data-a="music">${MUS.on?"켜짐":"꺼짐"}</button>
-    <input type="range" min="0" max="100" value="${Math.round(MUS.vol*100)}" id="musVol" style="flex:1;accent-color:#c9a45a" aria-label="음량"></div>
-    <p class="note">왕궁·밤·지도·전투마다 곡이 바뀐다.</p>
-    <div class="eyebrow" style="margin:10px 0 8px">효과음 (칼·발소리·타격)</div>
-    <div class="acts" style="align-items:center"><button id="sfxOn" class="b ${MUS.sfxOn?"gold":""}" data-a="sfxtoggle">${MUS.sfxOn?"켜짐":"꺼짐"}</button>
-    <input type="range" min="0" max="100" value="${Math.round(MUS.sfxVol*100)}" id="sfxVol" style="flex:1;accent-color:#c9a45a" aria-label="효과음 음량"></div></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">화면 밝기</div>
-    <div class="kv" style="grid-template-columns:auto 1fr auto;align-items:center;gap:8px 12px"><dt>밝기</dt><dd style="text-align:left"><input type="range" min="60" max="160" value="${Math.round((UI.bright||1)*100)}" id="brightV" style="width:100%;accent-color:#c9a45a"></dd><dd class="num" id="brightVv">${(UI.bright||1).toFixed(2)}</dd></div></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">게임</div>
-    <div class="acts"><button class="b" data-a="resetGame" style="border-color:rgba(201,71,59,.6);color:#e8a79a">게임 초기화 — 처음부터 새로 시작</button></div>
-    <p class="note">지금 진행(${S.day}일째)이 지워지고 1일째부터 다시 시작한다. 되돌릴 수 없다.</p></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">카메라</div>
-    <div class="kv" style="grid-template-columns:auto 1fr auto;align-items:center;gap:8px 12px"><dt>마우스 감도</dt><dd style="text-align:left"><input type="range" min="20" max="300" value="${Math.round(SENS.v*100)}" id="sensV" style="width:100%;accent-color:#c9a45a"></dd><dd class="num" id="sensVv">${SENS.v.toFixed(2)}</dd>
-    <dt>왕 따라 회전</dt><dd style="text-align:left"><input type="range" min="0" max="200" value="${Math.round(SENS.follow*100)}" id="sensF" style="width:100%;accent-color:#c9a45a"></dd><dd class="num" id="sensFv">${SENS.follow===0?"끔":SENS.follow.toFixed(2)}</dd></div>
-    <p class="note">왕은 항상 카메라가 보는 쪽을 본다. 아래 값은 전장 전체 시점 등에서만 쓰인다.</p></div>
-    ${saveMgmtHtml()}${langBtnHtml()}
-    ${APP_MODE?`<div style="margin-top:14px"><div class="acts"><button class="b" data-a="practice">전투 연습</button></div></div>`:""}
-    <div style="margin-top:14px"><div class="acts"><button class="b" data-a="controls">조작법 보기</button><button class="b" data-a="glossary">수치 설명</button><button class="b" data-a="changes">바뀐 점</button></div></div>
-    <div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">조작</div>
-    <p class="note">WASD 이동 · Shift 달리기 · 방향키 ←→ 화면 회전, ↑↓ 기울기 · Alt 커서/시점 모드 전환 · E 상호작용 · M 지도</p></div>
-    <p class="note" style="margin-top:14px;opacity:.7">지형·석재 사진 텍스처: Babylon.js Assets (CC BY 4.0)</p></div>`;
+  const q=QUALITY.level,desk=!!window.deskApi,needKey=(desk||APP_MODE)&&!(window.claude&&window.claude.use);
+  const sec=(t,body)=>`<section class="set"><h4>${t}</h4>${body}</section>`;
+  const row=(label,ctl)=>`<div class="setrow"><span>${label}</span><div>${ctl}</div></div>`;
+  const rng=(id,min,max,v,lab)=>`<input type="range" min="${min}" max="${max}" value="${v}" id="${id}" aria-label="${lab}">`;
+  const claude=needKey?(()=>{const k=deskKey();const st=!k?"연결 안 됨":(AI.off?"연결 끊김":(AI.checked?"연결됨":"확인 전"));
+      return row("상태",`<span class="setv">${st}${k?` (${k.slice(0,10)}…${k.slice(-4)})`:""}</span>`)+
+        `<input id="apiKeyIn" class="setin" type="password" placeholder="${k?"새 키로 바꾸려면 붙여넣기":"sk-ant-…"}" autocomplete="off"><div class="acts"><button class="b" data-a="apiKeySave">키 저장하고 연결</button>${k?`<button class="b" data-a="gateRetry">연결 다시 확인</button><button class="b ghost" data-a="apiKeyDel">키 지우기</button>`:""}</div>
+        <p class="note">Claude가 망자의 군주가 되어 침공과 계략을 직접 정한다. 키는 console.anthropic.com에서 받고, 이 기기에만 저장된다. 키가 없으면 망자는 기본 규칙으로 움직인다.</p>`;})()
+    :row("상태",`<span class="setv">${AI.ok()?(AI.checked?"연결됨":"연결 가능"):"연결 안 됨"}</span>`);
+  return `${winHead("설정")}<div class="wbody setbody">
+    ${sec("화면",row("그래픽 품질",`<div class="seg">${[["high","높음"],["mid","보통"],["low","낮음"]].map(([k,n])=>`<button class="b sm ${q===k?"on":""}" data-a="quality" data-v="${k}">${n}</button>`).join("")}</div>`)+
+      row("밝기",rng("brightV",60,160,Math.round((UI.bright||1)*100),"밝기")+`<span id="brightVv" hidden></span>`)+
+      row("전체 화면",`<button class="b sm" data-a="fullscreen">켜기/끄기</button>`))}
+    ${sec("소리",row("배경음악",`<button id="musOn" class="b sm ${MUS.on?"on":""}" data-a="music">${MUS.on?"켜짐":"꺼짐"}</button>`+rng("musVol",0,100,Math.round(MUS.vol*100),"음량"))+
+      row("효과음",`<button id="sfxOn" class="b sm ${MUS.sfxOn?"on":""}" data-a="sfxtoggle">${MUS.sfxOn?"켜짐":"꺼짐"}</button>`+rng("sfxVol",0,100,Math.round(MUS.sfxVol*100),"효과음 음량")))}
+    ${COARSE?"":sec("마우스",row("시점 돌리기",`<div class="seg"><button class="b sm ${!E.soft?"on":""}" data-a="mouseMode" data-v="lock" title="Alt를 누르면 커서가 숨고 마우스를 움직이는 대로 시점이 돈다">커서 숨김</button><button class="b sm ${E.soft?"on":""}" data-a="mouseMode" data-v="soft" title="커서를 둔 채 움직이면 돌고, 화면 끝에 대면 계속 돈다">커서 보임</button></div>`)+
+      row("감도",rng("sensV",20,300,Math.round(SENS.v*100),"마우스 감도")+`<span id="sensVv" hidden></span>`))}
+    ${sec("언어",row("표시 언어",`<button class="b sm" data-a="lang">${LANG_OTHER}</button>`))}
+    ${sec("망자의 군주 (Claude)",claude)}
+    ${sec("게임",`<div class="acts"><button class="b sm" data-a="practice">전투 연습</button><button class="b sm" data-a="controls">조작법</button><button class="b sm" data-a="glossary">수치 설명</button><button class="b sm" data-a="changes">바뀐 점</button></div>`)}
+    ${sec("저장",`<div class="acts"><button class="b sm" data-a="saveExport" ${S&&!S.title&&!S.practice?"":"disabled"}>파일로 내보내기</button><button class="b sm" data-a="saveImport">파일에서 불러오기</button><button class="b sm ghost" data-a="savePaste">붙여 넣어 불러오기</button></div>
+      <p class="note">판은 자동으로 저장된다. 파일로 내보내면 다른 기기로 옮길 수 있다.</p>
+      <div class="acts" style="margin-top:10px"><button class="b sm red" data-a="resetGame">처음부터 새로 시작</button>${desk?`<button class="b sm" data-a="quitApp">저장하고 게임 끄기</button>`:""}</div>
+      <p class="note">새로 시작하면 지금 판(${S.day}일째)이 지워지고 되돌릴 수 없다.</p>`)}
+    <p class="note setcred">지형, 석재 사진 텍스처: Babylon.js Assets (CC BY 4.0)</p></div>`;
 }
 function toggleBattleView(force){if(!BT||!BT.cmd)return;const toTp=(force!==undefined?force:E.camMode!=="tp")&&!!BT.king&&!BT.kingDown&&!KC.ko;if(!toTp)hideKingHud();if(!toTp&&E.camMode!=="tp"&&force===undefined){bSay(BT.king?"왕이 쓰러져 친위대가 뒤로 모셨다 — 전체 시점으로 지휘한다.":"장군이 이끄는 전투는 전체 시점으로 지휘한다.");return;}   // 장군이 이끌면 전체 시점만
   if(!toTp){setCamMode("rts");const os=bOurs().filter(s=>act(s)&&s.state!=="rout");const cx=os.length?os.reduce((a,s)=>a+s.x,0)/os.length:cmdPos().x,cz=os.length?os.reduce((a,s)=>a+s.z,0)/os.length:cmdPos().z;E.ctrl.set(cx,cz-22,105,0,0.56,true);}   // 전체 시점: 우리 진영 뒤 높은 곳에서 비스듬히 전장을 내려다본다
@@ -8240,12 +8244,12 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
   // [제목, 왜 하는가, 어떻게, 완료 조건]
   return [
   ["왕궁을 걸어 본다","왕은 직접 움직이는 몸이다. 첫 7일은 망자가 오지 않으니 성 안을 익혀 두자.",(COARSE?"성 안을 걸어 다니며 건물들을 둘러본다":"WASD 이동 · Shift 달리기 · Alt로 시점 모드(마우스로 화면 돌리기)·커서 모드를 바꾼다 · 건물 앞에서 E로 문을 연다"),(T.walk||0)>25],
-  ["허수아비를 벤다","무예가 오르면 왕의 체력과 피해가 는다. 전장에서 왕이 오래 버틸수록 병사 사기도 산다.","남서쪽 훈련장 허수아비를 벤다(우클릭) — 바닥의 노란 점선을 따라가라. 연속으로 맞히면 더 많이 오른다",(S.kingSkill||0)>0],
+  ["허수아비를 벤다","무예가 오르면 왕의 체력과 피해가 는다. 전장에서 왕이 오래 버틸수록 병사 사기도 산다.","남서쪽 훈련장 허수아비를 벤다(우클릭). 연속으로 맞히면 더 많이 오른다",(S.kingSkill||0)>0],
   ["전쟁 탁자에서 지도를 편다","왕국 전체는 지도에서 다스린다. 마을·요새·이웃 왕국이 거기 있다.","대전 앞 탁자에서 E, 또는 M. 돌아올 때도 M",!!UI.mapSeen],
   ["왕궁 대전에 들어가 신하를 만난다","대전 안에 왕국을 움직이는 신하들이 있다. 재상(건설·징병), 재무대신(세금), 첩보대장(첩자), 대사제(축복), 시종장(백성의 청원), 작전 탁자, 옷장, 그리고 장군들.","대전 큰 문으로 걸어 들어간다. 신하 앞에서 E. 시종장은 백성의 청원(알현)을 모아 둔다 — 시종장 앞에서 E나 왕좌에 앉아 그 청을 듣는다",!!(T.palace&&T.court)],
   ["재무대신과 세금을 정한다","세금은 금화와 민심 사이의 저울이다. 초반엔 민심을 지키는 쪽이 백성이 빨리 는다.","대전 안 오른쪽 재무대신 벨라 앞에서 E → 세금 정책",!!(T.court&2)],
   ["건물을 한 단계 올린다","건물 단계가 곧 징병 속도·세금·식량·인구다. 금화가 남으면 먼저 여기에 쓴다.","아래 '내정' → 건설. 농장(식량)·시장(금화)·주거지(백성)부터",bldSum>T.bld0||!!(S.bq&&Object.keys(S.bq).length)],
-  ["병사를 징병한다","주둔군이 곧 왕궁의 방패다. 훈련엔 며칠이 걸리니 공격이 오기 전에 미리.","병영 문(E) 또는 내정 → 징병. 보병·창병·궁병을 섞어라",S.queue.length>0||S.garrison.length>8],
+  ["병사를 징병한다","주둔군이 곧 왕궁의 방패다. 훈련엔 며칠이 걸리니 공격이 오기 전에 미리.","병영 문(E) 또는 내정 → 징병. 보병, 창병, 궁병을 고루 뽑는다",S.queue.length>0||S.garrison.length>8],
   ["사건에 답한다","세상은 가만있지 않는다. 상인·피난민·척후대·늑대… 사건이 오면 게임이 멈추고 선택지를 묻는다. 군대를 보내야 하는 사건은 '지도에서 본다'를 누르면 지도로 가서 군대를 고르게 된다. 급하지 않으면 '하루 뒤에 다시 듣는다'로 미룰 수 있다.","잠시 뒤 어부들이 찾아온다. 선택지 하나를 고르면 된다",!!T.evDone],
   ["중대를 단련한다","갓 뽑은 중대는 약하다. 단련으로 ★을 달면 공격·방어가 오르고, ★★이면 정예(보병·창병·궁병·기마병)로 키울 수 있다.","내정 → 징병 탭의 '부대 단련' 목록에서 중대 하나를 단련 (금화 70·식량 30·2일). 병영 문(E)에서도 된다. 정예화는 주둔군 탭",S.garrison.some(c=>(c.vet||0)>0||c.drill>0||c.elite||c.eliteT>0)],
   ["마을에 투자한다","마을 인구가 세금과 식량, 그리고 마을 징병의 바탕이다. 광산·세관은 매일 금화를 더 준다.","금빛으로 깜빡이는 광산·강변 마을을 클릭 → 마을 관리 → 광산 확장/세관. 마을 징병이나 성벽을 쌓아도 된다",villagesOwned().some(v=>{const st=S.sites[v.id];return st.mine||st.toll||st.mineT||st.tollT||(st.vgar&&st.vgar.length)||(st.vq&&st.vq.length)||st.wallQ;})],
@@ -8257,7 +8261,7 @@ function guideItems(){ensureSpy();ensureRealms();const T=S.tut=S.tut||{};const b
 function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(jb&&UI.mode!=="map")jb.hidden=true;}const el=$("#guide");if(!el||!S)return;const ph=guidePhase();const off=ph===1?S.guideOff:ph===2?S.guide2Off:true;
   if(off||!(UI.mode==="capital"||UI.mode==="map"||UI.mode==="palace")){el.hidden=true;document.querySelectorAll(".gglow").forEach(e=>e.classList.remove("gglow"));return;}
   S.tut=S.tut||{};if(S.tut.ph!==ph){S.tut.ph=ph;S.tut.curI=undefined;S.tut.pend=undefined;}
-  const items=guideItems();if(items.every(i=>i[3])){if(ph===1)S.guideOff=true;else S.guide2Off=true;el.hidden=true;toast(ph===1?"첫 주 길잡이를 모두 마쳤다. 이제 망자의 요새를 노려라.":"둘째 주 길잡이를 마쳤다. 이제 왕국은 네 손에 있다.");return;}
+  const items=guideItems();if(items.every(i=>i[3])){if(ph===1)S.guideOff=true;else S.guide2Off=true;el.hidden=true;toast(ph===1?"첫 주 길잡이를 모두 마쳤다.":"둘째 주 길잡이를 마쳤다.");return;}
   const done=items.filter(i=>i[3]).length,cur=items.find(i=>!i[3]),ci=items.indexOf(cur);
   try{guideGlow(ph,ci,cur);}catch(e){}
   if(S.day===7&&!S.tut.warned){S.tut.warned=true;toast("오늘이 준비의 마지막 날 — 내일부터 망자가 움직인다. 길잡이는 밤에 사라진다.");}
@@ -8278,6 +8282,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.149","안내 문구를 다른 게임처럼 짧게: 화면 아래 한 줄은 '목표'로, 어떤 버튼을 누르라거나 '(빛나는 버튼)' 같은 설명 없이 할 일만 적는다 · 대습격 막대의 '지금 징병하라' 같은 재촉을 없애고 전망만 보여 준다 · 설정 창 정리: 화면, 소리, 마우스, 언어, Claude, 게임, 저장 순서로 한 줄씩. 두 번씩 있던 음악 버튼과 전투 연습 버튼, 조작 설명 문단, 거의 쓰이지 않던 회전 감도를 뺐다 · 영어로 바꾸면 한국어로 시작한 판의 왕 이름도 영어로 바뀐다"],
  ["0.9.148","글씨체를 둘로 줄였다: 화면 글씨는 본고딕, 제목과 이야기 글은 본명조. 넓은 자간, 장식 서체(Cinzel), 고정폭 숫자를 없앴다 · 기술을 쓰면 그 부대가 잠깐 밝게 번쩍이고 발밑에 흙먼지가 인다. 이미 맞붙은 보병은 그 자리에서 적을 밀쳐 내고, 투창은 두 배로 날아가 땅에 꽂혀 남으며 맞은 적이 밀려난다. 함성과 측면 돌격에는 화면이 살짝 흔들린다 · 배치 화면에서 왕궁 지붕이 화면 아래 절반을 가리던 것 고침 · 휴대폰 첫 화면에서 메뉴가 부제와 겹치던 것 고침 · 첫 화면 메뉴 글씨가 밝은 배경에 묻히던 것 고침 · 도움말과 설정의 낡은 문구 정리"],
  ["0.9.147","AI가 만든 티 걷어내기: 금박 그라데이션 글씨, 빛나는 테두리, 마름모 장식, 금속 버튼을 없애고 어두운 판과 가는 테두리로 차분하게 · 병종 기술은 하나씩만(보병 밀어붙이기, 창병 투창, 궁병 불화살, 기마병 측면 돌격, 전군 함성). 같은 일을 하던 부대 능력(R)도 정리 · 불화살: 불붙은 화살이 높게 날아가 땅에 꽂히고, 꽂힌 자리마다 불꽃이 따로 타다 하나씩 꺼진다. 검은 연기와 불티가 오르고 불길 안 망자 몸에 불이 붙으며, 꺼진 뒤엔 그을음이 남는다 · 화살은 살대·촉·깃이 있는 화살로, 떨어진 화살은 몇 초 동안 땅에 꽂혀 있다 · 기술을 쓰면 발밑에 뜨던 색 고리를 없앴다 · 망자의 불단지는 화살이 아니라 단지로 날아간다 · 나무마다 크기·키·기울기·색이 다르다 · 집마다 회벽·지붕 색과 지붕 기울기, 굴뚝이 다르고 일부는 돌집 · 성벽에 기단, 띠돌, 버팀벽이 생기고 돌 색이 구간마다 조금씩 다르다 · 지도 위 행군: 병사마다 간격이 늘었다 줄고 좌우로 흔들리며 자기 발밑 땅을 딛는다 · 전장 정리: 왕 시점에선 중대 카드와 머리 위 이름표를 숨기고, 적 이름표는 병종 글자만, 왕 정보는 막대만, 병종 버튼·돌격 버튼 중복 제거, 휴대폰에선 중대 카드 숨김, 휴대폰 전장의 아군/망자 막대가 화면 가운데를 가리던 것 고침 · 왕궁 지도 이름표가 겹치던 것 고침 · 분수 물이 줄무늬로 보이던 것 고침 · 이모지 아이콘 제거"],
  ["0.9.146","영어판: 설정·첫 화면의 🌐 버튼으로 한국어/English를 바꾼다. 처음 여는 사람은 기기 언어를 따른다(한국어가 아니면 English). 망자의 군주(Claude)도 영어판에선 영어로 말한다"],
@@ -8938,6 +8943,9 @@ beginBattle=function(direct){if(UI.mode!=="battle"){UI.prevMode=UI.mode;UI.prevS
 
 /* ── 타이틀: 왕궁 위를 천천히 도는 카메라 ── */
 const KING_NAME="에드릭";
+/* 저장된 판의 왕 이름은 지금 언어를 따른다 (한국어로 시작한 판을 영어로 열어도) */
+const _KN_OTHER=[String.fromCharCode(50640,46300,47533),"Edric"];function fixRuler(o){if(o&&_KN_OTHER.includes(o.ruler)&&o.ruler!==KING_NAME)o.ruler=KING_NAME;}
+setInterval(()=>{try{fixRuler(typeof S!=="undefined"?S:null);fixRuler(typeof LOADED!=="undefined"?LOADED:null);}catch(e){}},500);
 /* ── 타이틀: 노을을 등진 왕과 장군의 실루엣 ── */
 const TT={scene:null,t:0};
 function buildTitleScene(){
@@ -8983,13 +8991,13 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
   $("#whud").hidden=true;$("#bhud").hidden=true;$("#prompt").hidden=true;
   const has=!fresh&&LOADED;
   $("#title").innerHTML=`<div class="tlogo"><span class="tline"></span><h1 class="ttl">Deep Dark</h1><span class="tline"></span><p class="tsub">망자의 군단</p></div>
-    ${APP_MODE?`${typeof loginTitleHtml==="function"?loginTitleHtml():""}<div class="tmenu" ${typeof loginOn==="function"&&loginOn()&&!LOGIN.user&&(()=>{try{return localStorage.getItem("dd-guest")!=="1";}catch(e){return false;}})()?"hidden":""}><button class="tb main" data-a="${has?"continue":"start"}">싱글플레이<small>${has?`${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕 — 이어 하기`:"새 왕국을 세운다"}</small></button><button class="tb" data-a="multi">멀티플레이<small>2~4명 협동 — 구글 로그인</small></button></div>`:""}
+    ${APP_MODE?`${typeof loginTitleHtml==="function"?loginTitleHtml():""}<div class="tmenu" ${typeof loginOn==="function"&&loginOn()&&!LOGIN.user&&(()=>{try{return localStorage.getItem("dd-guest")!=="1";}catch(e){return false;}})()?"hidden":""}><button class="tb main" data-a="${has?"continue":"start"}">싱글플레이<small>${has?`${LOADED.day}일째 · ${esc((fixRuler(LOADED),LOADED.ruler)||KING_NAME)} 왕 — 이어 하기`:"새 왕국을 세운다"}</small></button><button class="tb" data-a="multi">멀티플레이<small>2~4명 협동 — 구글 로그인</small></button></div>`:""}
     <div class="tmenu" ${APP_MODE?"hidden":""}>
-      ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day}일째 · ${esc(LOADED.ruler||KING_NAME)} 왕</small></button>`:`<button class="tb main" data-a="start">START<small>선왕의 마지막 밤부터</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">프롤로그 없이 시작<small>바로 1일째 왕궁에서</small></button>`}
+      ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${LOADED.day}일째 · ${esc((fixRuler(LOADED),LOADED.ruler)||KING_NAME)} 왕</small></button>`:`<button class="tb main" data-a="start">START<small>선왕의 마지막 밤부터</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">프롤로그 없이 시작<small>바로 1일째 왕궁에서</small></button>`}
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.148 · 바뀐 점</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.149 · 바뀐 점</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
