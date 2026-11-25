@@ -7352,7 +7352,7 @@ UI.toast=toast;
 try{const b=parseFloat(localStorage.getItem("ashen-bright"));if(b>0){UI.bright=b;document.documentElement.style.setProperty("--bright",b);}}catch(e){}
 // 작은 알림: 아래쪽에 쌓였다가 사라진다 (공사 완료·훈련 완료·군대 도착 등)
 function notice(t,k){let box=$("#notes");if(!box){box=document.createElement("div");box.id="notes";document.body.appendChild(box);}const el=document.createElement("div");el.className="note-it "+(k||"");el.textContent=t.length>90?t.slice(0,88)+"…":t;box.appendChild(el);while(box.children.length>4)box.firstChild.remove();setTimeout(()=>{el.classList.add("out");setTimeout(()=>el.remove(),400);},4200);}
-UI.aiStatus=()=>{const el=$("#aiL");if(el)el.textContent=AI.ok()?"망자의 군주: 당신의 Claude가 지휘한다":(window.__TEST?"":"이 게임은 당신의 Claude와 연결해야 시작된다");};
+UI.aiStatus=()=>{const el=$("#aiL");if(el)el.textContent=AI.ok()?"망자의 군주: 당신의 Claude가 지휘한다":(window.__TEST?"":ITCH?"체험판 — 망자의 군주는 기본 규칙으로 움직인다 (설정에서 Claude 연결)":"이 게임은 당신의 Claude와 연결해야 시작된다");};
 let bannerT=null;
 UI.bannerSay=t=>{t=fixJosa(t);if(typeof COARSE!=="undefined"&&COARSE)t=String(t).replace(/WASD ?/g,"").replace(/(^|[^A-Za-z])E([^A-Za-z]|$)/g,"$1버튼$2");const b=$("#banner");b.textContent=t;b.className="";b.hidden=false;clearTimeout(bannerT);bannerT=setTimeout(()=>{b.hidden=true;},3600+Math.max(0,String(t).length-30)*70);};
 
@@ -8066,6 +8066,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.145","체험판 첫 화면 아래의 \x27Claude와 연결해야 시작된다\x27 문구를 체험판 안내로 바꿈"],
  ["0.9.144","itch.io 체험판: itch.io에서 열면 Claude API 키 없이 바로 시작한다(망자의 군주는 기본 규칙 — 설정에서 키를 넣으면 Claude가 지휘) · 구글 로그인은 깃허브 주소의 로그인 창에서 하고 저절로 돌아온다 · 첫 화면 멀티플레이에 남아 있던 '준비 중' 글씨를 지웠다"],
  ["0.9.143","휴대폰: 어떤 버튼을 누르라는 말 자체를 안 한다 — 버튼은 보이니까. 길잡이·알림에서 조이스틱·버튼 설명을 빼고 할 일(어디로 가서 무엇을)만 남긴다"],
  ["0.9.142","휴대폰: 안내 글에서 키보드·마우스 말(우클릭·E·M·Tab 등)은 버튼 이름으로 바꾸지 않고 그냥 뺀다 — 버튼은 눈에 보이니까 · 전투 오른쪽 키(찌르기·막기·구르기·점프·말)가 서로 살짝 겹치던 것 → 크기를 조금 줄이고 자리를 몇 칸 벌려 안 겹친다"],
@@ -8773,7 +8774,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.144 · 바뀐 점</button></p>`;
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes" style="letter-spacing:.1em">v0.9.145 · 바뀐 점</button></p>`;
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
