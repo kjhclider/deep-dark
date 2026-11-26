@@ -2898,7 +2898,7 @@ const followShadow=(L,t)=>followSun(L,t);
 function camLock(on){const c=E.renderer&&E.renderer.domElement||document.querySelector("#stage canvas");if(on){if(c&&document.pointerLockElement!==c){try{const r=c.requestPointerLock();if(r&&r.catch)r.catch(()=>{});}catch(err){}}}else if(document.pointerLockElement)document.exitPointerLock();}
 function lockTip(){let el=document.getElementById("lockTip");if(!el){el=document.createElement("div");el.id="lockTip";el.style.cssText="position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:30;pointer-events:none;font:600 12.5px/1 var(--f-body,sans-serif);color:#e8dcc0;background:rgba(12,9,7,.72);border:1px solid rgba(226,192,122,.35);padding:7px 12px;border-radius:3px;letter-spacing:.02em;transition:opacity .4s";document.body.appendChild(el);}
   const mode=typeof UI!=="undefined"?UI.mode:"";const near=(mode==="capital"&&typeof CAP!=="undefined"&&CAP.near)||(mode==="palace"&&typeof PAL!=="undefined"&&PAL.near);const show=!COARSE&&!E.soft&&(mode==="capital"||mode==="palace")&&!(typeof UI!=="undefined"&&UI.modalOpen)&&!near;   /* 건물 앞 상호작용 버튼이 뜨면 Esc 안내는 비켜 준다 */
-  if(!show){el.style.opacity=0;return;}const locked=!!document.pointerLockElement;const fs=!!(document.fullscreenElement||document.webkitFullscreenElement)&&!!(navigator.keyboard&&navigator.keyboard.lock);const t=(locked?"Alt — 커서 보이기":"Alt — 마우스로 시점 돌리기");if(el.textContent!==t)el.textContent=t;el.style.opacity=locked?0.78:0.92;}   /* 왕궁·대전에 있는 동안 늘 띄워 둔다 */
+  if(!show){el.style.transition="none";el.style.opacity=0;return;}el.style.transition="opacity .4s";const locked=!!document.pointerLockElement;const fs=!!(document.fullscreenElement||document.webkitFullscreenElement)&&!!(navigator.keyboard&&navigator.keyboard.lock);const t=(locked?"Alt — 커서 보이기":"Alt — 마우스로 시점 돌리기");if(el.textContent!==t)el.textContent=t;el.style.opacity=locked?0.78:0.92;}   /* 왕궁·대전에 있는 동안 늘 띄워 둔다 */
 setInterval(()=>{try{lockTip();}catch(e){}},500);
 
 /* ════════ 휴대폰: 오른쪽 손가락 버튼 (왼쪽은 조이스틱) — 베기·찌르기·구르기·점프·막기·달리기·웅크리기·기술·상호작용 ════════ */
@@ -3785,7 +3785,7 @@ function rebuildCapital(force){
     if(b.hw)CAP.colliders.push({x:b.x,z:b.z,hw:b.hw+0.4,hd:b.hd+0.4,ry:b.ry});
   }
   CAP.colliders.push({x:0,z:14*SC,r:6.8});for(const sx of [-1,1])CAP.colliders.push({x:sx*(STAIR.hw+0.6),z:STAIR.z0-STAIR.L/2,hw:0.75,hd:STAIR.L/2+0.9,ry:0});   // 계단 양옆 난간
-if(CAP.propCols)CAP.colliders.push(...CAP.propCols);for(const g of (CAP.guards||[]))CAP.colliders.push({x:g[0],z:g[1],r:0.45});
+if(CAP.propCols)CAP.colliders.push(...CAP.propCols);if(!CAP.crowd)for(const g of (CAP.guards||[]))CAP.colliders.push({x:g[0],z:g[1],r:0.45});
   // 주거지 단계만큼 집이 늘어난다
   const lots=houseLots(),nH=Math.min(lots.length,22+S.bld.homes*9);
   const roofs=[B3.roofR,"#8a4a32","#6b5a4a",B3.roofS];
@@ -3801,7 +3801,7 @@ if(CAP.propCols)CAP.colliders.push(...CAP.propCols);for(const g of (CAP.guards||
   // 상호작용 지점
   for(const s of CAP.spots){if(s.ring)sc.remove(s.ring);removeLabel(s.L);}
   CAP.spots=capSpots();
-  for(const s of CAP.spots){const r=new THREE.Mesh(new THREE.RingGeometry(1.1,1.4,32),CAP.ringMat);r.rotation.x=-Math.PI/2;r.position.set(s.x,capH(s.x,s.z)+0.12,s.z);sc.add(r);s.ring=r;
+  for(const s of CAP.spots){if(!s.auto){const r=new THREE.Mesh(new THREE.RingGeometry(1.1,1.4,32),CAP.ringMat);r.rotation.x=-Math.PI/2;r.position.set(s.x,capH(s.x,s.z)+0.12,s.z);sc.add(r);s.ring=r;}   /* 걸어가면 저절로 열리는 문(auto)은 둥근 표식과 단추가 없다 */
     const el=document.createElement("div");el.className="lbl spot";el.innerHTML=`<b>${esc(s.name)}</b>`;s.el=el;s.L=addLabel(el,()=>({x:s.x,y:capH(s.x,s.z)+3.2,z:s.z}),{maxD:60});}
   // 왕
   if(CAP.king)sc.remove(CAP.king);CAP.king=avatarModel();if(CAP.king.userData.hero)heroSheathe(CAP.king,true);sc.add(CAP.king);
@@ -3994,7 +3994,7 @@ function capTick(dt){
     if(dd<2.6&&D.open>0.5&&!UI.modalOpen&&UI.mode==="capital"){if(KC.mounted)capMount();CAP.pos.z=dz+3;enterPalace();return;}}
   if((CAP.t*10|0)!==(((CAP.t-dt)*10)|0))renderKingHud(DUEL.on?`<div class="kh-duel">${esc(DUEL.name)} 체력 ${Math.ceil(DUEL.hp)} / ${DUEL.max}</div>`:"");
   // 가까운 상호작용
-  let near=null,nd=3.2;for(const s of CAP.spots){const d=Math.hypot(s.x-CAP.pos.x,s.z-CAP.pos.z);if(d<nd){nd=d;near=s;}}
+  let near=null,nd=3.2;for(const s of CAP.spots){if(s.auto)continue;const d=Math.hypot(s.x-CAP.pos.x,s.z-CAP.pos.z);if(d<nd){nd=d;near=s;}}
   // 문: E로 열고 들어간다 (안에서도 E로 나온다)
   if(near!==CAP.near){CAP.near=near;renderPrompt();}
   for(const s of CAP.spots)if(s.ring){s.ring.material.opacity=0.35+Math.sin(CAP.t*3)*0.2;s.ring.scale.setScalar(s===near?1.25:1);}
@@ -4028,7 +4028,7 @@ function capTick(dt){
   if((CAP.t*4|0)!==(((CAP.t-dt)*4)|0))drawCapMini();
   // 경비병과 훈련병
   const nd2=Math.min(48,S.garrison.length*6);
-  if(CW){CAP.guards.forEach(([x,z,ry],i)=>CW.soldier.push(x,capHm(x,z),z,ry,"idle",i,0,1));
+  if(CW){   /* 땅 위 경비병(창병 군중)은 왕보다 한참 작게 보여 세우지 않는다 (주인님 요청). 성벽 순찰만 남는다 */
     // 성벽 순찰: 여섯 명이 성벽 위를 돈다
     // 성벽 단계의 통로 높이(CWM.walk)에서 성벽 중심선 조금 안쪽을 걷는다. 탑, 정문 문루 속을 지나는 동안은 보이지 않는다(문으로 드나든다). 0단계는 성벽이 없어 순찰도 없다
     if(CWM.walk)for(let i=0;i<6;i++){const a=CAP.t*0.045*(i%2?1:-1)+i*Math.PI/3,st=Math.PI/8,ma=Math.round(a/st)*st,r=CAP_R/Math.cos(a-ma)-0.6;const x=Math.cos(a)*r,z=Math.sin(a)*r;
@@ -4303,7 +4303,7 @@ function palSpots(){
   const pet=S.court&&S.court.pet.length;
   const L=[
     {id:"throne",name:PAL.sit?"왕좌에서 일어난다":"왕좌",sub:PAL.sit?"움직이면 일어난다":(pet?`알현 대기 ${pet}건`:"왕좌에 앉는다 · 알현"),x:0,z:-19.4,act:()=>{if(PAL.sit){PAL.sit=false;renderPrompt();return;}PAL.sit=true;PAL.pos.x=0;PAL.pos.z=-20.9;E.tp.yaw=Math.PI;E.tp.pitch=0.22;E.tp.dd=6.5;E.tp.snap=true;UI.bannerSay("왕좌에 앉았다. 움직이면 일어난다");openPetitions();const sp=PAL.spots.find(s=>s.id==="throne");if(sp){sp.name="왕좌에서 일어난다";sp.sub="움직이면 일어난다";}renderPrompt();}},
-    {id:"door",name:"성채 마당으로",sub:"밖으로 나간다",x:0,z:22.6,act:()=>leavePalace()},
+    {id:"door",name:"성채 마당으로",sub:"밖으로 나간다",x:0,z:22.6,act:()=>leavePalace(),auto:true},
     {id:"table",name:"작전 탁자",sub:"원정 편성",x:-17,z:3.6,act:()=>UI.openModal(councilModal())},
     {id:"armor",name:"왕의 갑옷걸이",sub:"옷장",x:6.4,z:-18.5,act:()=>UI.openModal(wardrobeModal())},
   ];
@@ -4339,7 +4339,7 @@ function palTick(dt){if(typeof tutPalTick==="function")tutPalTick(dt);
   const k=PAL.king;
   if(PAL.sit){k.position.set(0,k.userData.hero?0.95:1.0,k.userData.hero?-20.9:-21.35);k.rotation.y=0;if(k.userData.hero){heroPlay(k,"sit",0.3);k.userData.hero.mixer.update(dt);}else animateKing(k,dt,0,PAL.t);if(!k.userData.hero){const R=k.userData.rig;R.thL.rotation.x=R.thR.rotation.x=-1.45;R.knL.rotation.x=R.knR.rotation.x=1.45;R.hips.position.y=0.55;}}
   else{k.position.set(PAL.pos.x,palH(PAL.pos.x,PAL.pos.z),PAL.pos.z);k.rotation.y=PAL.face;animateKing(k,dt,PAL.spd,PAL.t);}
-  let near=null,nd=2.4;for(const s of PAL.spots){const d=Math.hypot(s.x-PAL.pos.x,s.z-PAL.pos.z);if(d<nd){nd=d;near=s;}}
+  let near=null,nd=2.4;for(const s of PAL.spots){if(s.auto)continue;const d=Math.hypot(s.x-PAL.pos.x,s.z-PAL.pos.z);if(d<nd){nd=d;near=s;}}
   if(near!==PAL.near){PAL.near=near;CAP.near=near;renderPrompt();if(near&&PAL.court.some(c=>c.id===near.id)&&!UI.modalOpen)UI.bannerSay(courtGreet(near.id));}
   // 신하들은 왕을 바라본다
   for(const c of PAL.court){const want=Math.atan2(PAL.pos.x-c.x,PAL.pos.z-c.z),d=Math.hypot(PAL.pos.x-c.x,PAL.pos.z-c.z);const tgt=d<9?want:c.face;c.m.rotation.y+=angDiff(c.m.rotation.y,tgt)*Math.min(1,dt*2);}
@@ -8901,7 +8901,7 @@ function showCapitalHUD(){if($("#tutArrow"))$("#tutArrow").hidden=true;if(UI.mod
   if(!UI.capHint){UI.capHint=true;if(!COARSE)UI.bannerSay(COARSE?"":"WASD 이동 · 방향키 화면 회전 · Shift 달리기 · E 상호작용 · M 지도");}}
 function showSiteHUD(site){$("#whud").hidden=false;$("#bhud").hidden=true;$("#prompt").hidden=true;$("#title").hidden=true;selectObj({kind:"site",id:site.id});renderTop();renderFeed();}
 function renderPrompt(){const el=$("#prompt");if(UI.mode!=="capital"&&UI.mode!=="palace"){el.hidden=true;return;}const n=CAP.near;
-  el.innerHTML=n?`<button class="b gold" data-a="interact">${COARSE?"":"<kbd>E</kbd> "}${esc(n.name)}</button><span>${fixJosa((n.door?"문을 열고 들어간다 · ":"")+esc(n.sub))}</span>`:"";el.hidden=!n;}
+  el.innerHTML=n?`<button class="b gold" data-a="interact">${COARSE?"":"<kbd>E</kbd> "}${esc(n.name)}</button><span>${fixJosa((n.door?"문을 열고 들어간다 · ":"")+esc(n.sub))}</span>`:"";el.hidden=!n;try{lockTip();}catch(e){}}   /* 상호작용 단추가 뜨는 순간 Alt 안내를 바로 감춘다 (0.5초 늦게 사라져 겹치던 것) */
 function openMap(){UI.mapSeen=true;UI.prevCam=null;enterWorld();showWorldHUD();const c=siteById("capital");const V=UI.mapView;   // 지도를 다시 펼치면 마지막으로 보던 자리로 (왕궁·마을 화면의 카메라 값이 남아 땅바닥에 처박히지 않게)
   if(V&&V.d>=120)E.ctrl.set(V.x,V.z,V.d,V.y,V.p,true);else{const first=S&&!(S.hints&&S.hints.map);E.ctrl.set(first?0:c.x,first?c.z-180:c.z-100,first?(E.W<600?820:700):(E.W<600?420:340),0,0.95,true);}UI.mapCam=true;setTimeout(()=>hintOnce("map"),600);}
 const BLD_UNITS={barracks:["inf","spear"],range:["archer"],stable:["cav"],chapel:["priest"],market:[],farm:[],homes:[],walls:[]};
