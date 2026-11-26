@@ -179,7 +179,7 @@ Claude 연결
 
 PC 앱
 - Electron 앱이고 사용자 PC에 설치돼 있다(Deep Dark Setup.exe). 켤 때 version.json을 비교해 새 파일을 받는다.
-- 앱 자체의 소스(Electron 껍데기)는 이 저장소에 없다. 예전 작업 환경과 함께 사라졌을 수 있다. 사용자 PC에 남아 있는지 확인이 필요하다.
+- 앱 자체의 소스(Electron 껍데기)는 이 저장소에 없다. 설치된 앱의 app.asar 안에 그대로 남아 있다(13장).
 - 앱이 새 버전을 받는지는 사용자가 직접 켜서 확인하기로 했다.
 
 웹 아티팩트
@@ -225,6 +225,9 @@ PC 앱
 
 ## 10. 다음에 바로 할 일
 
+2026-11-25: 1, 2번은 했다. 3번은 일부만 했다. 공개 전에 13장의 Firebase 규칙과 멀티 AI 요청 문제를 먼저 처리한다.
+
+
 1. 저장소를 받는다: `git clone https://github.com/kjhclider/deep-dark.git`
 2. 로컬 서버로 열어서 v0.9.151이 뜨는지 본다(주소 뒤에 ?app).
 3. 실제 브라우저로 지금까지 못 본 것을 확인한다.
@@ -239,7 +242,7 @@ PC 앱
 
 ## 11. 열린 질문
 
-- PC 앱(Electron) 소스가 사용자 PC에 남아 있는가? 없으면 앱 껍데기를 다시 만들어야 앱 자체를 고칠 수 있다.
+- PC 앱(Electron) 소스: 설치된 앱 안에 남아 있다(13장). 저장소로 옮길지 정해야 한다.
 - claude.ai 아티팩트판을 계속 유지할 것인가, 버릴 것인가?
 - tools/test 스크립트를 윈도우에 맞게 고쳐 쓸 것인가, Claude Code의 브라우저 기능으로 대신할 것인가?
 - 이 프로젝트의 다른 게임(금고털이, 사감몰래, 마법학교)도 옮길 것인가? 그 게임들의 문서는 claude.ai 프로젝트에만 있다.
@@ -253,3 +256,29 @@ PC 앱
 - 번역 도구 설명: tools/i18n/README.md
 - 버전별 변경 내역: 게임 첫 화면의 "바뀐 점", 또는 index.html의 CHANGES
 - claude.ai 프로젝트 "게임 제작"의 문서: claude/딥다크.md, claude/프로젝트_지침.md (이 문서에 내용을 옮겼다)
+
+## 13. Claude Code로 옮긴 뒤 (2026-11-25)
+
+옮긴 상황
+- 저장소는 사용자 PC의 C:\my-ai\projects\deep-dark\game 에 clone되어 있다. Claude Code는 이 폴더에서 작업한다.
+- 로컬 서버: 상위 폴더의 .claude\launch.json(이름 deep-dark, 포트 8765, game 폴더를 연다). Claude Code 브라우저로 http://localhost:8765/index.html?app 을 연다.
+- 확인한 것: v0.9.151이 뜬다. 실제 구글 글꼴(Noto Sans KR, Noto Serif KR)이 받아져 적용된다. 첫 화면, 로그인 선택, 싱글플레이, Claude 연결 창, 프롤로그 배치 화면까지 콘솔 오류 없음.
+- 아직 못 본 것: 10장 3번의 나머지(내정 창, 전투, 새 집 모양, 주술 효과, 휴대폰 크기). 구글 로그인과 API 키 연결은 사용자 본인이 해야 한다.
+- 눈에 띈 것(고치지 않음): 첫 화면 제목 뒤 큰 빛 덩어리(해), 부제 "망자의 군단"의 넓은 자간, 게임 글 안의 가운데 점(로그인 창 "폰·PC", "v0.9.151 · 바뀐 점", 프롤로그 안내). 규칙에 걸리는지 사용자와 정해야 한다.
+
+itch.io 공개 전 점검
+1. 멀티에서 API 키가 다른 기기로 넘어가는가: 넘어가지 않는다.
+   - 키는 각자 기기의 localStorage("dd-apikey")에만 있다. 방(Realtime DB rooms/{코드})에는 Claude 연결 여부(ai:1)만 올라간다.
+   - 방장이 rooms/{코드}/ai/{id}에 질문(p)과 옵션(o)을 올리면, 받는 사람 기기가 자기 키로 Claude를 부르고 답만 올린다(mpAIJson, 8759행 근처의 db.on(mpR("ai"))).
+   - 문제: 받는 쪽이 q.o를 그대로 쓴다. 방에 쓸 수 있는 사람은 아무 질문이나, modelTier로 sonnet을, maxTokens로 아주 긴 답을 시켜 남의 키 사용량을 쓸 수 있다. 보낸 사람이 방장인지도 확인하지 않는다.
+   - 고칠 방향: 받는 쪽에서 보낸 사람이 meta.host인지 확인, modelTier는 quick만, maxTokens 상한(예 1500), 분당 횟수 제한. (아직 안 고쳤다)
+2. Firebase 보안 규칙: 로그인 없이 바깥에서 읽기만 시험했다(쓰기 시험은 하지 않음).
+   - Realtime DB 루트, rooms, rooms/{코드}: 거부. Firestore data, data/users: 거부. 정상.
+   - Firestore linkSessions: 목록 조회가 로그인 없이 된다(빈 목록 {}이 돌아옴). 코드 방식 로그인 때 login.html이 여기에 구글 idToken을 올린다. 그 순간 누구든 목록을 읽어 토큰을 가져가 그 사람으로 로그인할 수 있다. 게임이 받아 가기 전에 꺼지면 문서가 지워지지 않고 남는다.
+   - 고칠 방향(콘솔에서 사용자가): linkSessions는 get만 허용하고 list는 막는다. create는 로그인한 사람만, 필드는 idToken과 at만. 오래된 문서는 TTL로 지운다.
+   - 로그인한 사람에게 rooms가 어떻게 열려 있는지(아무 방이나 읽고 쓸 수 있는지)는 바깥에서 확인할 수 없다. 콘솔의 규칙 원문을 봐야 한다.
+3. PC 앱(Electron) 소스: 남아 있다.
+   - 설치본 C:\Users\jooha\AppData\Local\Programs\Deep Dark\resources\app.asar 안에 main.js, preload.js, package.json(0.9.126), update.json이 압축 없이 들어 있다. 읽을 수 있는 원문이라 이것으로 껍데기를 다시 만들 수 있다.
+   - 설치 파일은 Downloads\DeepDark-Setup.exe(2026-11-05). 빌드 설정(electron-builder 설정, Electron 버전)은 없다.
+   - 별도의 소스 폴더는 바탕화면, 문서, 다운로드, AppData에서 찾지 못했다.
+   - 참고: main.js의 update()는 version.json의 path를 그대로 써서 받는다. 저장소가 털리면 앱 폴더 밖에 파일을 쓸 수 있다. 받은 파일의 sha도 다시 확인하지 않는다.
