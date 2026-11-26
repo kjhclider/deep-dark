@@ -229,7 +229,7 @@ hr.orn{border:0;height:9px;margin:4px 0;background:radial-gradient(circle,var(--
 
 /* ── 타이틀 ── */
 #title{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;padding:9vh 16px 6vh;
-  background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(5,4,6,.55) 100%),linear-gradient(180deg,rgba(5,4,6,.5) 0%,transparent 28%,transparent 62%,rgba(5,4,6,.85) 100%)}
+  background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(5,4,6,.28) 100%),linear-gradient(180deg,rgba(5,4,6,.35) 0%,transparent 24%,transparent 70%,rgba(5,4,6,.6) 100%)}
 .tlogo{display:flex;flex-direction:column;align-items:center;gap:6px;animation:tin 2.2s ease-out both}
 @keyframes tin{from{opacity:0;transform:translateY(-14px);letter-spacing:.3em}to{opacity:1;transform:none}}
 .tline{display:block;width:min(420px,70vw);height:1px;background:linear-gradient(90deg,transparent,#e2c07a 30%,#fff2cc 50%,#e2c07a 70%,transparent)}
@@ -3180,9 +3180,9 @@ function buildCapital(){
   const terr=new THREE.Mesh(g,terrainMat());terr.receiveShadow=true;sc.add(terr);CAP.terrain=terr;
   // 포장도로: 광장, 큰길, 성채 마당
   // 포장: 지형 높이를 그대로 따라가는 조각 (경사로에서 발이 묻히지 않게)
-  const cob=(geo,x,z,circle)=>{const pa=geo.attributes.position;for(let i=0;i<pa.count;i++){const px=pa.getX(i),pz=-pa.getY(i);pa.setZ(i,capH(x+px,z+pz)+0.07);}geo.computeVertexNormals();
+  const cob=(geo,x,z,circle)=>{const pa=geo.attributes.position;for(let i=0;i<pa.count;i++){const px=pa.getX(i),pz=-pa.getY(i);pa.setZ(i,Math.max(capH(x+px,z+pz),capHm(x+px,z+pz))+0.07);}geo.computeVertexNormals();
     const m=new THREE.Mesh(geo,MATS.cobble.clone());m.material.vertexColors=false;m.material.color=LIN("#9a968e");m.rotation.x=-Math.PI/2;m.position.set(x,0,z);m.receiveShadow=true;sc.add(m);};
-  const plaza=new THREE.CircleGeometry(19*SC,40,0,Math.PI*2);{const pa=plaza.attributes.position,uv=plaza.attributes.uv;for(let i=0;i<pa.count;i++)uv.setXY(i,pa.getX(i)/3,pa.getY(i)/3);}cob(plaza,0,14*SC);
+  const plaza=new THREE.RingGeometry(0.01,19*SC,64,24);{const pa=plaza.attributes.position,uv=plaza.attributes.uv;for(let i=0;i<pa.count;i++)uv.setXY(i,pa.getX(i)/3,pa.getY(i)/3);}cob(plaza,0,14*SC);
   const st=new THREE.PlaneGeometry(12,122*SC,4,80);st.attributes.uv.array.forEach((v,i,a)=>a[i]=i%2?v*60:v*4);cob(st,0,77*SC);
   const st2=new THREE.PlaneGeometry(70*SC,9,48,4);st2.attributes.uv.array.forEach((v,i,a)=>a[i]=i%2?v*3:v*34);cob(st2,-38*SC,26*SC);
   const yard=new THREE.PlaneGeometry(40*SC,30*SC,20,16);yard.attributes.uv.array.forEach((v,i,a)=>a[i]=i%2?v*14:v*20);cob(yard,0,-44*SC);
@@ -3252,10 +3252,22 @@ function buildCapital(){
   rebuildCapital(true);
 }
 // 건물 단계가 바뀌면 다시 만든다
+/* 건물 바깥의 통, 수레, 건초, 울타리, 과녁, 담, 의자 같은 부품에 충돌 상자를 만든다.
+   발목 아래(계단, 화단)와 머리 위(차양, 간판)는 걸리지 않는다. 건물 본체 상자 안에 든 부품은 이미 막혀 있으니 뺀다. */
+const _pc={L:new THREE.Matrix4(),q:new THREE.Quaternion(),e:new THREE.Euler(),v:new THREE.Vector3(),p:new THREE.Vector3(),s:new THREE.Vector3()};
+function capPropCols(ps,bx,bz,ry,hw,hd,out){const cs=Math.cos(ry),sn=Math.sin(ry),{L,q,e,v}=_pc;
+  for(const pt of ps){const g=pt.geo;if(!g||!g.attributes||!g.attributes.position)continue;if(!g.boundingBox)g.computeBoundingBox();const bb=g.boundingBox;
+    e.set(pt.r[0],pt.r[1],pt.r[2]);q.setFromEuler(e);L.compose(_pc.p.set(pt.p[0],pt.p[1],pt.p[2]),q,_pc.s.set(pt.s[0],pt.s[1],pt.s[2]));if(pt.m)L.premultiply(pt.m);
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9;
+    for(const X of [bb.min.x,bb.max.x])for(const Y of [bb.min.y,bb.max.y])for(const Z of [bb.min.z,bb.max.z]){v.set(X,Y,Z).applyMatrix4(L);x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y);z0=Math.min(z0,v.z);z1=Math.max(z1,v.z);}
+    if(y1<0.35||y0>1.7)continue;if(x0>-hw&&x1<hw&&z0>-hd&&z1<hd)continue;
+    const cx=(x0+x1)/2,cz=(z0+z1)/2;out.push({x:bx+cx*cs+cz*sn,z:bz-cx*sn+cz*cs,hw:(x1-x0)/2+0.35,hd:(z1-z0)/2+0.35,ry,prop:1});}}
+/* 상호작용 지점, 백성의 길, 왕의 말 자리를 덮는 부품 상자는 뺀다 (길이 막히지 않게) */
+function capPropKeep(c,keep){const cs=Math.cos(c.ry),sn=Math.sin(c.ry);for(const k of keep){const lx=(k.x-c.x)*cs-(k.z-c.z)*sn,lz=(k.x-c.x)*sn+(k.z-c.z)*cs;if(Math.abs(lx)<c.hw+k.r&&Math.abs(lz)<c.hd+k.r)return false;}return true;}
 function rebuildCapital(force){
   const sig=capSig();if(!force&&sig===CAP.sig)return;CAP.sig=sig;
   const sc=CAP.scene;if(CAP.static){sc.remove(CAP.static);CAP.static.geometry.dispose();}
-  const parts=[];CAP.colliders=[];
+  const parts=[];CAP.colliders=[];const props=[];
   for(const b of capLayout()){
     const has=!b.bld||S.bld[b.bld]>0;
     // 아직 안 세운 건물도 모양은 그대로 보여 준다 (공사장 모양이 낯설다) — 문 앞에 '폐쇄' 표지판만 선다
@@ -3263,6 +3275,7 @@ function rebuildCapital(force){
     if(!has&&b.hw){const sp=capSpots().find(x=>x.id===(b.id==="granary"?"farm":b.id));if(sp){const dx=sp.x-b.x,dz=sp.z-b.z;parts.push(...place(signParts(),sp.x+dx*0.08+0.9,capH(sp.x,sp.z),sp.z+dz*0.08,Math.atan2(dx,dz)));}}
     if(b.id.startsWith("stall")&&!has)continue;
     parts.push(...place(ps,b.x,capH(b.x,b.z)+(b.id==="table"?0:0),b.z,b.ry));
+    if(b.hw&&b.id!=="keep")capPropCols(ps,b.x,b.z,b.ry,b.hw,b.hd,props);
     if(b.hw)CAP.colliders.push({x:b.x,z:b.z,hw:b.hw+0.4,hd:b.hd+0.4,ry:b.ry});
   }
   CAP.colliders.push({x:0,z:14*SC,r:6.8});if(CAP.propCols)CAP.colliders.push(...CAP.propCols);for(const g of (CAP.guards||[]))CAP.colliders.push({x:g[0],z:g[1],r:0.45});
@@ -3270,8 +3283,13 @@ function rebuildCapital(force){
   const lots=houseLots(),nH=Math.min(lots.length,22+S.bld.homes*9);
   const roofs=[B3.roofR,"#8a4a32","#6b5a4a",B3.roofS];
   for(let i=0;i<nH;i++){const l=lots[i],r=mulberry(i*31+5);const w=6+Math.floor(r()*3),d=7+Math.floor(r()*3);
-    parts.push(...place(houseParts({w,d,h:4.5+r()*1.2,two:r()<0.7,roof:roofs[i%4],plaster:r()<0.5?B3.plaster:"#c8b896",lit:r()<0.4,lit2:r()<0.3}),l.x,capH(l.x,l.z),l.z,l.ry));
+    const hp=houseParts({w,d,h:4.5+r()*1.2,two:r()<0.7,roof:roofs[i%4],plaster:r()<0.5?B3.plaster:"#c8b896",lit:r()<0.4,lit2:r()<0.3});
+    parts.push(...place(hp,l.x,capH(l.x,l.z),l.z,l.ry));capPropCols(hp,l.x,l.z,l.ry,w/2,d/2,props);
     CAP.colliders.push({x:l.x,z:l.z,hw:w/2+0.6,hd:d/2+0.6,ry:l.ry});}
+  {const keep=[...capSpots().map(p=>({x:p.x,z:p.z,r:1.6})),...(CAP.way||[]).map(w=>({x:w.x,z:w.z,r:1.2}))];if(CAP.horsePos)keep.push({x:CAP.horsePos.x,z:CAP.horsePos.z,r:2});
+    for(const c of props)if(capPropKeep(c,keep))CAP.colliders.push(c);}
+  /* 건물 안에 들어가 버린 길 지점은 뺀다 (백성이 벽 속으로 걸어 들어가지 않게) */
+  if(CAP.way){CAP.wayAll=CAP.wayAll||CAP.way.slice();CAP.way=CAP.wayAll.filter(w=>capPush(w.x,w.z).x===w.x&&capPush(w.x,w.z).z===w.z);if(!CAP.way.length)CAP.way=CAP.wayAll.slice();}
   const m=meshOf(mergeSmooth(parts,0.05));sc.add(m);CAP.static=m;
   // 상호작용 지점
   for(const s of CAP.spots){if(s.ring)sc.remove(s.ring);removeLabel(s.L);}
@@ -3313,6 +3331,11 @@ function capSpots(){
     {id:"yard2",name:"훈련 과녁",sub:"허수아비를 베어 무예를 익힌다 (우클릭)",x:-32*SC,z:58*SC,act:()=>toast("허수아비 앞에서 우클릭으로 베어라. 연속으로 맞히면 무예가 더 빨리 는다.")},
   ];
 }
+/* 백성용 가벼운 충돌: 충돌 상자만 보고 밀어낸다 */
+function capPush(x,z){for(const c of CAP.colliders){const dx=x-c.x,dz=z-c.z;if(c.r){const R=c.r+0.4;if(Math.abs(dx)>R||Math.abs(dz)>R)continue;const d=Math.hypot(dx,dz);if(d<R&&d>0.001){x=c.x+dx/d*R;z=c.z+dz/d*R;}continue;}
+  const ext=c.hw+c.hd;if(Math.abs(dx)>ext||Math.abs(dz)>ext)continue;const cs=Math.cos(c.ry),sn=Math.sin(c.ry),lx=dx*cs-dz*sn,lz=dx*sn+dz*cs;
+  if(Math.abs(lx)<c.hw&&Math.abs(lz)<c.hd){const px=c.hw-Math.abs(lx),pz=c.hd-Math.abs(lz);let nx=lx,nz=lz;if(px<pz)nx=(Math.sign(lx)||1)*c.hw;else nz=(Math.sign(lz)||1)*c.hd;x=c.x+nx*cs+nz*sn;z=c.z-nx*sn+nz*cs;}}
+  return {x,z};}
 function capCollide(x,z){
   const r=Math.hypot(x,z);if(r>CAP_R-6){x*=(CAP_R-6)/r;z*=(CAP_R-6)/r;}
   // 왕의 말 (타고 있지 않을 때)
@@ -3482,7 +3505,9 @@ function capTick(dt){
       if(l<1){n.wait=rnd(1,6);const opts=CAP.way.filter(w=>Math.hypot(w.x-n.x,w.z-n.z)<30&&w!==n.t);n.t=opts.length?pick(opts):pick(CAP.way);}
       else{n.x+=vx/l*n.spd*dt;n.z+=vz/l*n.spd*dt;n.ph+=dt*n.spd*5;n.face+=angDiff(n.face,Math.atan2(vx,vz))*Math.min(1,dt*6);moving=true;
         const dk=Math.hypot(n.x-CAP.pos.x,n.z-CAP.pos.z);if(dk<1.0&&dk>0.001){n.x=CAP.pos.x+(n.x-CAP.pos.x)/dk*1.0;n.z=CAP.pos.z+(n.z-CAP.pos.z)/dk*1.0;}
-        for(const o of CAP.npcs){if(o===n)continue;const dd=Math.hypot(n.x-o.x,n.z-o.z);if(dd<0.8&&dd>0.001){const push=(0.8-dd)/2;n.x+=(n.x-o.x)/dd*push;n.z+=(n.z-o.z)/dd*push;}}}}
+        for(const o of CAP.npcs){if(o===n)continue;const dd=Math.hypot(n.x-o.x,n.z-o.z);if(dd<0.8&&dd>0.001){const push=(0.8-dd)/2;n.x+=(n.x-o.x)/dd*push;n.z+=(n.z-o.z)/dd*push;}}
+        {const ox=n.x,oz=n.z,pc=capPush(n.x,n.z);n.x=pc.x;n.z=pc.z;   /* 벽, 물건, 의자에 막히면 비켜 가고, 오래 막히면 다른 곳으로 */
+          if(Math.hypot(pc.x-ox,pc.z-oz)>n.spd*dt*0.5){n.stuck=(n.stuck||0)+dt;if(n.stuck>1.2){n.stuck=0;n.t=pick(CAP.way);}}else n.stuck=0;}}}
     // 왕이 지나가면 돌아서서 바라본다
     if(!moving){const dk=Math.hypot(CAP.pos.x-n.x,CAP.pos.z-n.z);if(dk<4.5){n.face+=angDiff(n.face,Math.atan2(CAP.pos.x-n.x,CAP.pos.z-n.z))*Math.min(1,dt*4);if(n.wait<0.6)n.wait=0.6;}}
     if(CW){const want=moving?"walk":"idle";if(n.clip!==want){n.clip=want;n.t0=VAT_T.value-Math.random()*2;}CW[n.kind].push(n.x,capHm(n.x,n.z),n.z,n.face,n.clip,n.vi,n.t0,n.spd/1.3,CIV_TINT[n.vi%CIV_TINT.length]);}
@@ -3520,8 +3545,8 @@ function dayNight(L,sky,scene,lamps,pls){
   const ang=(t*1.25-0.02)*Math.PI,el=Math.max(0.08,Math.sin(Math.min(Math.PI,Math.max(0,ang))));
   L.offset.set(Math.cos(ang)*-140,40+el*130,-110);
   sky&&sky.material.uniforms.sun.value.set(-Math.cos(ang),el*0.8,-0.8).normalize();
-  L.sun.intensity=lerp(0.3,2.3,day)*(1-dusk*0.2);L.sun.color.copy(LIN("#ffe0c0").lerp(LIN("#ffa060"),dusk).lerp(LIN("#7080b8"),1-day));
-  L.hemi.intensity=lerp(0.22,0.5,day);L.fill.intensity=lerp(0.12,0.22,day);
+  L.sun.intensity=lerp(0.8,2.3,day)*(1-dusk*0.2);L.sun.color.copy(LIN("#ffe0c0").lerp(LIN("#ffa060"),dusk).lerp(LIN("#8a9ac8"),1-day));   /* 밤에도 달빛으로 형체가 보이게 */
+  L.hemi.intensity=lerp(0.6,0.5,day);L.fill.intensity=lerp(0.2,0.22,day);   /* 밤엔 하늘빛을 조금 더: 그늘진 성벽 안도 보이게 */
   const wk=weatherK();const wet=wk==="rain"?0.55:wk==="storm"?0.75:wk==="fog"?0.35:0;
   if(wet){L.sun.intensity*=1-wet*0.7;L.hemi.intensity*=1+wet*0.3;L.sun.color.lerp(LIN("#aab4c4"),wet);if(L.disk){L.disk.material.opacity*=1-wet;L.halo.material.opacity*=1-wet;}
     if(sky){for(const u of ["top","mid","bot"])sky.material.uniforms[u].value.lerp(LIN(wk==="fog"?"#8a8a86":"#3a3e46"),wet*0.8);}}
@@ -6598,13 +6623,13 @@ function buildBattleScene(){
   BR.lights=lightRig(sc,{shadowSize:75,sunI:1.9,hemi:0.4,sunR:800});dayNight(BR.lights,BR.sky,sc,null,null);
   if(B.wall&&B.wall.fort){// 망자 요새: 해가 가려진 잿빛·녹빛 하늘, 짙은 안개, 약한 햇빛
     const u=BR.sky.material.uniforms;u.top.value.lerp(LIN("#1a1c22"),0.75);u.mid.value.lerp(LIN("#3a4038"),0.7);u.bot.value.lerp(LIN("#4a4a3c"),0.6);
-    sc.fog.color.copy(LIN("#3c403a"));sc.fog.near=150;sc.fog.far=420;BR.lights.sun.intensity*=0.7;BR.lights.sun.color.lerp(LIN("#b8c8b0"),0.5);BR.lights.hemi.intensity*=0.75;}
+    sc.fog.color.copy(LIN("#3c403a"));sc.fog.near=150;sc.fog.far=420;BR.lights.sun.intensity*=0.85;BR.lights.sun.color.lerp(LIN("#b8c8b0"),0.5);BR.lights.hemi.color.copy(LIN("#8a948a"));}
   // 지형: 부드러운 음영 + 흙결
   const N=130,W=380,Dz=300,pos=[],col=[],uv=[],idx=[],bls=[],c=new THREE.Color(),c2=new THREE.Color();
   for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const x=-W/2+i*W/N,z=-Dz/2+j*Dz/N,h=bHraw(B,x,z);pos.push(x,h,z);uv.push(x/5,z/5);
     const n=Noise.n2(x*0.08,z*0.08)*0.5+0.5;c.set(n>0.5?"#58683a":"#4c5c32");if(Noise.n2(x*0.03+3,z*0.03)>0.4)c.lerp(c2.set("#746a48"),0.5);if(h>4)c.lerp(c2.set("#6f6c55"),smooth(4,8,h)*0.6);
-    const bl=blAt(z);if(bl>0){c.lerp(c2.set(n>0.5?"#4d463d":"#3b3732"),clamp(bl,0,0.94));if(bl>0.5&&Noise.n2(x*0.05+7,z*0.05-3)>0.3)c.lerp(c2.set("#26221f"),0.55*bl);if(bl>0.5&&Noise.n2(x*0.11-4,z*0.11+9)>0.45)c.lerp(c2.set("#5a5448"),0.4);}
-    if(inForest(x,z))c.lerp(c2.set(blAt(z)>0.5?"#2e2a26":"#3a4a2e"),0.5);
+    const bl=blAt(z);if(bl>0){c.lerp(c2.set(n>0.5?"#6a6153":"#585248"),clamp(bl,0,0.94));if(bl>0.5&&Noise.n2(x*0.05+7,z*0.05-3)>0.3)c.lerp(c2.set("#433d36"),0.55*bl);   /* 망자의 땅: 잿빛 흙 (너무 검으면 밤에 아무것도 안 보인다) */if(bl>0.5&&Noise.n2(x*0.11-4,z*0.11+9)>0.45)c.lerp(c2.set("#5a5448"),0.4);}
+    if(inForest(x,z))c.lerp(c2.set(blAt(z)>0.5?"#46403a":"#3a4a2e"),0.5);
     if(B.terrain==="marsh")c.lerp(c2.set("#5a6a4a"),0.45);if(B.terrain==="hill"&&h>6)c.lerp(c2.set("#8a8678"),smooth(6,12,h)*0.5);
     for(const p of (B.pools||[])){const d=Math.hypot(x-p.x,z-p.z);if(d<p.r+6)c.lerp(c2.set("#5a5a40"),smooth(p.r+6,p.r*0.6,d)*0.7);}
     c.convertSRGBToLinear();col.push(c.r,c.g,c.b);bls.push(clamp(blAt(z)*1.1-0.05,0,1));}
@@ -6662,9 +6687,10 @@ function buildBattleScene(){
     BR.rocks=new THREE.InstancedMesh(g,new THREE.MeshStandardMaterial({color:"#ffffff",roughness:1,metalness:0,flatShading:true,map:(MATS.rock&&MATS.rock.map)||null}),260);BR.rocks.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(260*3).fill(1),3);BR.rocks.count=0;BR.rocks.frustumCulled=false;BR.rocks.castShadow=true;BR.rocks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);sc.add(BR.rocks);}
   BR.selRings=[];BR.rings=[];BR.sprites=[];
   // 배치 구역 표시
-  const dz=new THREE.Mesh(new THREE.PlaneGeometry(236,83-BF.DEPLOY),new THREE.MeshBasicMaterial({color:"#8fb0d6",transparent:true,opacity:0.1,depthWrite:false,toneMapped:false}));
-  dz.rotation.x=-Math.PI/2;dz.position.set(0,6,(83+BF.DEPLOY)/2);BR.deployZone=dz;if(!B.wall||B.wallAtk===0)sc.add(dz);
-  const edge=new THREE.Mesh(new THREE.PlaneGeometry(236,0.5),new THREE.MeshBasicMaterial({color:"#8fb0d6",transparent:true,opacity:0.6,depthWrite:false,toneMapped:false}));edge.rotation.x=-Math.PI/2;edge.position.set(0,6.02,BF.DEPLOY);BR.deployEdge=edge;if(!B.wall||B.wallAtk===0)sc.add(edge);
+  const drape=(g,lift)=>{g.rotateX(-Math.PI/2);const pa=g.attributes.position;for(let i=0;i<pa.count;i++)pa.setY(i,bHraw(B,pa.getX(i),pa.getZ(i))+lift);g.computeBoundingSphere();return g;};
+  const dz=new THREE.Mesh(drape(new THREE.PlaneGeometry(236,83-BF.DEPLOY,118,Math.ceil((83-BF.DEPLOY)/2)).translate(0,-(83+BF.DEPLOY)/2,0),0.25),new THREE.MeshBasicMaterial({color:"#8fb0d6",transparent:true,opacity:0.05,depthWrite:false,toneMapped:false}));
+  BR.deployZone=dz;if(!B.wall||B.wallAtk===0)sc.add(dz);
+  const edge=new THREE.Mesh(drape(new THREE.PlaneGeometry(236,0.5,236,1).translate(0,-BF.DEPLOY,0),0.3),new THREE.MeshBasicMaterial({color:"#8fb0d6",transparent:true,opacity:0.6,depthWrite:false,toneMapped:false}));BR.deployEdge=edge;if(!B.wall||B.wallAtk===0)sc.add(edge);
   // 왕
   // 장군들: 근위대 앞에서 싸운다
   BR.capt=null;{const cq=B.sq.find(s=>s.isCapt);if(cq&&CHR.ready&&CHR.gltf.warrok){const m=makeHero("warrok",["club"],cq.isBoss?"#2a2030":"#6a4a4a","brute");if(m){m.scale.multiplyScalar(cq.isBoss?1.9:1.35);sc.add(m);BR.capt={m,sq:cq};}}}
@@ -8091,8 +8117,9 @@ document.addEventListener("click",e=>{
     case"start":gateThen(startPrologue);break;
     case"startSkip":gateThen(()=>startNewGame(false));break;
     case"continue":gateThen(continueGame);break;
-    case"resetGame":UI.openModal(`${winHead("게임 초기화")}<div class="wbody"><p class="story" style="font-size:17px;text-align:center">진짜 초기화하시겠습니까?</p><p class="note" style="text-align:center">지금 진행(${S.day}일째)이 사라지고 1일째부터 다시 시작한다. 되돌릴 수 없다.</p></div><div class="wfoot"><button class="b ghost" data-a="settings">아니요</button><button class="b" data-a="resetGo" style="border-color:rgba(201,71,59,.7);color:#f0b0a4">예</button></div>`,{narrow:true});break;
-    case"resetGo":UI.closeModal();UI.modalBlocking=false;LOADED=null;try{localStorage.removeItem("ashen-crown-v3");localStorage.removeItem(bakKey(S&&S.slot||1));if(S&&S.slot&&S.slot!==1)localStorage.removeItem(slotKey(S.slot));}catch(e){}BT=null;startNewGame();break;
+    case"resetGame":UI.openModal(`${winHead("게임 초기화")}<div class="wbody"><p class="story" style="font-size:17px;text-align:center">진짜 초기화하시겠습니까?</p><p class="note" style="text-align:center">지금 진행(${S.day}일째)이 사라진다. 되돌릴 수 없다.</p><p class="note" style="text-align:center">프롤로그부터 할 수도 있고, 바로 1일째부터 시작할 수도 있다.</p></div><div class="wfoot"><button class="b ghost" data-a="settings">아니요</button><button class="b" data-a="resetGo" data-pro="1" style="border-color:rgba(201,71,59,.7);color:#f0b0a4">프롤로그부터</button><button class="b" data-a="resetGo" style="border-color:rgba(201,71,59,.7);color:#f0b0a4">1일째부터</button></div>`,{narrow:true});break;
+    case"resetGo":UI.closeModal();UI.modalBlocking=false;LOADED=null;try{localStorage.removeItem("ashen-crown-v3");localStorage.removeItem(bakKey(S&&S.slot||1));if(S&&S.slot&&S.slot!==1)localStorage.removeItem(slotKey(S.slot));}catch(e){}BT=null;
+      if(b.dataset.pro){S=null;startPrologue();}else startNewGame();break;   /* 프롤로그는 끝나면 1일째로 이어진다(prologueEnd) */
     case"vjoin":{const st=vil(b.dataset.id),a=armyById(+b.dataset.a2);if(a&&st.vgar&&st.vgar.length){a.comps.push(...st.vgar);logMsg(`${siteById(b.dataset.id).name} 수비대 ${st.vgar.length}개 중대가 ${armyName(a)}에 합류했다.`,"gold");st.vgar=[];renderSide();renderTop();syncArmies();saveGame();}break;}
     case"vlevyArmy":{const st=vil(b.dataset.id),a=armyById(+b.dataset.a2);if(a&&st.state==="ok"&&st.pop>=300&&S.res.gold>=40&&S.res.food>=25){S.res.gold-=40;S.res.food-=25;st.pop-=100;a.comps.push({t:"militia",men:100});logMsg(`${siteById(b.dataset.id).name}의 젊은이 100명이 민병으로 ${armyName(a)}에 합류했다.`);renderSide();renderTop();syncArmies();saveGame();}break;}
     case"rush":if(rushArmy(+b.dataset.id)){renderTop();UI.dirty=true;renderSide();saveGame();}break;
@@ -8343,6 +8370,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.153","첫 화면: 두 인물이 허리를 돌리던 동작 대신 가만히 서 있고, 앞에서 빛을 받아 모습이 보인다. 양옆 어둠을 덜고, 인물이 메뉴에 가리지 않게 · 설정에서 게임을 초기화할 때 프롤로그부터 할지, 1일째부터 할지 고른다 · 왕궁: 건물과 집 바깥의 통, 수레, 건초, 울타리, 과녁, 담, 의자를 통과하지 못한다. 걸어 다니는 백성도 벽과 물건, 의자를 피해 가고 건물 안으로 걸어 들어가지 않는다 · 왕궁 광장 돌바닥 사이로 잔디가 솟던 것 고침 · 밤이 너무 어둡던 것: 달빛과 하늘빛을 더해 전장, 왕궁, 지도 어디서나 땅과 부대가 보인다. 망자 요새의 땅도 잿빛으로 밝혔다 · 전투 배치 구역이 공중에 뜬 회색 판으로 보이던 것을 땅에 깔리는 옅은 표시로"],
  ["0.9.152","멀티플레이: 다른 사람의 Claude에 맡기는 망자 군주 요청은 방장이 보낸 것만 받고, 모델과 답 길이, 횟수를 제한한다. 다른 사람이 내 API 키를 마음대로 쓰지 못하게 · 첫 화면: 제목 뒤의 큰 해와 빛무리를 작고 흐린 해로 바꾸고, 하늘을 어둡게 · 넓은 자간 정리: 부제, 바뀐 점 버튼, 몇몇 표시"],
  ["0.9.151","집: 집마다 골조 짜임이 다르고, 위층을 받치는 들보 끝, 박공널과 용마루, 문틀과 문지방 돌, 창틀이 생겼다. 일부는 옆에 헛간이 붙거나 지붕창이 있고, 문 앞에 통이나 장작더미, 긴 의자가 놓인다 · 성벽: 흉벽을 받치는 까치발 줄, 화살 구멍, 색이 다른 덧댄 돌 · 탑: 넓은 밑동, 띠돌, 까치발, 높이가 다른 화살 구멍 · 주술과 기도 효과: 큰 빛 덩어리 대신 땅에서 피어오르는 가는 기운과 낮게 깔리는 검은 안개, 흩어지는 빛 알갱이. 강령술사의 주술탄은 작고 어두운 구슬이 연기를 끌며 날아간다 · 주둔군 탭의 '강한 중대를 만드는 길'을 네 줄로 정리 · 영어판: 휴대폰에서 키 이름 제거, 로그인 창 영어, 1 company처럼 단수와 복수 구분"],
  ["0.9.150","게임 안 문장 전체 점검: 누르라, 클릭하라 같은 지시와 재촉하는 말투를 설명문, 길잡이, 오류 안내까지 고쳤다 · 휴대폰에는 키보드와 마우스 이야기가 나오지 않는다. 도움말의 조작법 탭과 작전도 설명은 PC에만 보인다 · 성벽 위 부대에서 성벽 밖으로 밀려난 병사가 성벽 높이로 허공에 떠 있던 것 고침 · 휴대폰 전장에서 말 버튼이 화면 오른쪽 끝에 잘리던 것 고침 · 전투 결과 창 위에 알림 글이 겹쳐 표를 가리던 것 고침 · 낡은 문구 정리(둘째 기술, 임시 버튼 표시)"],
@@ -9020,6 +9048,9 @@ const _KN_OTHER=[String.fromCharCode(50640,46300,47533),"Edric"];function fixRul
 setInterval(()=>{try{fixRuler(typeof S!=="undefined"?S:null);fixRuler(typeof LOADED!=="undefined"?LOADED:null);}catch(e){}},500);
 /* ── 타이틀: 노을을 등진 왕과 장군의 실루엣 ── */
 const TT={scene:null,t:0};
+/* 첫 화면 인물: 칼 든 전투 대기 동작(허리와 머리를 크게 돌린다) 대신 가만히 서서 숨 쉬는 동작 */
+function titleCalm(h,clip,t0){const H=h.userData&&h.userData.hero;if(!H||typeof hasClip!=="function"||!hasClip(clip))return;
+  try{const c=retarget(clip,h.children[0]);if(!c)return;const a=H.mixer.clipAction(c);H.mixer.stopAllAction();a.reset().play();a.time=t0||0;H.acts.idle=a;H.cur="idle";}catch(e){console.warn(e);}}
 function buildTitleScene(){
   if(TT.scene)return;const sc=new THREE.Scene();TT.scene=sc;
   sc.fog=new THREE.FogExp2(LIN("#3a2418"),0.012);
@@ -9034,11 +9065,12 @@ function buildTitleScene(){
   sc.add(new THREE.HemisphereLight(LIN("#4a2a30"),LIN("#0a0706"),0.12));
   const rim=new THREE.DirectionalLight(LIN("#ff9a50"),1.6);rim.position.set(-10,3,-30);sc.add(rim);
   const fill=new THREE.DirectionalLight(LIN("#3a2a3a"),0.18);fill.position.set(4,6,20);sc.add(fill);
+  const front=new THREE.DirectionalLight(LIN("#d8c0a0"),0.8);front.position.set(3,4,8);front.target.position.set(0.4,1,-1.5);sc.add(front);sc.add(front.target);
   // 지는 해: 작고 흐린 원반만 (빛무리 없음)
   const disk=glowSprite("#e8b888",14,0.55);disk.position.set(14,7,-400);sc.add(disk);
   // 인물: 왕과 장군, 멀리 요새 실루엣
-  const king=makeKing("ashen");if(king){king.position.set(-0.9,0,-0.2);king.rotation.y=Math.PI*0.94;sc.add(king);TT.king=king;}
-  const gen=makeKing(GEN_LOOK.eorin);if(gen){gen.position.set(1.9,0,-2.2);gen.rotation.y=Math.PI*1.1;sc.add(gen);TT.gen=gen;}
+  const king=makeKing("ashen");if(king){king.position.set(-1.5,0,-0.4);king.rotation.y=Math.PI*0.94;sc.add(king);TT.king=king;titleCalm(king,"b_idle",0);}
+  const gen=makeKing(GEN_LOOK.eorin);if(gen){gen.position.set(3.1,0,-2.4);gen.rotation.y=Math.PI*1.18;sc.add(gen);TT.gen=gen;titleCalm(gen,"b_idle2",3);}
   const far=meshOf(mergeSmooth(place(fortressParts(true),0,0,0,0,1.3),0.02));far.position.set(-110,-1,-190);far.rotation.y=0.6;far.traverse(o=>{if(o.isMesh)o.castShadow=false;});sc.add(far);
   const rocks=[];for(let i=0;i<40;i++){const a=rnd(0,6.28),r=rnd(10,60);rocks.push([Math.cos(a)*r,Math.sin(a)*r,rnd(0.6,2.2)]);}
   const im=instMesh(MODELS.rock,rocks.length);const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),s=new THREE.Vector3();rocks.forEach((rk,i)=>{e.set(0,rnd(0,6),0);q.setFromEuler(e);m4.compose(v.set(rk[0],0,rk[1]),q,s.setScalar(rk[2]));im.setMatrixAt(i,m4);});sc.add(im);
@@ -9058,6 +9090,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
     // 카메라: 낮게, 아주 천천히 다가가며 살짝 돈다
     const d=7.2-Math.min(1.6,t*0.06),yaw=0.14+Math.sin(t*0.07)*0.1;
     E.cam.position.set(0.5+Math.sin(yaw)*d,1.15+Math.sin(t*0.11)*0.06,-0.8+Math.cos(yaw)*d);E.cam.lookAt(0.4,1.3,-3);
+    {const k=clamp((E.cam.aspect-1.6)/0.5,0,1);if(TT.king)TT.king.position.x=lerp(-1.5,-2.8,k);if(TT.gen)TT.gen.position.x=lerp(3.1,4.3,k);}   /* 화면이 넓을수록(휴대폰 가로) 두 인물을 메뉴 바깥으로 */
     if(TT.king)animateKing(TT.king,dt,0,t);if(TT.gen)animateKing(TT.gen,dt,0,t+2);
     if(TT.ash){const p=TT.ash.geometry.attributes.position;for(let i=0;i<p.count;i++){let x=p.getX(i)+dt*(1.2+Math.sin(i)*0.4),y=p.getY(i)+dt*Math.sin(t*0.8+i)*0.25;if(x>30){x=-30;}p.setXY(i,x,Math.max(0.1,Math.min(14,y)));}p.needsUpdate=true;}};
   $("#whud").hidden=true;$("#bhud").hidden=true;$("#prompt").hidden=true;
@@ -9069,7 +9102,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       <button class="tb" data-a="practice">전투 연습<small>바로 전장으로 — 진행은 그대로 둔다</small></button>
       <button class="tb" data-a="saveImport" style="font-size:13px;opacity:.85">저장 파일 불러오기<small>내보내 둔 .json 파일에서 이어 한다</small></button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes">v0.9.152 · 바뀐 점</button></p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot"><button class="b ghost sm" data-a="changes">v0.9.153 · 바뀐 점</button></p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
