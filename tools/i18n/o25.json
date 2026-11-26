@@ -31,7 +31,7 @@
 "3258": "The war table in front of the Great Hall, or M",
 "3259": "Walk in through the Great Hall's big doors and speak to a minister. The chamberlain collects the people's petitions (audiences). Go to him or sit on the throne to hear them",
 "3260": "In the Great Hall, Treasurer Bella on the right → Tax policy",
-"3261": "A mine or riverside village → Manage village → Mine expansion/Toll house. Village recruiting or walls work too",
+"3261": "A mine or riverside city → Manage city → Mine expansion/Toll house. City recruiting or walls work too",
 "3262": "The fort Morgash in the north of the map (visible from the start) → Spy. A spy sent to a '?' in the fog also finds out what it is",
 "3263": "On the map, a neighbor's capital → Send envoy. Once every 5 days",
 "3264": "The west Colosseum → pick a general. Finish one bout (win or lose) to pass. Your opponent scales to the king's prowess",
@@ -49,6 +49,6 @@
 "3276": "Couldn't get the sign-in (",
 "3277": "<div class=\"wbody\">\n    <div class=\"tile\" style=\"text-align:center\"><div class=\"note\">Room code</div><div style=\"font:800 30px/1.2 monospace;letter-spacing:.25em;color:#ffe2a0;user-select:text;-webkit-user-select:text\">",
 "3278": "The king can't stay in another's kingdom. Only the army can go",
-"3279": "<div class=\"wbody\"><p class=\"story\" style=\"font-size:16px\">Would you like a <b>guide</b> to walk you through the first week, one task at a time?</p><p class=\"note\">Touring the Palace → map and ministers → building and recruiting → villages, spies and diplomacy → sparring: it tells you each task. You can turn it on or off later in Settings.</p></div><div class=\"wfoot\"><button class=\"b ghost\" data-a=\"tutNo\">I'll manage alone</button><button class=\"b gold\" data-a=\"tutYes\">With the guide</button></div>",
+"3279": "<div class=\"wbody\"><p class=\"story\" style=\"font-size:16px\">Would you like a <b>guide</b> to walk you through the first week, one task at a time?</p><p class=\"note\">Touring the Palace → map and ministers → building and recruiting → cities, spies and diplomacy → sparring: it tells you each task. You can turn it on or off later in Settings.</p></div><div class=\"wfoot\"><button class=\"b ghost\" data-a=\"tutNo\">I'll manage alone</button><button class=\"b gold\" data-a=\"tutYes\">With the guide</button></div>",
 "3280": "Couldn't read the save file — it doesn't look like a Deep Dark save."
 }

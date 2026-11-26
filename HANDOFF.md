@@ -1,4 +1,4 @@
-# Deep Dark 인수인계 (v0.9.153, 2026-11-26)
+# Deep Dark 인수인계 (v0.9.154 작업 중, 2026-11-26)
 
 claude.ai의 "게임 제작" 프로젝트에서 하던 작업을 Claude Code 데스크톱으로 옮기기 위한 문서다. 이 문서와 저장소만 있으면 이어서 할 수 있게 썼다. claude.ai 프로젝트 안의 문서(딥다크.md, 프로젝트_지침.md)는 Claude Code에서 보이지 않으므로 필요한 내용을 여기에 다 옮겼다.
 
@@ -309,3 +309,121 @@ itch.io 공개 전 점검
 - 밤 조명(dayNight): 밤 해 0.3→0.8(달빛 색), 하늘빛 0.22→0.6, 보조광 0.12→0.2. 전장, 왕궁, 지도, 대전 모두 적용된다. 망자 요새전은 땅 색을 거의 검정에서 잿빛으로, 요새 감광을 약하게. 배치 구역은 높이 6에 떠 있던 판을 땅을 따라 깔리는 옅은 막(투명도 0.05)과 경계선으로.
 - 밝기 측정(화면 평균 휘도, 0~255): 밤 들판 전장과 공성전이 어둡던 것을 눈으로 비교해 확인. 망자 요새전 밤 20→34, 낮 58→85. 왕궁 밤 77, 지도 밤 44(위쪽은 정찰 안 한 곳의 구름), 대전 밤 75.
 - 확인 못 한 것: 실제 휴대폰 기기, 잠입 임무 화면, 실제 PC 앱에서 본 새 버전.
+
+## 16. v0.9.154에서 한 것 (2026-11-26)
+
+- 왕의 기본 모델: 그리스 전사 hoplite(chr/hoplite.glb). 원본은 OpenGameArt "Achilles Spartan Greek Warrior"(gamekorp, CC0). Blender로 knight의 mixamorig 뼈대와 피부 가중치를 옮겨 입혔다. 만드는 법은 tools/model/README.md.
+  - 사용자는 영화 오디세이의 아가멤논 같은 고대 그리스 전쟁왕(얼굴 덮는 투구, 말총, 검은 갑옷, 망토)을 원했다. 처음엔 로그인 없이 받을 수 있는 CC0 모델(Achilles)을 썼고, 뒤에 사용자가 받아 준 Sketchfab의 Aegis Sentinel(CC-BY)로 바꿨다(17장).
+  - 처음엔 기본 도형으로 투구와 갑옷을 만들어 붙였으나 품질이 낮아 걷어 냈다.
+  - 모델이 정해지지 않은 스킨 모두 hoplite를 쓴다(흑철 기사 paladin, 핏빛 정복자 knight는 그대로). 투구를 쓴 모델이라 왕관과 가슴 문장은 붙이지 않는다(h.userData.helmet). 잿빛 왕은 모델의 갑옷 그대로, 다른 스킨은 색(SKIN_TINT)과 장식(SKIN_KIT)이 더해진다.
+- 왕관: 눈을 가리던 것을 고쳤다. 왕관 밑바닥이 머리 높이의 72%(CROWN_AT)에 오게 맞춘다(왕관을 쓰는 다른 모델 스킨용).
+- 처음 화면: 왕 한 명이 지금 저장 판의 갑주로 정면에 선다(titleKing). 저장이 없으면 잿빛 왕. 칼과 방패는 감춘다. 카메라는 왕이 화면 왼쪽에 오도록 투영 위치를 보며 맞춘다. 배경은 먼 산등성이 세 겹(titleRidge), 요새 실루엣, 어두운 들판(MeshLambertMaterial: 이 게임의 MeshStandardMaterial은 전역으로 손봐져 땅 색이 먹지 않는다). 제목 글씨를 줄였다.
+- 옷장: 아래 버튼 줄에 처음부터 있다. 처음 화면의 "왕의 옷장"에서도 고르며, 저장 판의 기록으로 잠금을 보고 고르면 그 판에 저장한다(skinCtx, titleSaveSkin).
+- 확인: 처음 화면(PC, 휴대폰 가로), 옷장으로 갈아입고 저장되는 것, 문법 검사, 영어판(빠진 번역 151 = 기존 148 + 업데이트 기록 3).
+- 확인 못 한 것: hoplite가 왕궁에서 걷고 뛰고 싸울 때의 모습(미리보기 창이 가려져 화면이 그려지지 않았다), 다른 스킨을 입힌 hoplite 모습, 실제 휴대폰.
+
+## 17. 이어받는 사람에게: v0.9.154 작업 현황 (2026-11-26, 아직 push 전)
+
+게임 주소와 PC 앱에는 v0.9.153이 나가 있다. 아래는 모두 로컬 commit만 했다. push는 사용자에게 먼저 묻는다(push하면 곧바로 게임 주소와 PC 앱에 반영된다). git push는 터미널 탭에서 실행하면 브라우저로 GitHub 로그인이 뜬다.
+
+### 모델 (Sketchfab)
+- 이 작업 환경에서는 Sketchfab 로그인이 되지 않는다. 모델 파일은 사용자가 받아서 넘겨준다(glb, 텍스처 4k 권장). 받은 원본은 저장소 밖 assets 폴더에 둔다.
+- 사용자는 Sketchfab 모델의 질감을 아주 좋아한다. "다른 것도 이렇게 좋은 걸로 바꿀 게 있으면 꼭 다 말해 달라"고 했다.
+- 왕(chr/hoplite.glb): Aegis Sentinel(PixForge, CC BY 4.0). tools/model/aegis_rig.py, README.md 참고.
+- 망자의 왕 바르고스(chr/vargoth.glb): Corrupted King in Black Armor with Bone Crown(Pigcraft/s8819296, CC BY 4.0). 원본 200만 면이라 tools/model/vg_prep.py로 6만 면으로 줄이고 정면으로 돌린 뒤 tools/model/vg_rig.py로 뼈대를 입혔다(팔 73도, 어깨 높이 77%, 다리 바깥 9도, 칼은 오른손, 망토는 등뼈, 팔뼈에서 먼 점은 망토로, 팔과 몸통을 잇는 찌꺼기 면 삭제). 팔을 크게 들면 허리 옆에 작은 틈이 보인다(남은 문제).
+- 두 모델 모두 AI로 만든 한 덩어리 메시라 칼(과 방패)이 몸에 붙어 있다. 게임이 쥐여 주는 칼, 방패는 감춘다. 설정 창 크레딧(setcred)에 출처 표시함.
+
+### 이야기
+- 망자의 왕 이름은 바르고스(사용자가 고름. 처음 제안한 "모르고스"는 톨킨의 인물이라 피했다). 망자의 군주(Claude가 맡는 전략가)도 바르고스로 이어 줬다(lordJson 지시문, 왕좌 설명, siteCaptain).
+- 프롤로그 "선왕의 마지막 밤": 바르고스가 직접 군세를 이끌고 와 적장으로 나온다(isVargoth, 체력 2배). 쓰러뜨려도 "상처를 입고 물러난다"(죽지 않음). 즉위 알림: 선왕이 바르고스와 맞서다 쓰러졌다 / 바르고스의 칼에 입은 상처로 숨졌고 바르고스는 북쪽 왕좌로 물러갔다.
+- 망자의 왕좌 전투: 적장이 바르고스(모델 vargoth, 1.6배). 단계 외침과 기록도 바르고스. 쓰러뜨리면 "선왕의 원수를 갚았다".
+- 프롤로그, 왕좌 전투 모두 끝까지 자동으로 돌려 오류 없음을 확인. 영어 번역 o27.json에 넣음.
+
+### 처음 화면
+- 오른쪽에 우리 왕(방패가 바깥을 향하게), 왼쪽에 바르고스가 마주 선다. 둘 다 투영 위치를 보며 카메라와 자리를 맞춰 화면 비율이 바뀌어도 메뉴에 가리지 않는다(showTitle의 onFrame, titleVargoth).
+- 메뉴는 상자 없는 글자 메뉴, 마우스를 올리면 은빛 밑줄. 아래 작은 메뉴(왕의 옷장, 바뀐 점, English)도 테두리 없는 글자.
+
+### 글씨체 (시험 중인 방향, 사용자와 계속 정하는 중)
+- 지금 코드: 모든 글씨를 고운바탕(Gowun Batang, OFL)으로. CSS 맨 뒤 `*:not(.ttl){font-family:"Gowun Batang"...!important}`, 캔버스 글씨 11곳(미니맵, 지도, 작전도)과 login.html도 바꿈. 화면 검사(fontAudit)로 처음 화면, 창 9종, 왕궁, 지도, 전장에서 빠진 글씨 0개 확인.
+- 사용자는 "모든 글씨를 다 바꿔, 몇 개 빼먹지 마"라고 했다. 새 화면을 만들 때도 이 규칙을 지킨다.
+- 처음 화면 영문 제목 DEEP DARK: Cinzel(OFL) 600, 바랜 놋쇠 금속 그라데이션(background-clip:text)과 은은한 빛. 사용자가 로스트아크 로고를 예로 들며 이런 느낌을 원했다(로고 자체는 따라 하지 않음). 예전 규칙 "금박 그라데이션, 빛나는 효과 금지"는 이 제목에 한해 사용자 요청으로 예외.
+- 제목 색: 은빛, 바랜 놋쇠, 뼈 상아색을 실제 화면에서 비교해 보여 줬고, 사용자가 바랜 놋쇠로 정했다(#f3e3b8에서 #6e5428로 내려가는 금속 그라데이션, 옅은 금빛 빛무리). PC, 휴대폰 가로, 영어판에서 확인함.
+- 시도했다가 사용자가 싫어한 것: 버튼을 노토 명조로만 바꾸기, 글자에 금과 닳은 점 무늬(마스크) 씌우기("점박이는 별로"), 가는 실금. Google 한글 장식 글꼴(구기, 송명, 연성, 흑백사진 등)도 보여 줬으나 고운바탕 계열로 결정.
+- 사용자가 fontspace에서 받은 Mideltank(데모, 상업 금지), Vecna(개인 무료, 상업은 소액 결제)도 비교했다. 사용자가 "그 전 것(Cinzel 은빛)이 낫다"고 해서 쓰지 않는다. 미리보기용 복사본은 game\_tmp_fonts\(저장소에 넣지 않음, 지울지 사용자 확인 필요).
+- 글꼴은 Google Fonts에서 불러온다. 인터넷이 없으면 기본 명조로 보인다. 오프라인(PC 앱, itch)까지 보장하려면 글꼴 파일을 저장소에 넣는 것을 검토.
+
+### 그 밖에 이번에 한 것
+- 왕궁, 대전 충돌: 왕 모델이 방패와 망토로 넓어 0.25m 여유(kingPad). 길 찾기로 모든 입구 도달 확인.
+- 팔자걸음: Aegis의 벌린 다리 각도를 뼈대에 맞춰 고침.
+
+### 이어서 한 것 (2026-11-26, 커밋 6595dcb, push 전)
+- 첫 화면 메뉴: 저장 파일 불러오기, 왕의 옷장, 바뀐 점 버튼과 전투 연습 아래 설명을 뺐다(사용자: "짜친다", 모두 설정 창에 있음). 버전 글자만 작게 남김(tver). 영어 번역은 o28.json(id 3307).
+- 왕 모델(aegis_rig.py 고침, chr/hoplite.glb 다시 만듦):
+  - 몸 전체의 유광 코팅(clearcoat 0.16)을 꺼 무광으로(kingLift). 회색으로 밝히는 것은 밝은 곳에서 멋이 없다고 해서 뺐다.
+  - 칼 부위 고르기에 오른발 앞코(높이 5% 아래)가 들어가 오른손에 묶여, 손을 따라 바닥 근처에 점처럼 떠다녔다. 칼은 높이 5% 위만.
+  - 망토 고르기가 몸 뒤쪽 66% 아래를 모두 잡아 종아리, 발뒤꿈치까지 엉덩이에 묶여, 걸을 때 신발 옆에 덩어리로 남았다. 무릎(42%) 아래는 몸에서 멀리(y>0.37) 늘어진 자락만 망토.
+  - CAPE_CUT 환경 변수로 망토를 짧게 잘라 비교할 수 있다(기본 0, 자르지 않음).
+- heroSheathe가 칼집에 넣을 때 감춰 둔 게임 칼, 방패를 다시 보이게 하던 것: 투구 쓴 모델은 늘 감춘다.
+- 찌르기: 게임 칼이 감춰져 손목 맞추기가 빠져 있었다. 모델 칼의 방향(오른손 뼈 기준, bladeLocal)으로 맞춘다. 숫자로 확인(정면과 1.00).
+- 구르기: 시작 때 머리 뼈가 땅에서 0.15m라 투구가 땅에 박혔다. 투구 쓴 왕은 머리, 엉덩이 뼈가 0.42m 아래로 내려가지 않게 들어 올린다. 미리보기 창이 숨겨져 게임이 멈춰 화면 확인은 못 했다.
+- 이어서(46338db): 성채로 오르는 비탈을 신전 계단으로(STAIR, stairH, inStair. capH는 계단 자리 땅을 1.6m 낮춰 돌덩이 속에 묻고, capHm은 계단 위에서 칸 높이를, 둘레에서 계산한 높이를 돌려준다. 양옆 난간 충돌 상자). 성 안 전체 돌 포장(성채 언덕과 계단 자리만 빼고), 옛 광장, 큰길, 비탈 포장 조각은 지웠고 성채 마당은 계단 위로 줄였다. 처음 화면 부제, 제목 선, 메뉴 밑줄, 창 제목(.ph span)을 놋쇠 계열로, 메뉴 글씨는 상아색.
+- 받을 것 목록은 프로젝트 폴더(game 밖)의 downloads.md, 시킨 일 모음은 requests.md.
+- 사용자 의견, 아직 안 한 것: 망토가 "천 하나 걸쳐 놓은 것 같다"(모델 자체 모양이라 짧게 자르기, 빼기, 다른 모델 중 정해야 함), 돌 모양이 짜침(사진 텍스처 받기, downloads.md), "예전에 고친 것들이 원래대로 돌아왔다"(무엇인지 사용자에게 물어볼 것).
+
+### 동시 작업과 다음 지휘 세션에게 (2026-11-26 오후)
+- 이 프로젝트는 오래 걸리고 나눌 수 있는 일을 세션 여럿으로 나눠 동시에 한다(사용자 요청, C:\my-ai\CLAUDE.md 공통 규칙). 공통 규칙과 확인 도구 메모: C:\Users\jooha\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_0708d044-4824-44ab-b55f-3331d0f5e165\deep-dark-common.md. 각 세션은 맡은 파일만 고치고 commit, en.html은 지휘 세션이 모아서 한다.
+- 끝나서 합친 것(619f70d): 갑주별 칼 빛, 방패 색(skin-glow), 왕궁 돌 사진 텍스처 tex/pave, slab, blocks(textures, sw.js FILES와 version.json에는 아직 안 넣음, 버전 올릴 때 넣을 것), 왕 모델 늘어남 2,418 → 172(king-model).
+- 아직 진행 중: vargoth(바르고스 모델, vg_rig.py, chr/vargoth.glb 수정 중), wings(paladin, sword5 날개를 고급스럽게, 사용자가 빼지 말고 고급스럽게 하라고 함). 끝나면 결과 확인, en.html 생성, commit.
+- 다음 큰 일: 받은 모델 넣기. assets\ 에 말(Akhal-Teke, 뼈대, 동작 3개), 선왕(Old king armor, 뼈대), 정문 키트(Medieval Fortress Kit), 문짝, 성벽 세트(1GB, 텍스처 줄여야 함), 시장 노점 팩, 왕좌가 있다(모두 CC BY, 목록과 크기는 프로젝트 폴더 downloads.md). Large Medieval Wall은 CC BY-NC라 쓰지 않는다. 모델마다 세션으로 나눠 넣고 설정 창 크레딧에 출처를 적는다.
+- en.html 생성 때 빠진 번역이 153개(전 152)다. 새 문장 하나가 번역이 없다(gen.log의 MISS 확인).
+- 미리보기 창의 판은 갑주가 paladin으로 바뀌어 있고 음악은 꺼 두었다(사용자 요청).
+
+### 받은 모델 다섯 넣기 (2026-11-26 저녁, 커밋 17c0084, push 전)
+- 세션 다섯으로 나눠 동시에 했다. 공통 메모: C:\Users\jooha\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_ba111033-d812-434e-aa60-65f9c98dfc74\ (models-common.md, wall.md, gate.md, market.md, horse.md, old-king.md에 세션별 자세한 결과와 남은 문제).
+- 건물 모델: loadProp(n)(CHR_URL 아래). 처음 화면 뒤 castlewall, gate, market을 미리 받고, 없거나 늦으면 코드 건물을 세웠다가 바꿔 끼운다.
+- 왕궁 성벽 15칸, 탑 16개: Modular Medieval Wall Set(cwWall, cwTower, cwBuild, InstancedMesh). 탑은 지붕 없는 네모 탑이 됐다. 정문: palaceGate(Medieval Fortress Kit 문루, 탑 + Castle Style Door 문짝). 시장 노점: stallPut, stallSwap(Medieval Market Asset Pack, 천막 색은 STALL_COL). 말: Akhal-Teke(h 2.05, 서기 Chewing, 걷기 Trot, 달리기 Gallop, 공격, 쓰러짐 없음, 안장 없음). 프롤로그 선왕: chr/oldking(makeKing 첫 줄 S.prologue 갈래, tools/model/oldking_rig.py, README).
+- 크레딧(setcred)에 모두 적음, 영어는 o29.json(id 3308).
+- sw.js FILES와 version.json에 아직 안 넣은 것: chrb/castlewall.wasm, chrb/gate.wasm, chrb/market.wasm, chrb/oldking.wasm, tex/pave, pave_n, slab, slab_n, blocks, blocks_n.jpg. horse.wasm은 크기가 바뀜. 버전 올릴 때 다시 계산.
+- 왕궁 방어전 전장(프롤로그 포함)의 성벽, 이음 탑, 성문, 본성 양옆 성벽도 같은 모델(커밋 4164a61, cwBattle, cwWallGroup, cwTowerMesh, cwGateGroup). 체력, 사다리, 궁병 높이, 충돌은 그대로. 남은 것: 이음 탑이 예전보다 큼(7m 네모), 성문 문루가 성벽보다 두꺼움(wall-battle.md).
+- 사용자 결정: 망자의 왕좌는 The High Black Tower(LaetitiaIrata, CC BY)를 배경으로, 성을 치지 않고 탑에서 나온 망자 군대와 그 앞 들판에서 싸운다. 망자의 요새(fortressParts, 지도, 공략 전투, 처음 화면 실루엣에 함께 쓰임)는 성벽, 탑, 성문이 있어 공성전을 할 수 있는 모델로 바꾼다. 후보는 프로젝트 폴더의 dark_castle_candidates.html(A Villain's Lair, B Medieval Pentagon Castle, C Low Poly Dark Castle, D 받은 성벽 세트를 검게). 사용자가 고르고 받는다. 마을은 나중.
+
+### 망자의 요새 (다음 버전, 2026-11-26 밤 주인님 결정 "요새는 다음에")
+- 이번 버전에서 뺐다. index.html에는 요새 모델 코드가 없다(코드 요새 fortressParts 그대로).
+- 만들어 둔 것: game/tools/model/fort_build.py(조각 모델 fort.glb 만들기, 원본 assets\low_poly_dark_castle.glb, gothic_building_for_aria_pack_1.0.glb, villains_lair.glb), fort_look.py, fort_pick.py, fort_clusters.py(원본 살펴보기). 완성본과 그때의 코드: game/tools/model/fort_work/(fort.glb 3.4MB, index_with_fort.html, .gitignore로 저장소 밖).
+- 자세한 것(조각 이름과 치수, 요새 6곳 배치, wallVisual, wallTowers, fortDecor, 공략 배경, 지도, 요새 화면에 넣은 줄, 다시 만드는 법, 남은 확인): 메모 폴더 C:\Users\jooha\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_29e62420-d89b-4741-96fe-c59e3e8592d7\fortress.md
+
+### Firebase 보안 규칙 (2026-11-26 밤, 총괄님 지시, 주인님 콘솔 작업 필요)
+고칠 것(13장 2번): Firestore linkSessions 목록 조회가 로그인 없이 되어 코드 로그인 때 올라간 구글 토큰을 누구나 가져갈 수 있다. 멀티 방의 Claude 질문(rooms/{방}/ai/{id})에서 from을 남이 속일 수 있다.
+- 코드: login.html이 linkSessions에 올리는 at을 숫자에서 Firestore 타임스탬프(10분 뒤 지워질 시각)로 바꿨다(TTL 자동 삭제용). 게임은 at을 읽지 않는다. 게임은 로그인 전에 문서 하나를 get으로 읽고(로그인 전이라 get은 열어 둬야 한다), 로그인한 뒤 지운다.
+- 규칙 원문: tools/firebase/firestore.rules(Firestore), tools/firebase/database.rules.json(Realtime DB).
+- 순서: (1) 코드 push(다 끝내고 한 번에 올릴 때 같이) → (2) 주인님 콘솔 작업(아래) → (3) 팀장이 확인: 바깥에서 linkSessions 목록 조회가 거부되는지, 문서 하나 읽기는 되는지, PC 앱에서 코드 로그인이 되는지(로그인 자체는 주인님이 한 번 해 주셔야 한다).
+
+주인님 콘솔 작업 (push가 끝났다고 팀장이 알려 드린 뒤에)
+1. 지금 규칙을 먼저 보관한다(혹시 모르는 규칙이 있을 수 있어서)
+   - 브라우저에서 https://console.firebase.google.com 을 열고 구글 계정으로 들어간다.
+   - 프로젝트 목록에서 deep-dark-dfa61(Deep Dark)을 누른다.
+   - 왼쪽 메뉴 "빌드"(Build) 아래 "Firestore Database"를 누르고, 위쪽 탭에서 "규칙"(Rules)을 누른다.
+   - 가운데 글 상자를 한 번 누르고 Ctrl+A, Ctrl+C로 전부 복사해 팀장 세션 대화창에 붙여 넣는다.
+   - 왼쪽 메뉴 "Realtime Database"를 누르고 위쪽 탭 "규칙"(Rules)에서 같은 방법으로 복사해 팀장에게 붙여 넣는다.
+   - 팀장이 원문과 비교해 빠진 규칙이 없는지 보고, 붙여 넣을 최종본을 드린다(지금 원문은 tools/firebase 두 파일).
+2. Firestore 규칙 바꾸기
+   - Firestore Database → 규칙 탭에서 글 상자를 누르고 Ctrl+A로 전부 고른 뒤, 팀장이 드린 Firestore 최종본을 Ctrl+V로 붙여 넣는다.
+   - 위쪽 파란 "게시"(Publish) 버튼을 누른다. 오류 표시(빨간 줄)가 나오면 누르지 말고 화면을 팀장에게 보여 준다.
+3. 오래된 로그인 문서 자동 삭제(TTL) 켜기
+   - 브라우저에서 https://console.cloud.google.com/firestore/databases/-default-/ttl?project=deep-dark-dfa61 를 연다(같은 구글 계정).
+   - "정책 만들기"(Create policy)를 누른다.
+   - 컬렉션 그룹(Collection group)에 linkSessions, 타임스탬프 필드(Timestamp field)에 at 을 적고 "만들기"(Create)를 누른다.
+   - 상태가 "만드는 중"에서 "사용 중"(Serving)으로 바뀔 때까지 몇 분 기다린다. 이 페이지는 닫아도 된다.
+4. Realtime DB 규칙 바꾸기
+   - Firebase 콘솔로 돌아가 왼쪽 "Realtime Database" → 규칙 탭에서 Ctrl+A, 팀장이 드린 Realtime DB 최종본을 Ctrl+V, "게시".
+5. 팀장에게 "규칙 바꿨다"고 알려 준다. 팀장이 바깥에서 막히는지 확인하고, 주인님이 PC 앱에서 구글 로그인(코드 방식)을 한 번 해 보시면 된다.
+
+### 남은 일 (우선순위 순)
+1. (끝남) 제목 색은 바랜 놋쇠로 반영하고 PC, 휴대폰 가로에서 확인했다. 휴대폰 가로에서 즉위 알림 띠(#notes)가 메뉴와 겹치던 것은, 처음 화면이 떠 있을 때만 알림 띠를 화면 위쪽으로 올려 고쳤다(body:has(#title:not([hidden])) #notes). PC와 휴대폰 가로에서 확인.
+2. 바르고스: 팔을 크게 들 때 허리 옆 틈. 실제 전투 거리에서 눈에 띄는지 보고 필요하면 rig 다듬기.
+3. 모델 교체 후보 찾기(사용자가 꼭 다 알려 달라고 함). 조건: Sketchfab 다운로드 가능, CC BY 또는 CC0(NonCommercial, NoDerivs 제외), 다른 게임, 영화 캐릭터 아님(Lich King, Witch King, Night King 등은 제외).
+   - 말: Akhal-Teke Stallion(animalanimator, CC BY, 뼈대와 동작 3개, 16만 면) https://sketchfab.com/3d-models/3d6e93ffd4154c308ee2e35cfde3bc42 가 가장 좋다. 다른 후보: Animated Rigged Horse With Saddle(3만 면), Horse Rig(4만 면).
+   - 아직 못 찾은 것: 망자의 왕좌(마지막 전투 무대), 성(성벽, 탑, 성문, 본성), 마을(집, 노점), 선왕 모델(지금 왕 모델에 다른 갑주를 입혀도 됨). 사용자는 성 전체를 바꿔도 된다고 했다. 건물은 지금 코드로 만든 것이라 하나씩 바꾸는 큰 작업이다.
+   - 앱 안 브라우저의 Sketchfab 페이지에서 `https://api.sketchfab.com/v3/search?type=models&downloadable=true&q=...`를 fetch하면 로그인 없이 목록과 썸네일을 볼 수 있다.
+4. push 전에 origin/main 이후의 로컬 commit(78ec8ca부터)을 하나로 합친다(예전 문서에 넣지 말아야 할 문장이 한 commit에 남아 있다). 그다음 v0.9.154 push(사용자 확인 후), itch.io zip 다시 만들기, Firebase linkSessions 규칙(사용자가 직접), 멀티 Realtime DB 규칙 원문 확인.
+5. 임시 파일 정리(사용자 확인 후 삭제): game\_wk_test.js, game\_tmp_fonts\.

@@ -3,7 +3,7 @@
 .box{width:min(380px,92vw);padding:24px;background:#0f0e0d;border:1px solid rgba(240,228,205,.14);border-radius:3px;text-align:center}h1{font:700 22px/1.2 "Noto Serif KR",Georgia,serif;letter-spacing:.06em;color:#ebe1ca;margin:0 0 6px}p{margin:8px 0}
 button{width:100%;margin-top:12px;padding:12px;font:700 16px/1 inherit;border-radius:4px;border:1px solid #c4a66a;background:#c4a66a;color:#15110a;cursor:pointer}button:disabled{opacity:.5}
 input{width:100%;box-sizing:border-box;margin-top:8px;padding:10px;font:700 20px/1 monospace;letter-spacing:.2em;text-align:center;text-transform:uppercase;background:#0a0806;color:#ffe2a0;border:1px solid #8a6d3a;border-radius:4px}
-.code{font:800 26px/1.2 monospace;letter-spacing:.2em;color:#ffe2a0}.ok{color:#9fd08a;font-weight:700}.err{color:#ff8a7a}</style></head><body><div class="box">
+.code{font:800 26px/1.2 monospace;letter-spacing:.2em;color:#ffe2a0}.ok{color:#9fd08a;font-weight:700}.err{color:#ff8a7a}</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap"><style>*{font-family:"Gowun Batang","Noto Serif KR",serif!important}</style></head><body><div class="box">
 <h1>DEEP DARK</h1>
 <div id="cbox"></div><button id="go">Google로 로그인</button><p id="msg"></p></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -23,7 +23,8 @@ go.onclick=async()=>{const ci=document.getElementById("ci");if(ci)code=ci.value.
   if(code.length!==8){msg.className="err";msg.textContent=T.len;return;}
   go.disabled=true;msg.className="";msg.textContent=T.open;
   try{const res=await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());const cr=res.credential||(firebase.auth.GoogleAuthProvider.credentialFromResult&&firebase.auth.GoogleAuthProvider.credentialFromResult(res));if(!cr||!cr.idToken)throw {code:"no-token"};
-    await firebase.firestore().doc("linkSessions/"+code).set({idToken:cr.idToken,at:Date.now()});
+    /* at = 이 문서가 지워질 때(10분 뒤). Firestore TTL 정책이 이 시각이 지난 문서를 지운다. 보안 규칙은 15분 안의 타임스탬프만 받는다 */
+    await firebase.firestore().doc("linkSessions/"+code).set({idToken:cr.idToken,at:firebase.firestore.Timestamp.fromMillis(Date.now()+10*60e3)});
     msg.className="ok";msg.textContent=T.done;go.style.display="none";setTimeout(()=>{try{window.close();}catch(e){}},1500);}
   catch(e){go.disabled=false;msg.className="err";msg.textContent=T.fail+(e&&e.code||e);}};
 </script></body></html>

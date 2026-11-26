@@ -1,0 +1,35 @@
+rules_version = '2';
+// Deep Dark Firestore 보안 규칙 (2026-11-26). 콘솔 Firestore Database → 규칙 탭에 통째로 붙여 넣는다.
+// 게임이 쓰는 곳: data/users/{uid}/save, mpidx, mp_{방코드} (로그인한 본인만), linkSessions/{코드} (코드 방식 로그인)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 저장: 로그인한 본인 것만 읽고 쓴다
+    match /data/users/{uid}/{doc} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 코드 방식 로그인: login.html(로그인한 뒤)이 문서 하나를 만들고,
+    // 게임(아직 로그인 전)이 코드를 알고 그 문서 하나만 읽은 뒤, 로그인하고 지운다.
+    match /linkSessions/{code} {
+      allow get: if code.matches('^[A-HJ-NP-Z2-9]{8}$');   // 문서 하나 읽기만(코드를 아는 쪽). 로그인 전이라 열어 둔다
+      allow list: if false;                                // 목록 조회는 누구도 못 한다(토큰을 훔쳐 갈 수 없게)
+      allow create: if request.auth != null
+        && code.matches('^[A-HJ-NP-Z2-9]{8}$')
+        && request.resource.data.keys().hasOnly(['idToken', 'at'])
+        && request.resource.data.keys().hasAll(['idToken', 'at'])
+        && request.resource.data.idToken is string
+        && request.resource.data.idToken.size() < 4096
+        && request.resource.data.at is timestamp
+        && request.resource.data.at > request.time - duration.value(10, 'm')
+        && request.resource.data.at < request.time + duration.value(30, 'm');
+      allow update: if false;
+      allow delete: if request.auth != null;               // 게임이 로그인한 뒤 지운다
+    }
+
+    // 그 밖은 모두 막는다
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
