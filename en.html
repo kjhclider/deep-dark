@@ -1524,7 +1524,7 @@ const UNIT_CHR={
 const unitChr=t=>CHR.ready&&UNIT_CHR[t]&&UNIT_CHR[t].every(v=>CHR.gltf[v.c])?UNIT_CHR[t]:null;
 function crowdsFor(t,cap){const vs=unitChr(t);if(!vs)return null;const out=vs.map(v=>new Crowd(v.c,v.st,Math.ceil(cap/vs.length)+8,v.p||[],{scale:v.s||1,tint:v.tint,ry:v.ry,rider:v.rider}));return out.every(c=>c.ok)?out:null;}
 /* 미리 굽기: 첫 전투에 들어갈 때 병사 동작 굽기(bakeChar)가 한꺼번에 몰려 몇 초(휴대폰은 수십 초) 멈췄다.
-   처음 화면, 지도, 왕궁에서 가만히 있을 때 하나씩 미리 구워 둔다. 전투 중, 움직이는 중, 창이 가려졌을 때는 쉰다 */
+   처음 화면에 있는 동안 하나씩 미리 구워 둔다. 게임 중에는 굽지 않고, 남은 것은 전투에 들어갈 때 로딩 화면에서 그 전투에 나오는 병사만 굽는다 */
 const PREBAKE={q:null};
 function prebakeTick(){
   const later=ms=>setTimeout(()=>(window.requestIdleCallback?requestIdleCallback(prebakeTick,{timeout:2000}):prebakeTick()),ms);
@@ -1533,7 +1533,7 @@ function prebakeTick(){
     if(!PREBAKE.q){PREBAKE.q=[];const seen=new Set();
       for(const t in UNIT_CHR)for(const v of UNIT_CHR[t])for(const x of [v,v.rider]){if(!x)continue;const st=x===v.rider?(x.st||"rider"):x.st,p=x.p||[],k=x.c+"|"+st+"|"+p.join(",");if(seen.has(k))continue;seen.add(k);PREBAKE.q.push([x.c,st,p]);}}
     if(!PREBAKE.q.length)return;
-    const busy=document.hidden||(typeof UI!=="undefined"&&UI.mode==="battle")||E.keys.size>0||(E.joy&&E.joy.on)||(typeof KC!=="undefined"&&KC.mounted);
+    const busy=document.hidden||LOAD.busy||!(typeof S==="undefined"||!S||S.title);   /* 게임 중 끊김이 없게 처음 화면에서만 굽는다(나머지는 전투 로딩 화면에서) */
     if(busy)return later(1500);
     const [c,st,p]=PREBAKE.q.shift();if(CHR.gltf[c])bakeChar(c,st,p);
     later(PREBAKE.q.length?250:0);
@@ -2987,12 +2987,17 @@ const _lv=new THREE.Vector3();
 function addLabel(el,getPos,opts={}){const L={el,getPos,maxD:opts.maxD||1e9};$("#labels").appendChild(el);E.labels.push(L);return L;}
 function clearLabels(){for(const L of E.labels)L.el.remove();E.labels=[];}
 function removeLabel(L){if(!L)return;L.el.remove();E.labels=E.labels.filter(x=>x!==L);}
+/* 화면 위 고정 패널(체력 막대, 자원 줄, 목표 줄, 미니맵) 뒤로 건물 이름표가 비치거나 붙어 겹치지 않게, 그 자리에 걸린 이름표는 감춘다 (휴대폰에서 겹쳐 보였다) */
+const HUD_IDS=["khud","cmini","bmini","resbar","goalBar"];
+function hudRects(){const out=[],cr=E.canvas.getBoundingClientRect();for(const id of HUD_IDS){const e=document.getElementById(id);if(!e||e.hidden||!e.offsetParent)continue;const r=e.getBoundingClientRect();if(r.width<2)continue;out.push([r.left-cr.left-6,r.top-cr.top-6,r.right-cr.left+6,r.bottom-cr.top+6]);}return out;}
 function updateLabels(){
+  const HR=E.labels.length?hudRects():[];
   for(const L of E.labels){
     const p=L.getPos();if(!p){L.el.style.display="none";continue;}
     const dd=E.cam.position.distanceTo(_lv.set(p.x,p.y,p.z));
     const s=worldToScreen(p.x,p.y,p.z);
     if(!s.vis||s.x<-60||s.x>E.W+60||s.y<-40||s.y>E.H+40||dd>L.maxD){L.el.style.display="none";continue;}
+    {if(!L._w&&L.el.offsetWidth){L._w=L.el.offsetWidth;L._h=L.el.offsetHeight;}const hw=(L._w||80)/2,hh=L._h||22;if(HR.some(r=>s.x+hw>r[0]&&s.x-hw<r[2]&&s.y>r[1]&&s.y-hh<r[3])){L.el.style.display="none";continue;}}
     L.el.style.display="";L.el.style.transform=`translate(${s.x.toFixed(1)}px,${s.y.toFixed(1)}px) translate(-50%,-100%)`;
   }
 }
@@ -4383,10 +4388,12 @@ function drawCapMini(){const cv=$("#cmini");if(!cv||cv.hidden||!(UI.mode==="capi
   // 성벽
   g.strokeStyle="#9a8a6a";g.lineWidth=S.bld.walls?1+S.bld.walls:1;if(!S.bld.walls)g.setLineDash([3,4]);g.beginPath();g.arc(W/2,H/2,CAP_R*k,0,7);g.stroke();g.setLineDash([]);/* 성벽 단계만큼 굵게, 0단계(성벽 없음)는 점선 */g.fillStyle="#e6c374";g.fillRect(X(-5),Y(CAP_R)-3,10*k,6);
   // 표식 이름
-  g.font=LANG==="en"?'bold 10px "Gowun Batang",serif':'bold 11px "Gowun Batang",serif';g.textAlign="center";g.fillStyle="#f0dcae";
+  /* 휴대폰에서는 지도가 작게(약 90px) 보여 11px 글씨가 3px로 줄었다. 화면에 보이는 크기로 최소 9px가 되게 키운다(겹치는 이름은 아래에서 점만 남긴다) */
+  const mS=Math.max(1,W/Math.max(40,cv.clientWidth||W)),mF=Math.max(LANG==="en"?10:11,Math.round(9*mS));
+  g.font=`bold ${mF}px "Gowun Batang",serif`;g.textAlign="center";g.fillStyle="#f0dcae";
   {const put=[];const MINI_EN={table:"Table",keep:"Hall",barracks:"Barracks",range:"Range",stable:"Stable",horse:"Horse",convent:"Convent",chapel:"Chapel",market:"Market",farm:"Farm",homes:"Homes",forge:"Forge",gate:"Gate",duel:"Arena"};   /* 이름표끼리 겹치면 뒤의 것은 점만 찍는다 */
   for(const s of CAP.spots){if(s.id==="yard2")continue;const x=X(s.x),y=Y(s.z);g.fillStyle="#cdb27a";g.beginPath();g.arc(x,y,2.5,0,7);g.fill();const t=LANG==="en"?(MINI_EN[s.id]||s.name.split(" ")[0]):s.name.replace(" District","").slice(0,5),w=g.measureText(t).width;   /* 영어는 다섯 글자로 자르면 Conve, Chape처럼 되니 짧은 이름을 따로 쓴다 */
-    if(put.some(q=>Math.abs(q[0]-x)<(q[2]+w)/2+3&&Math.abs(q[1]-y)<11))continue;put.push([x,y,w]);g.fillStyle="#f0e6d2";g.fillText(t,x,y-4);}}
+    if(put.some(q=>Math.abs(q[0]-x)<(q[2]+w)/2+3*mS&&Math.abs(q[1]-y)<mF))continue;put.push([x,y,w]);g.fillStyle="#f0e6d2";g.fillText(t,x,y-4*mS);}}
   // 왕
   g.save();g.translate(X(inPal?0:CAP.pos.x),Y(inPal?KEEP.z:CAP.pos.z));g.rotate(inPal?0:Math.PI-KC.face);g.fillStyle="#fff1b8";g.beginPath();g.moveTo(0,-7);g.lineTo(4.5,5);g.lineTo(0,2.5);g.lineTo(-4.5,5);g.closePath();g.fill();g.restore();
   // 북쪽 표시
@@ -9454,7 +9461,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
- ["0.9.157","Entering your first battle no longer freezes for as long (less than half): soldier animations are prepared in advance while you rest on the title screen, the map or in the palace · Guards stand again on both sides of the palace gate and the great hall door · The king walks at his original speed again · The fonts (Gowun Batang, Cinzel) are now built into the game, so text looks the same without an internet connection"],
+ ["0.9.157","A loading screen (progress bar and current step) now appears when entering the game or a battle, and everything that caused stutter (models, soldier animations, graphics) is prepared before play starts, also after choosing whether to connect Claude · Building labels no longer show through the health bars, resource bar or minimap · Larger palace minimap labels on phones · Guards stand again on both sides of the palace gate and the great hall door · The king walks at his original speed again · The fonts (Gowun Batang, Cinzel) are now built into the game, so text looks the same without an internet connection"],
  ["0.9.156","The fortresses of the Dead have a new look: each has its own walls, towers, gate and keep (Morgash, Kalgor, Guldrak, Iskar Spire, Oshelm, Bargol Keep and the fallen neighbouring capital) · In fortress assaults the Dead stand properly on walls, towers and the gatehouse · Rams, catapults and ladders no longer glow at night · Big glowing orbs on the map and at fortresses are now small embers · Battlefield fire light toned down"],
  ["0.9.155","The mounted king now sits in the saddle (king, old king, cavalry, map riders) · A mounted swing no longer cuts through the horse's neck · The shield is carried in front when walking or running, so it no longer passes through the cloak · A more upright, dignified walk with no foot sliding · The king bumps into palace pillars, trees, bushes, lamps and houses (on foot and on horseback) · The great hall doors open onto the hall itself and you walk in and out without a cut · The camera no longer goes inside building walls · Townsfolk step aside for the king and his horse · Guards and wall patrols are now full size · Buttons, request cards and hints no longer overlap on phones and tablets · Fixed the no-walls briefing, prologue text and the day and night clock · English dates and names, short minimap labels · King's wardrobe in Settings · Removed black sticks on the battlefield and big glare on the map"],
  ["0.9.154","The king's new look: a Greek warrior in a crested helmet with shield and cloak; other armour (skins) add colour and ornaments on top · Vargoth, King of the Dead: a crowned skull-faced king in black armour. He fights the old king in the prologue and waits on the Throne of the Dead for the final battle · Title screen: the king and Vargoth face each other; silver title lettering and a text menu over distant ridges and a fortress silhouette · Typeface: buttons, menus and window titles now use Gowun Batang · Wardrobe: available from the start in the bottom bar and on the title screen · The crown no longer covers the king's eyes · New models for the palace walls, towers, gate and market stalls · Wall levels now show: level 0 no walls, 1 low walls, 2 walls and towers, 3 high walls with spires · Lose a siege and the walls must be rebuilt; win and you only repair the damage (Realm → Build) · Villages are now cities, each with its own houses, colours, layout and landmark · The Throne of the Dead is a black tower: the Dead pour out of it and you fight on the field before it · The king's horse is a new model · The old king in the prologue wears gold-trimmed armour · Defence outlook now matches real battle results · Soldiers no longer walk through walls and towers"],
@@ -9535,8 +9542,38 @@ async function claudeGate(){
     ${(window.deskApi||APP_MODE)&&!(window.claude&&window.claude.use)?`<div class="tile" style="margin-top:10px"><div class="hd"><span class="nm">App: connect with my Claude API key</span></div><div class="ds">The app runs outside claude.ai, so it calls Claude with your Anthropic API key. The key is stored only on this computer, and each Lord of the Dead decision costs a little API usage (issued at console.anthropic.com).</div><input id="apiKeyIn" type="password" placeholder="sk-ant-…" style="width:100%;margin-top:6px;padding:6px;background:#120e0a;color:#e8dcc0;border:1px solid rgba(226,192,122,.4)"><div class="acts" style="margin-top:6px"><button class="b gold" data-a="apiKeySave">Save key and connect</button>${deskKey()?`<button class="b ghost" data-a="apiKeyDel">Delete saved key</button>`:""}</div></div>`:""} <div class="acts" style="margin-top:12px"><button class="b gold" data-a="gateRetry">Reconnect</button><button class="b ghost" data-a="gateSkip">Start without Claude</button></div></div>`,{blocking:false});
   return false;}
 /* 연결 창(API 키 등)을 거쳐 연결되면, 처음 누른 것(싱글플레이·START·이어 하기)으로 바로 들어간다 — 다시 누를 필요 없다 */
-function gateThen(fn){if(ITCH&&!UI.gateSkip&&!AI.ok()){UI.gateSkip=true;setTimeout(()=>toast("Trial: the Lord of the Dead follows basic rules. Enter a Claude API key in Settings and Claude commands it directly."),2500);}if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){UI.gateNext=null;fn();return;}UI.gateNext=fn;claudeGate().then(ok=>{if(ok)gateGo();});}
-function gateGo(){const f=UI.gateNext;UI.gateNext=null;if(f&&(!S||S.title)){f();return true;}return false;}
+/* ── 로딩 화면 (2026-11-27, 주인님 요청): 게임에 들어갈 때와 전투에 들어갈 때, 끊김을 만드는 준비(모델 받기, 병사 동작 굽기, 그림 셰이더 준비)를
+   막대와 하는 일 글로 보여 주며 다 끝낸 뒤 화면을 넘긴다. 멈춘 건지 불러오는 중인지 알 수 있게 ── */
+const LOAD={el:null,busy:false};
+const loadTick=()=>new Promise(r=>{let d=0;const go=()=>{if(!d){d=1;setTimeout(r,0);}};requestAnimationFrame(go);setTimeout(go,120);});   /* 창이 가려져 화면 갱신이 멈춰도 로딩이 멈추지 않게 */
+function loadShow(title){let el=LOAD.el;if(!el){el=document.createElement("div");el.id="loadScr";
+    el.style.cssText="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:#0b0907;color:#e8dcc0;font-family:'Gowun Batang',serif";
+    el.innerHTML='<div style="width:min(420px,80vw);text-align:center"><div id="ldT" style="font-size:20px;letter-spacing:.02em;margin-bottom:14px"></div><div style="height:6px;background:#2a2219;border-radius:3px;overflow:hidden"><div id="ldB" style="height:100%;width:0;background:#b8955a;transition:width .15s"></div></div><div style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px;color:#a8977a"><span id="ldS"></span><span id="ldP"></span></div></div>';
+    document.body.appendChild(el);LOAD.el=el;}
+  el.querySelector("#ldT").textContent=title;el.style.display="flex";loadSet(0,"");}
+function loadSet(f,step){const el=LOAD.el;if(!el)return;el.querySelector("#ldB").style.width=Math.round(f*100)+"%";el.querySelector("#ldP").textContent=Math.round(f*100)+"%";if(step!=null)el.querySelector("#ldS").textContent=step;}
+function loadHide(){if(LOAD.el)LOAD.el.style.display="none";}
+/* 그림 준비: 지금 장면의 모든 재질 셰이더를 미리 만들고 몇 프레임 그려 둔다 */
+async function loadWarm(f0,f1){try{const sc=E.scene;if(!sc)return;E.renderer.compile(sc,E.cam);loadSet((f0+f1)/2);await loadTick();for(let i=0;i<3;i++){renderFrame(sc,E.cam,E.t);await loadTick();}}catch(e){console.warn("warm",e);}loadSet(f1);}
+/* 병사 동작 굽기: 아직 안 구운 것을 모두(하나 굽고 화면을 한 번 갱신) */
+/* 병사 동작 굽기: 주어진 병종(types)에 쓰이는 것 중 아직 안 구운 것만(하나 굽고 화면을 한 번 갱신) */
+function bakeList(types){const out=[],seen=new Set();for(const t of types){for(const v of (UNIT_CHR[t]||[]))for(const x of [v,v.rider]){if(!x)continue;const st=x===v.rider?(x.st||"rider"):x.st,p=x.p||[],k=x.c+"|"+st+"|"+p.join(",");if(seen.has(k)||CHR.bk[k]||!CHR.gltf[x.c])continue;seen.add(k);out.push([x.c,st,p]);}}return out;}
+async function loadBake(f0,f1,types){try{if(!CHR.ready)return;const L=bakeList(types);const tot=L.length||1;let k=0;
+  for(const [c,st,p] of L){bakeChar(c,st,p);k++;loadSet(f0+(f1-f0)*k/tot);await loadTick();}}catch(e){console.warn("bake",e);}}
+async function enterWithLoading(fn){if(LOAD.busy){fn();return;}LOAD.busy=true;const en=LANG==="en";
+  loadShow(en?"Entering the realm":"Entering the realm");await loadTick();
+  try{
+    loadSet(0.02,en?"Loading models":"Loading models");
+    const tm=new Promise(r=>setTimeout(r,20000));
+    await Promise.race([Promise.all(["castlewall","gate","market","cityparts","hall","pcastle"].map(n=>loadProp(n).catch(()=>null))),tm]);
+    try{await Promise.race([document.fonts.ready,tm]);}catch(e){}
+    loadSet(0.4,en?"Building the capital":"Building the capital");await loadTick();
+    fn();
+    loadSet(0.7,en?"Preparing the view":"Preparing the view");await loadTick();await loadWarm(0.7,1);
+  }catch(e){console.warn("load",e);}
+  loadHide();LOAD.busy=false;}
+function gateThen(fn){if(ITCH&&!UI.gateSkip&&!AI.ok()){UI.gateSkip=true;setTimeout(()=>toast("Trial: the Lord of the Dead follows basic rules. Enter a Claude API key in Settings and Claude commands it directly."),2500);}if(window.__TEST||UI.gateSkip||(AI.ok()&&AI.checked)){UI.gateNext=null;enterWithLoading(fn);return;}UI.gateNext=fn;claudeGate().then(ok=>{if(ok)gateGo();});}
+function gateGo(){const f=UI.gateNext;UI.gateNext=null;if(f&&(!S||S.title)){enterWithLoading(f);return true;}return false;}
 
 // 길잡이가 지금 단계에서 눌러야 할 곳을 금빛으로 깜빡이게 한다 (버튼·지도의 거점·왕궁의 문)
 /* 눌러 본 버튼은 같은 단계에서 다시 빛나지 않는다 (창을 닫으면 다시 알려 준다) */
@@ -9992,6 +10029,14 @@ const _enterBattle=enterBattleScene;
 enterBattleScene=function(){UI.camSaved=E.camMode==="rts"&&UI.mode==="map"?{x:E.ctrl.t.x,z:E.ctrl.t.z,d:E.ctrl.dd,y:E.ctrl.yy,p:E.ctrl.pp}:null;setCamMode("rts");UI.mode="battle";$("#prompt").hidden=true;_enterBattle();};
 const _beginBattle=beginBattle;
 beginBattle=function(direct){if(UI.mode!=="battle"){UI.prevMode=UI.mode;UI.prevSite=SV.site&&SV.site.id;}_beginBattle(direct);};
+/* 전투에 들어갈 때도 로딩 화면: 전장을 펼치고 전장 셰이더를 다 만든 뒤 넘긴다(첫 전투가 몇 초씩 멈췄다) */
+{const _bb2=beginBattle;beginBattle=function(direct){if(!direct||LOAD.busy||window.__TEST){_bb2(direct);return;}LOAD.busy=true;const en=LANG==="en";
+  (async()=>{loadShow(en?"To the battlefield":"To the battlefield");await loadTick();
+    try{if(UI.mode!=="battle"){UI.prevMode=UI.mode;UI.prevSite=SV.site&&SV.site.id;}UI.closeModal();setupBattle(WAR);
+      loadSet(0.05,en?"Preparing soldiers":"Preparing soldiers");await loadBake(0.05,0.5,[...new Set((BT&&BT.sq||[]).map(q=>q.t))]);
+      loadSet(0.55,en?"Laying out the field":"Laying out the field");await loadTick();enterBattleScene();
+      loadSet(0.65,en?"Preparing the view":"Preparing the view");await loadTick();await loadWarm(0.65,1);}catch(e){console.warn("load",e);}
+    loadHide();LOAD.busy=false;})();};}
 
 /* ── 타이틀: 왕궁 위를 천천히 도는 카메라 ── */
 const KING_NAME="Edric";
