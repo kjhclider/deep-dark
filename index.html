@@ -1522,6 +1522,23 @@ const UNIT_CHR={
 };
 const unitChr=t=>CHR.ready&&UNIT_CHR[t]&&UNIT_CHR[t].every(v=>CHR.gltf[v.c])?UNIT_CHR[t]:null;
 function crowdsFor(t,cap){const vs=unitChr(t);if(!vs)return null;const out=vs.map(v=>new Crowd(v.c,v.st,Math.ceil(cap/vs.length)+8,v.p||[],{scale:v.s||1,tint:v.tint,ry:v.ry,rider:v.rider}));return out.every(c=>c.ok)?out:null;}
+/* 미리 굽기: 첫 전투에 들어갈 때 병사 동작 굽기(bakeChar)가 한꺼번에 몰려 몇 초(휴대폰은 수십 초) 멈췄다.
+   처음 화면, 지도, 왕궁에서 가만히 있을 때 하나씩 미리 구워 둔다. 전투 중, 움직이는 중, 창이 가려졌을 때는 쉰다 */
+const PREBAKE={q:null};
+function prebakeTick(){
+  const later=ms=>setTimeout(()=>(window.requestIdleCallback?requestIdleCallback(prebakeTick,{timeout:2000}):prebakeTick()),ms);
+  try{
+    if(!CHR.ready)return later(3000);
+    if(!PREBAKE.q){PREBAKE.q=[];const seen=new Set();
+      for(const t in UNIT_CHR)for(const v of UNIT_CHR[t])for(const x of [v,v.rider]){if(!x)continue;const st=x===v.rider?(x.st||"rider"):x.st,p=x.p||[],k=x.c+"|"+st+"|"+p.join(",");if(seen.has(k))continue;seen.add(k);PREBAKE.q.push([x.c,st,p]);}}
+    if(!PREBAKE.q.length)return;
+    const busy=document.hidden||(typeof UI!=="undefined"&&UI.mode==="battle")||E.keys.size>0||(E.joy&&E.joy.on)||(typeof KC!=="undefined"&&KC.mounted);
+    if(busy)return later(1500);
+    const [c,st,p]=PREBAKE.q.shift();if(CHR.gltf[c])bakeChar(c,st,p);
+    later(PREBAKE.q.length?250:0);
+  }catch(e){console.warn("prebake",e);}
+}
+setTimeout(prebakeTick,4000);
 const HERO_OF={eorin:["maria",["sword"]],hadrik:["knight",["sword","shield"]],selena:["erika",["bow"]]};
 const SKIN_TINT={ashen:null,winter:"#e6eef8",ember:"#7a6a66",sun:"#ffe2a8",hunter:"#a8967a",paladin:"#ffffff",blackknight:"#3a3438",lion:"#ffd070",frost:"#cfe6ff",blood:"#ff8a7a",sword5:"#fff2c0"};
 
