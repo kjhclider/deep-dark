@@ -480,9 +480,9 @@ push 전 화면 확인 목록 (실제 플레이로, 화면을 보이게 하고, 
 
 남은 팀원 세션 (2026-11-27 저녁)
 - Deep Dark 팀원 4 (망자의 요새) local_dec81b3f-b1ff-448e-aa0e-be89fcb2fc70: 요새 다음 버전용으로 남김(기록 fortress.md). 컨텍스트 약 32%(어제 기준).
-- Deep Dark 팀원 6 (왕 걷기, 방패와 망토, 말 탄 높이) local_1111edbd-c371-4ffc-8cdb-bde3f0b332b2: 끝남, 결과 v0.9.155에 들어감. 보관 대상(주인님 확인 후).
-- Deep Dark 팀원 7 (왕궁 충돌, 문 열림, 글씨 겹침) local_4a086d29-1761-4f80-9dd7-913bcf1b9e9a: 끝남, 결과 v0.9.155에 들어감, 자동 검사와 투어를 만든 세션. 보관 대상(주인님 확인 후).
-- Deep Dark 팀원 8 (처음 하는 사람처럼 점검) local_2336f860-2879-4c85-9e24-f185dc184717: 끝남, 결과 v0.9.155에 들어감, 컨텍스트 약 70%. 보관 대상(주인님 확인 후).
+- Deep Dark 팀원 6 (왕 걷기, 방패와 망토, 말 탄 높이) local_1111edbd-c371-4ffc-8cdb-bde3f0b332b2: 끝남, 결과 v0.9.155에 들어감. 보관함(2026-11-27 저녁, 주인님 승인).
+- Deep Dark 팀원 7 (왕궁 충돌, 문 열림, 글씨 겹침) local_4a086d29-1761-4f80-9dd7-913bcf1b9e9a: 끝남, 결과 v0.9.155에 들어감, 자동 검사와 투어를 만든 세션. 보관함(2026-11-27 저녁, 주인님 승인).
+- Deep Dark 팀원 8 (처음 하는 사람처럼 점검) local_2336f860-2879-4c85-9e24-f185dc184717: 끝남, 결과 v0.9.155에 들어감, 컨텍스트 약 70%. 보관함(2026-11-27 저녁, 주인님 승인).
 - 팀원 기록(메모 폴더 C:\Users\jooha\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_ba111033-d812-434e-aa60-65f9c98dfc74\): king-walk.md, palace-fix.md, playtest.md, fortress.md(일부는 local_29e62420... 폴더에도 city.md, throne.md, fortress.md), models-common.md, places-common.md, wall*.md 등.
 
 ### 남은 일 (우선순위 순)
