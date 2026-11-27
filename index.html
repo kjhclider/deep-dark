@@ -3559,19 +3559,20 @@ function siteVisual(site){
     if(!cityReady())loadProp("cityparts").then(redo);else if(!PROP.gltf.hall)loadProp("hall").then(redo);
     if(site.id==="k_vael"&&!PROP.gltf.pcastle)loadProp("pcastle").then(redo);}
   if(site.kind==="throne"&&!ruined&&!PROP.gltf.throne)loadProp("throne").then(m=>{const o=m&&WR.siteObjs&&WR.siteObjs[site.id];if(!o||!o.g.parent)return;const par=o.g.parent,ng=siteVisual(site);par.remove(o.g);par.add(ng);o.g=ng;});
-  if((site.kind==="fortress"||site.kind==="throne")&&!ruined){const gl=glowSprite("#8cff6a",thM?7:site.kind==="throne"?12:8,thM?0.25:0.3);/* 큰 빛 덩어리 대신 작고 은은한 불빛 */gl.position.y=thM?THRONE_M.top*0.42+4:site.kind==="throne"?36:22;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:gl.scale.x});}
+  if((site.kind==="fortress"||site.kind==="throne")&&!ruined){const gl=glowSprite("#8cff6a",thM?3:site.kind==="throne"?4:ftM?0.01:3,thM?0.25:ftM?0:0.25);/* 큰 빛 덩어리 대신 작고 은은한 불빛 */gl.position.y=thM?THRONE_M.top*0.42+4:site.kind==="throne"?36:22;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:gl.scale.x});}
   if(site.kind==="village"&&st.state==="besieged"){
     const ring=[];for(let i=0;i<12;i++){const a=i/12*Math.PI*2;ring.push(...place(i%3?MODELS_PARTS.ghoul:MODELS_PARTS.goblin,Math.cos(a)*15,0,Math.sin(a)*15,-a-Math.PI/2,1.6));}
     g.add(meshOf(mergeSmooth(ring,0.1)));
-    const fire=glowSprite("#ff8a3d",14,0.7);fire.position.set(2,4,1);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:14});}
-  if(site.kind==="capital"||(site.kind==="village"&&!ruined)){const t=glowSprite("#ffb15c",site.kind==="capital"?8:5,0.3);t.position.set(0,site.kind==="capital"?12:3,site.kind==="capital"?8:0);g.add(t);WR.fx.push({o:t,k:"flicker",base:t.scale.x});}
+    const fire=glowSprite("#ff8a3d",3,0.7);fire.position.set(2,2.5,1);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:3});}   // 포위 불: 작은 불꽃(큰 빛 덩어리 대신)
+  if(site.kind==="capital"||(site.kind==="village"&&!ruined)){const t=glowSprite("#ffb15c",site.kind==="capital"?2.4:1.6,0.3);t.position.set(0,site.kind==="capital"?12:3,site.kind==="capital"?8:0);g.add(t);WR.fx.push({o:t,k:"flicker",base:t.scale.x});}
   // 밤에 켜지는 불빛: 탑과 창문의 횃불
   const lights=[];const addL=(x,y,z,col="#ffb15c",sz=3.2)=>{const t=glowSprite(col,sz,0);t.position.set(x,y,z);g.add(t);lights.push(t);};
-  if(site.kind==="capital"){for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*15,6.2,Math.sin(a)*15,"#ffb15c",3.6);}for(let i=0;i<6;i++){const a=i/6*Math.PI*2+0.3;addL(Math.cos(a)*5,3.2,Math.sin(a)*5+3,"#ffcf7a",2.4);}addL(0,13,-4,"#ffd28a",5);}
-  else if(site.kind==="village"&&!ruined){const wl=st.walls||0;if(wl)for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*14.5,5+wl*0.9,Math.sin(a)*14.5,"#ffb15c",2.8);}for(let i=0;i<5;i++){const a=i/5*Math.PI*2+0.2;addL(Math.cos(a)*6,2.6,Math.sin(a)*6,"#ffcf7a",2.2);}addL(0,7,-2,"#ffd28a",3);}
-  else if((site.kind==="rcapital"||site.kind==="pcapital")&&!ruined){for(let i=0;i<8;i++){const a=(i+0.5)/8*Math.PI*2;addL(Math.cos(a)*13,5.6,Math.sin(a)*13,"#ffb15c",3.2);}addL(0,11,-2,"#ffd28a",4.5);}
-  else if((site.kind==="rvillage"||site.kind==="pvillage")&&!ruined){for(let i=0;i<4;i++){const a=i/4*Math.PI*2;addL(Math.cos(a)*5.5,2.6,Math.sin(a)*5.5,"#ffcf7a",2.2);}}
-  else if(site.kind==="neutral"){for(let i=0;i<3;i++)addL(Math.cos(i*2.1)*4,2,Math.sin(i*2.1)*4,"#ff9a4a",2.6);}
+  // 밤 불빛은 횃불, 창문 크기의 작은 불씨로(지도 축척 1.6배라 1이면 약 1.6m). 큰 빛 덩어리를 쓰지 않는다
+  if(site.kind==="capital"){for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*15,6.2,Math.sin(a)*15,"#ffb15c",1.2);}for(let i=0;i<6;i++){const a=i/6*Math.PI*2+0.3;addL(Math.cos(a)*5,3.2,Math.sin(a)*5+3,"#ffcf7a",0.9);}addL(0,13,-4,"#ffd28a",1.5);}
+  else if(site.kind==="village"&&!ruined){const wl=st.walls||0;if(wl)for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*14.5,5+wl*0.9,Math.sin(a)*14.5,"#ffb15c",1.0);}for(let i=0;i<5;i++){const a=i/5*Math.PI*2+0.2;addL(Math.cos(a)*6,2.6,Math.sin(a)*6,"#ffcf7a",0.9);}addL(0,7,-2,"#ffd28a",1.1);}
+  else if((site.kind==="rcapital"||site.kind==="pcapital")&&!ruined){for(let i=0;i<8;i++){const a=(i+0.5)/8*Math.PI*2;addL(Math.cos(a)*13,5.6,Math.sin(a)*13,"#ffb15c",1.1);}addL(0,11,-2,"#ffd28a",1.4);}
+  else if((site.kind==="rvillage"||site.kind==="pvillage")&&!ruined){for(let i=0;i<4;i++){const a=i/4*Math.PI*2;addL(Math.cos(a)*5.5,2.6,Math.sin(a)*5.5,"#ffcf7a",0.9);}}
+  else if(site.kind==="neutral"){for(let i=0;i<3;i++)addL(Math.cos(i*2.1)*4,2,Math.sin(i*2.1)*4,"#ff9a4a",1.0);}
   else if(thM){// 탑 모델: 꼭대기 네 귀퉁이와 계단 아래 문에 불, 꼭대기에서 연기
     const k=0.42;for(const [x,z] of [[-6,-6],[6,-6],[-6,6],[6,6]])addL(x*k,85*k,z*k,"#7cff5a",1.1);addL(0,4*k,THRONE_M.foot*k,"#ff8a3d",1.3);addL(0,60*k,3*k,"#ff8a3d",1.1);
     const sm=smokeColumn(3,40);sm.position.set(0,THRONE_M.top*k+2,0);g.add(sm);WR.fx.push({o:sm,k:"smoke",base:1});}
@@ -3656,7 +3657,7 @@ function herdTick(t){const c=WR.deer;if(!c||!WR.herds)return;c.begin();
   c.end();}
 /* ── 보물 소문 표식 ── */
 function refreshRumor(){if(!WR.scene)return;if(WR.rumorObj){WR.scene.remove(WR.rumorObj.g);removeLabel(WR.rumorObj.L);WR.rumorObj=null;}
-  const r=S&&S.ev&&S.ev.rumor;if(!r)return;const g=new THREE.Group();const gl=glowSprite("#ffd76a",26,0.7);gl.position.y=10;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:26});
+  const r=S&&S.ev&&S.ev.rumor;if(!r)return;const g=new THREE.Group();const gl=glowSprite("#ffd76a",5,0.6);gl.position.y=6;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:5});   // 소문 표식: 작은 금빛 점(큰 빛 덩어리 대신)
   g.add(meshOf(mergeSmooth([...ruinParts()],0.1)));g.position.set(r.x,worldH(r.x,r.z),r.z);g.scale.setScalar(1.3);WR.scene.add(g);
   const el=document.createElement("div");el.className="lbl site s-neutral";el.innerHTML=`<b>보물 소문</b><span>군대를 보내 야영</span>`;const L=addLabel(el,()=>({x:r.x,y:g.position.y+14,z:r.z}),{maxD:1400});WR.rumorObj={g,L};}
 /* ── 군대 모형 ── */
@@ -3685,7 +3686,7 @@ function armyVisual(a){
     for(let i=0;i<nT;i++){const an=i/nT*Math.PI*2+0.4,r=5.2;cp.push(P(SG.cone(1.5,2.2,8),i%3?"#c4b088":C.kblue,"cloth",[Math.cos(an)*r,1.1,Math.sin(an)*r]),P(SG.cyl(0.06,0.06,1.2,5),B3.wood,"wood",[Math.cos(an)*r,2.6,Math.sin(an)*r]));}
     for(let i=0;i<18;i++){const an=i/18*Math.PI*2,r=8.2;cp.push(P(SG.cyl(0.12,0.16,1.6,5),"#6b5440","wood",[Math.cos(an)*r,0.8,Math.sin(an)*r],[(Math.random()-0.5)*0.3,0,(Math.random()-0.5)*0.3]));}
     cp.push(P(SG.cyl(1.0,1.2,0.4,10),"#3a3029","rock",[0,0.2,0]),P(SG.cone(0.5,1.1,8),"#ff9a3c","glow",[0,0.8,0]));
-    g.add(meshOf(mergeSmooth(cp,0.05)));const fire=glowSprite("#ff8a3d",7,0.8);fire.position.set(0,1.8,0);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:7});
+    g.add(meshOf(mergeSmooth(cp,0.05)));const fire=glowSprite("#ff8a3d",2.2,0.8);fire.position.set(0,1.4,0);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:2.2});
     const sm=smokeColumn(1,10,"#4a4038");sm.position.set(0,1.5,0);g.add(sm);WR.fx.push({o:sm,k:"smoke",base:1});}
   return g;
 }
