@@ -192,7 +192,7 @@ PC 앱
 - 페이지: https://clider.itch.io/deep-dark (계정 clider). 사용자가 직접 만들고 이메일 인증까지 마쳤다.
 - 종류는 HTML 게임이다. zip을 올리고 "브라우저에서 실행"으로 설정했다. 사용자가 올려서 잘 되는 것을 확인했다(v0.9.145 무렵).
 - 올릴 파일: DeepDark_itch.zip. 저장소에서 아래 것만 묶는다.
-  - index.html, en.html, login.html, chr, chrb, tex, lib, icon.png, icon192.png, icon512.png, manifest.webmanifest
+  - index.html, en.html, login.html, chr, chrb, tex, font(2026-11-27부터, 글꼴), lib, icon.png, icon192.png, icon512.png, manifest.webmanifest
   - sw.js, version.json, tools는 넣지 않는다(itch.io에서는 서비스 워커를 쓰지 않는다).
 - 표지 그림 DeepDark_cover.png(630x500)는 만들어 줬다. 저장소에는 없고 사용자가 받아 두었다.
 - 아직 사용자가 해야 하는 일
