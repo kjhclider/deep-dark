@@ -9,7 +9,7 @@ os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 s = open('sw.js', encoding='utf-8', newline='').read()
 m = re.search(r'FILES=\[(.*?)\]', s, re.S)
 files = [p for p in json.loads('[' + m.group(1) + ']') if os.path.exists(p)]
-for pat in ('chr/*.glb', 'chrb/*.wasm', 'tex/*.jpg'):
+for pat in ('chr/*.glb', 'chrb/*.wasm', 'tex/*.jpg', 'font/*.woff2'):
     for p in sorted(glob.glob(pat)):
         p = p.replace('\\', '/')
         if p not in files:
