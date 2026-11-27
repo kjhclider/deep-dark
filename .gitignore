@@ -1,3 +1,5 @@
 node_modules/
 tools/model/fort_work/
 tools/model/throne_work/
+tools/check/runs/
+tools/playtest_shots/
