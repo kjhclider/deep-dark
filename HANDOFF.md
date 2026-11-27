@@ -195,6 +195,7 @@ PC 앱
   - index.html, en.html, login.html, chr, chrb, tex, font(2026-11-27부터, 글꼴), lib, icon.png, icon192.png, icon512.png, manifest.webmanifest
   - sw.js, version.json, tools는 넣지 않는다(itch.io에서는 서비스 워커를 쓰지 않는다).
 - 표지 그림 DeepDark_cover.png(630x500)는 만들어 줬다. 저장소에는 없고 사용자가 받아 두었다.
+- 2026-11-27 밤: v0.9.157 zip을 올리고 Public으로 공개함(설명, 스크린샷, Metadata 모두 채움, 팀장이 바깥에서 실행 확인). 아래 "아직 사용자가 해야 하는 일"은 그 전 기록
 - 아직 사용자가 해야 하는 일
   - 최신 zip(v0.9.151)을 올린다. Edit → Uploads에서 예전 zip을 지우고 새로 올린 뒤 Save.
   - 페이지가 Draft면 Visibility & access를 Public으로 바꾼다. 그래야 다른 사람이 링크를 열 수 있다.
