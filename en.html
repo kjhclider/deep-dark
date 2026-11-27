@@ -3980,7 +3980,7 @@ function rebuildCapital(force){
     if(b.hw)CAP.colliders.push({x:b.x,z:b.z,hw:b.hw+0.4,hd:b.hd+0.4,ry:b.ry,keep:b.id==="keep"});
   }
   CAP.colliders.push({x:0,z:14*SC,r:6.8});for(const sx of [-1,1])CAP.colliders.push({x:sx*(STAIR.hw+0.6),z:STAIR.z0-STAIR.L/2,hw:0.75,hd:STAIR.L/2+0.9,ry:0});   // 계단 양옆 난간
-if(CAP.propCols)CAP.colliders.push(...CAP.propCols);if(!CAP.crowd)for(const g of (CAP.guards||[]))CAP.colliders.push({x:g[0],z:g[1],r:0.45});
+if(CAP.propCols)CAP.colliders.push(...CAP.propCols);for(const [i,g] of (CAP.guards||[]).entries())if(!CAP.crowd||[0,1,4,5].includes(i))CAP.colliders.push({x:g[0],z:g[1],r:0.45});
   // 주거지 단계만큼 집이 늘어난다
   const lots=houseLots(),nH=Math.min(lots.length,22+S.bld.homes*9);
   const roofs=[B3.roofR,"#8a4a32","#6b5a4a",B3.roofS];
@@ -4286,7 +4286,8 @@ function capLife(dt){
   if((CAP.t*4|0)!==(((CAP.t-dt)*4)|0))drawCapMini();
   // 경비병과 훈련병
   const nd2=Math.min(48,S.garrison.length*6);
-  if(CW){   /* 땅 위 경비병(창병 군중)은 왕보다 한참 작게 보여 세우지 않는다 (주인님 요청). 성벽 순찰만 남는다 */
+  if(CW){   /* 땅 위 경비병: 예전엔 왕보다 한참 작게 보여 뺐다. v0.9.155에서 제 크기가 되어, 주인님 결정(2026-11-27)으로 성문 양옆과 대전 문 앞 양옆에만 다시 세운다 */
+    for(const i of [0,1,4,5]){const g=CAP.guards[i];if(g)CW.soldier.push(g[0],capHm(g[0],g[1]),g[1],g[2],"idle",i,0,1);}
     // 성벽 순찰: 여섯 명이 성벽 위를 돈다
     // 성벽 단계의 통로 높이(CWM.walk)에서 성벽 중심선 조금 안쪽을 걷는다. 탑, 정문 문루 속을 지나는 동안은 보이지 않는다(문으로 드나든다). 0단계는 성벽이 없어 순찰도 없다
     if(CWM.walk)for(let i=0;i<6;i++){const a=CAP.t*0.045*(i%2?1:-1)+i*Math.PI/3,st=Math.PI/8,ma=Math.round(a/st)*st,r=CAP_R/Math.cos(a-ma)-0.6;const x=Math.cos(a)*r,z=Math.sin(a)*r;
@@ -4954,7 +4955,7 @@ function kingStep(dt,env){
     const target=inp.mag>0.05?(back?-1.8:inp.mag*(inp.run?11:4.5)*Math.max(0.3,Math.cos(da))):0;const acc=target>(k.hv||0)?(inp.run?6:4):9;k.hv=(k.hv||0)+clamp(target-(k.hv||0),-acc*dt,acc*dt);
     k.turnV=lerp(k.turnV||0,angDiff(f0,k.face)/Math.max(dt,1e-4),0.15);
     const nx=env.pos.x+Math.sin(k.face)*k.hv*dt,nz=env.pos.z+Math.cos(k.face)*k.hv*dt;const c=env.collide(nx,nz);const moved=Math.hypot(c.x-env.pos.x,c.z-env.pos.z);env.pos.x=c.x;env.pos.z=c.z;sp=moved/Math.max(dt,1e-4);if(moved<Math.abs(k.hv)*dt*0.3)k.hv*=0.5;}
-  else if(inp.mag>0.05&&!k.block&&(k.atkT<=0||k.air||M)&&k.hurtT<=0){const w=inputToWorld(inp),l=Math.hypot(w.x,w.z)||1;sp=inp.mag*(M?(inp.run?11:4.5):(k.crouch?1.3:inp.run?(m.userData.gait?6.6:7.2):m.userData.gait?2.1:3.1))*(k.air?0.8:1);   /* 왕은 b_walk(왕 크기로 제 속도 초속 1.97m)를 1.07배속으로 또박또박 걷는다. 예전에는 sw_walk(1.72m)를 3.1m로 걸려 1.8배속 종종걸음이었다 */
+  else if(inp.mag>0.05&&!k.block&&(k.atkT<=0||k.air||M)&&k.hurtT<=0){const w=inputToWorld(inp),l=Math.hypot(w.x,w.z)||1;sp=inp.mag*(M?(inp.run?11:4.5):(k.crouch?1.3:inp.run?(m.userData.gait?6.6:7.2):3.1))*(k.air?0.8:1);   /* 걷기 초속 3.1m(주인님 결정, 2026-11-27 원래대로). 왕은 b_walk(왕 크기로 제 속도 초속 1.97m)를 약 1.6배속으로 걷는다(배속을 제 속도에 맞춰 발은 미끄러지지 않는다). 예전 sw_walk는 1.8배속 종종걸음이었다 */
     const nx=env.pos.x+w.x/l*sp*dt,nz=env.pos.z+w.z/l*sp*dt;const c=env.collide(nx,nz);const moved=Math.hypot(c.x-env.pos.x,c.z-env.pos.z);env.pos.x=c.x;env.pos.z=c.z;sp=moved/Math.max(dt,1e-4);
     if(!env.faceCam){const want=Math.atan2(w.x,w.z);k.face+=angDiff(k.face,want)*Math.min(1,dt*(M?4:12));}}
   else if(k.atkT>0&&inp.mag>0.05&&!env.faceCam){const w=inputToWorld(inp);k.face+=angDiff(k.face,Math.atan2(w.x,w.z))*Math.min(1,dt*4);}
@@ -9452,7 +9453,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
- ["0.9.157","Entering your first battle no longer freezes for as long (less than half): soldier animations are prepared in advance while you rest on the title screen, the map or in the palace"],
+ ["0.9.157","Entering your first battle no longer freezes for as long (less than half): soldier animations are prepared in advance while you rest on the title screen, the map or in the palace · Guards stand again on both sides of the palace gate and the great hall door · The king walks at his original speed again"],
  ["0.9.156","The fortresses of the Dead have a new look: each has its own walls, towers, gate and keep (Morgash, Kalgor, Guldrak, Iskar Spire, Oshelm, Bargol Keep and the fallen neighbouring capital) · In fortress assaults the Dead stand properly on walls, towers and the gatehouse · Rams, catapults and ladders no longer glow at night · Big glowing orbs on the map and at fortresses are now small embers · Battlefield fire light toned down"],
  ["0.9.155","The mounted king now sits in the saddle (king, old king, cavalry, map riders) · A mounted swing no longer cuts through the horse's neck · The shield is carried in front when walking or running, so it no longer passes through the cloak · A more upright, dignified walk with no foot sliding · The king bumps into palace pillars, trees, bushes, lamps and houses (on foot and on horseback) · The great hall doors open onto the hall itself and you walk in and out without a cut · The camera no longer goes inside building walls · Townsfolk step aside for the king and his horse · Guards and wall patrols are now full size · Buttons, request cards and hints no longer overlap on phones and tablets · Fixed the no-walls briefing, prologue text and the day and night clock · English dates and names, short minimap labels · King's wardrobe in Settings · Removed black sticks on the battlefield and big glare on the map"],
  ["0.9.154","The king's new look: a Greek warrior in a crested helmet with shield and cloak; other armour (skins) add colour and ornaments on top · Vargoth, King of the Dead: a crowned skull-faced king in black armour. He fights the old king in the prologue and waits on the Throne of the Dead for the final battle · Title screen: the king and Vargoth face each other; silver title lettering and a text menu over distant ridges and a fortress silhouette · Typeface: buttons, menus and window titles now use Gowun Batang · Wardrobe: available from the start in the bottom bar and on the title screen · The crown no longer covers the king's eyes · New models for the palace walls, towers, gate and market stalls · Wall levels now show: level 0 no walls, 1 low walls, 2 walls and towers, 3 high walls with spires · Lose a siege and the walls must be rebuilt; win and you only repair the damage (Realm → Build) · Villages are now cities, each with its own houses, colours, layout and landmark · The Throne of the Dead is a black tower: the Dead pour out of it and you fight on the field before it · The king's horse is a new model · The old king in the prologue wears gold-trimmed armour · Defence outlook now matches real battle results · Soldiers no longer walk through walls and towers"],
