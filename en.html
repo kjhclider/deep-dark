@@ -2019,16 +2019,21 @@ const gateSegLen=()=>{const T=WALL_T(),st=(CW.full?Math.PI*2:Math.PI)/CW.n;retur
 const gateS=()=>Math.min(gateSegLen()/13,(wallH()+4)/17.6);
 const GATE_D=()=>6.6*gateS();   // 문루 두께(약 10m). 성벽(3.2m)보다 안팎으로 3.5m씩 두껍다
 function wallTowers(){const W=typeof BT!=="undefined"&&BT&&BT.wall;if(!W||W.none||wallWood())return [];const low=W.lvl<=1&&!W.fort;   // 1단계 낮은 성벽: 이음 탑 없이 성문(문루, 성문 탑)만
-  const MW=cwBattle(),MG=MW&&!!PROP.gltf.gate,key=(MW?1:0)+(MG?2:0)+"|"+W.lvl;if(W._twK===key)return W._tw;
+  const MW=cwBattle(),MG=MW&&!!PROP.gltf.gate,FM=!!W.fort&&!!PROP.gltf.fort,key=(MW?1:0)+(MG?2:0)+(FM?4:0)+"|"+W.lvl;if(W._twK===key)return W._tw;
   const spire=W.lvl>=3&&!W.fort,T=WALL_T(),r=MW?(spire?3:2.6):T*0.8,L=[],segs=W.segs;
   for(const sg of segs){if(sg.gate){if(MG){const Rm=CW.R-T/2,hl=(sg.a1-sg.a0)*Rm/2,gs=gateS(),ah=3.1*gs,hw=6.5*gs;
         L.push({a:sg.ac-hw/Rm,r:2.7*gs,round:true,gate:true},{a:sg.ac+hw/Rm,r:2.7*gs,round:true,gate:true});   // 문루 양옆 원뿔 지붕 탑
         // 문루 양옆 벽(아치 밖)과 그 바깥 메움 성벽: 성문을 열어도 아치로만 드나든다
         const jc=(ah+hw)/2,jh=(hw-ah)/2;L.push({a:sg.ac-jc/Rm,r:jh,rv:GATE_D()/2,gate:true,jamb:true},{a:sg.ac+jc/Rm,r:jh,rv:GATE_D()/2,gate:true,jamb:true});
         if(hl-hw>0.3){const fc=(hw+hl)/2,fh=(hl-hw)/2;L.push({a:sg.ac-fc/Rm,r:fh,rv:T/2,gate:true,jamb:true},{a:sg.ac+fc/Rm,r:fh,rv:T/2,gate:true,jamb:true});}
-        if(!low)L.push({a:sg.a0,r,round:!MW||spire,spire},{a:sg.a1,r,round:!MW||spire,spire});}continue;}   // 성문 구간 양끝에도 보통 이음 탑
+        if(!low)L.push({a:sg.a0,r,round:!MW||spire,spire},{a:sg.a1,r,round:!MW||spire,spire});}
+      else if(FM){// 망자 요새 모델 성문(fortGateGroup): 아치 밖 문루 기둥은 열어도 막혀 있다. 성문 구간 앞끝에도 탑(뒤끝 탑은 다음 구간이 세운다)
+        const Rm=CW.R-T/2,hl=(sg.a1-sg.a0)*Rm/2,gs=fortGateS(),ah=FWM.GA*gs/2,jc=(ah+hl)/2,jh=(hl-ah)/2,rv=Math.max(T,FWM.GD*gs)/2;
+        L.push({a:sg.ac-jc/Rm,r:jh,rv,gate:true,jamb:true},{a:sg.ac+jc/Rm,r:jh,rv,gate:true,jamb:true},{a:sg.a0,r,round:true});}
+      continue;}   // 성문 구간 양끝에도 보통 이음 탑
     const pv=segs[sg.i-1];if(!low&&!(MG&&pv&&pv.gate))L.push({a:sg.a0,r,round:!MW||spire,spire});}
   if(low){W._twK=key;W._tw=L;return L;}
+  if(FM&&!CW.full){const last=segs[segs.length-1];if(last&&!last.gate)L.push({a:last.a1,r,round:true});}   // 망자 요새 반원의 다른 끝 탑(앞끝은 첫 구간이 세운다)
   // 왕궁 방어전 반원의 두 끝: 본성 양옆 성벽의 모서리 탑(반폭 4.2, buildBattleScene의 side가 그린다)이 선다. 충돌만 넓혀 둔다
   if(!CW.full&&!W.fort&&BT.ctx&&BT.ctx.kind==="siege"){if(L[0]&&!segs[0].gate&&Math.abs(L[0].a-segs[0].a0)<1e-6)Object.assign(L[0],{r:4.2,end:true});const last=segs[segs.length-1];if(last&&!last.gate)L.push({a:last.a1,r:4.2,round:spire,spire,end:true});}
   W._twK=key;W._tw=L;return L;}
@@ -2268,6 +2273,63 @@ function tableParts(){const p=[P(SG.box(6,0.25,4),B3.wood,"wood",[0,1.1,0]),P(SG
   for(let i=0;i<6;i++)p.push(P(SG.cone(0.12,0.35,8),i<3?C.kblue:"#5a7a3a","cloth",[-2+i*0.8,1.45,(i%2?0.6:-0.6)]));
   p.push(P(SG.box(9,0.2,7),"#7a1f24","cloth",[0,5.2,0]));for(const sx of [-1,1])for(const sz of [-1,1])p.push(P(SG.cyl(0.15,0.15,5.2,8),B3.wood,"wood",[sx*4.3,2.6,sz*3.3]));
   return p;}
+/* 망자의 요새 모델(fort.glb, tools/model/fort_build.py): C Low Poly Dark Castle(dc_ 본성, 성문, 탑, 성벽), Gothic Building For Aria Pack(gb_ 예배당, 홀, 층탑, 높은 탑, 첨탑, 부벽, 무너진 성벽, 아치), Villain's Lair의 뱀 굴(vl_serpent).
+   fortPlan(site)이 요새마다 조각 배치표를 정한다(모델 미터, 성문이 +Z, 같은 요새는 늘 같은 모양). 지도는 _lo 조각, 요새 화면과 공략 배경은 고해상. 모델이 없거나 늦으면 코드 요새(fortressParts)
+   공성 성벽(wallVisual의 fort 갈래)은 fortWallGroup, fortTowerMesh, fortGateGroup. 탑과 문루 자리는 wallTowers가 같은 치수로 막는다 */
+const FWM={WL:17.21,WT:2.09,WH:6.3,WTOP:7.26,TW:3.38,TC:8.4,GW:10.18,GD:2.38,GH:8.06,GA:5.9,GAH:5.6,GDK:6.4,plans:{}};
+function fortPiece(n){const g=PROP.gltf.fort;if(!g)return null;const o=g.scene.getObjectByName(n);if(!o)return null;const m=o.clone(true);m.position.set(0,0,0);m.rotation.set(0,0,0);m.scale.set(1,1,1);
+  m.traverse(q=>{if(q.isMesh){q.castShadow=true;q.receiveShadow=true;q.userData.cwShared=1;}});return m;}
+function fortPlan(site){const id=site.base||site.id;if(FWM.plans[id])return FWM.plans[id];
+  let hs=7;for(const ch of id)hs=(hs*31+ch.charCodeAt(0))|0;const r=mulberry(hs),P=[],lean=()=>(r()-0.5)*0.07;
+  const add=(n,x,z,o={})=>{P.push(Object.assign({n,x,z},o));};
+  // 성벽 한 줄(x0,z0 → x1,z1): 조각 길이 17m 안팎으로 나눈다
+  const run=(x0,z0,x1,z1,sy,o={})=>{const L=Math.hypot(x1-x0,z1-z0),n=Math.max(1,Math.round(L/17)),ry=Math.atan2(-(z1-z0),x1-x0);
+    for(let i=0;i<n;i++){const t=(i+0.5)/n;add("dc_wall",x0+(x1-x0)*t,z0+(z1-z0)*t,Object.assign({ry,sx:L/n/FWM.WL+0.02,sy,ring:1},o));}};
+  // 다각형 성벽 고리: n변, 반지름 R, 꼭짓점마다 탑(조금씩 기울었다), 0번 변(+Z)에 성문(dc_gate 또는 무너진 고딕 아치). broken 변은 무너진 고딕 성벽(gb_ruin, gb_butt)
+  const ring=(n,R,o={})=>{const ts=o.ts||1.1,sy=o.sy||0.85,gs=o.gs||1,V=k=>{const t=(k+0.5)*Math.PI*2/n;return {x:R*Math.sin(t),z:R*Math.cos(t)};};
+    for(let k=0;k<n;k++){const v=V(k);add("dc_tower",v.x,v.z,{s:ts,ry:r()*6.28,rx:lean(),rz:lean(),ring:1});}
+    for(let k=0;k<n;k++){const a=V(k-1),b=V(k),ry=k*Math.PI*2/n,E=Math.hypot(b.x-a.x,b.z-a.z),cut=FWM.TW*ts*0.35,ux=(b.x-a.x)/E,uz=(b.z-a.z)/E;
+      const x0=a.x+ux*cut,z0=a.z+uz*cut,x1=b.x-ux*cut,z1=b.z-uz*cut,Lw=E-2*cut,mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;
+      if(k===0){const gw=o.arch?73.45*o.arch:FWM.GW*gs,hl=(Lw-gw)/2;
+        if(o.arch)add("gb_arch",mx,mz,{s:o.arch,ry,ring:1});else add("dc_gate",mx,mz,{s:gs,ry,ring:1});
+        if(hl>0.5){run(x0,z0,x0+ux*hl,z0+uz*hl,sy);run(x1-ux*hl,z1-uz*hl,x1,z1,sy);}continue;}
+      if((o.broken||[]).includes(k)){const c=Math.max(1,Math.round(Lw/8)),s=Lw/c/27.9;for(let i=0;i<c;i++){const t=(i+0.5)/c;add(r()<0.6?"gb_ruin":"gb_butt",x0+(x1-x0)*t,z0+(z1-z0)*t,{s,ry:ry+(r()<0.5?0:Math.PI),rz:lean(),ring:1});}continue;}
+      run(x0,z0,x1,z1,sy*(0.92+r()*0.16),{rz:r()<0.3?lean()*1.5:0});}};   // 몇 칸은 뒤틀려 기울었다
+  if(id==="f_mor"){// 모르가쉬(첫 공략): C 성을 통째로, 원래 배치 그대로(네모 성벽, 모서리 탑 넷, 앞 성문, 가운데 본성)
+    add("dc_keep",0,-0.4);add("dc_gate",0,16.1,{ring:1});for(const [x,z] of [[22.42,15.89],[22.42,-17.64],[-22.51,-17.64],[-22.5,15.89]])add("dc_tower",x,z,{ring:1});
+    run(-21.5,15.89,-5.1,15.89,0.75);run(5.1,15.89,21.4,15.89,0.75);run(22.42,15.9,22.42,-17.6,0.75);run(-22.5,-17.6,-22.5,15.9,0.75);run(-21.5,-17.64,21.4,-17.64,0.75);}
+  else if(id==="f_kal"){// 칼고르(강령술사의 첨탑): 여섯 모 성벽, 가운데 높은 첨탑과 예배당 둘, 뒤쪽은 무너진 부벽
+    ring(6,24,{broken:[3]});add("gb_spire",0,-6,{s:0.58});add("gb_chapel",-10,1,{s:0.55,ry:0.3});add("gb_chapel",10,2,{s:0.5,ry:-0.4});add("gb_butt",0,-14,{s:0.4});add("dc_tower",-6,-12,{s:1.5,rz:0.06});}
+  else if(id==="f_gul"){// 굴드락(트롤의 협곡): 다섯 모 성벽, 성문 자리는 무너진 고딕 아치, 홀과 층탑
+    ring(5,26,{arch:0.27,broken:[2]});add("gb_hall",0,-5,{s:0.8});add("gb_tier",-11,-9,{s:0.45,ry:0.5});add("dc_tower",9,-11,{s:1.6});add("dc_tower",12,-4,{s:1.2,rz:0.08});}
+  else if(id==="f_ash"){// 이스카르 첨탑(감시탑): 낮은 네모 성벽 안에 높은 탑 하나와 가는 첨탑 둘
+    ring(4,18,{sy:0.65,ts:1.0});add("gb_tower",0,-2,{s:0.5});add("gb_spire",-8,-7,{s:0.28});add("gb_spire",8,-7,{s:0.28,ry:1.2});}
+  else if(id==="f_crag"){// 오스헬름(옛 광산): 일곱 모 성벽의 두 변이 무너졌다, 홀과 예배당, 굴에서 기어 나오는 검은 뱀
+    ring(7,24,{broken:[2,5]});add("gb_hall",-7,-6,{s:0.65,ry:0.4});add("vl_serpent",7,-2,{s:0.36,ry:-0.7});add("gb_chapel",6,-13,{s:0.45});}
+  else if(id==="f_maw"){// 바르골 성채(오크): 여덟 모 높은 성벽, 큰 성문, C 본성과 양옆 층탑
+    ring(8,26,{ts:1.25,sy:0.95,gs:1.25});add("dc_keep",0,-3,{s:0.95});add("gb_tier",-12,-10,{s:0.42,ry:0.3});add("gb_tier",12,-10,{s:0.42,ry:-0.5});}
+  else{// 그 밖(무너진 이웃 수도가 바뀐 소굴 등): id 씨앗으로 고리 모양, 본성, 곁채를 고른다
+    const n=5+Math.floor(r()*4),R=21+r()*6;ring(n,R,{ts:1+r()*0.3,sy:0.75+r()*0.25,broken:r()<0.5?[1+Math.floor(r()*(n-1))]:[]});
+    const main=[["dc_keep",0.85],["gb_hall",0.75],["gb_tier",0.5],["gb_tower",0.42]][Math.floor(r()*4)];add(main[0],0,-3,{s:main[1],ry:(r()-0.5)*0.6});
+    const ex=[["gb_chapel",0.45],["gb_spire",0.26],["dc_tower",1.4],["gb_chapel",0.4]];for(let i=0;i<2;i++){const e=ex[Math.floor(r()*ex.length)],sx=i?1:-1;add(e[0],sx*(9+r()*3),-8-r()*5,{s:e[1],ry:r()*6.28,rz:lean()});}}
+  return FWM.plans[id]=P;}
+// 요새 모형 한 벌: lo 지도용(가벼운 조각, 그림자 없음), core 공략 배경용(성벽 고리 없이 안쪽 건물만)
+function fortGroup(site,o={}){const g=PROP.gltf.fort;if(!g)return null;const G=new THREE.Group();
+  for(const it of fortPlan(site)){if(o.core&&it.ring)continue;let n=it.n;if(o.lo&&g.scene.getObjectByName(n+"_lo"))n+="_lo";const m=fortPiece(n);if(!m)continue;
+    m.position.set(it.x,-0.3,it.z);m.rotation.set(it.rx||0,it.ry||0,it.rz||0,"YXZ");const s=it.s||1;m.scale.set(s*(it.sx||1),s*(it.sy||1),s);
+    if(o.lo)m.traverse(q=>{if(q.isMesh)q.castShadow=false;});G.add(m);}
+  return G;}
+// 공성 성벽 조각: 길이 len, 통로 높이 h, 두께 t(가운데 원점, 바깥 -Z). 벽돌 성벽 두 단을 통로 높이에 맞춰 늘인다
+const fortGateS=()=>gateSegLen()/FWM.GW;
+function fortWallGroup(len,h,t){const o=fortPiece("dc_wall");if(!o)return null;o.position.y=-0.4;o.scale.set(len/FWM.WL+0.03,(h+0.4)/FWM.WH,t/FWM.WT);const G=new THREE.Group();G.add(o);return G;}
+// 이음 탑: 반지름 r(wallTowers와 같은 값), 붉은 창 왕관이 통로보다 2m 위
+function fortTowerMesh(h,r){const o=fortPiece("dc_tower");if(!o)return null;const kx=2*r*1.05/FWM.TW,ky=(h+2.4)/FWM.TC;o.position.y=-0.4;o.scale.set(kx,ky,kx);const G=new THREE.Group();G.add(o);return G;}
+// 성문: dc_gate를 구간 너비에 맞춰(약 1.47배, 높이 11.8m, 아치 폭 8.7m). 모델은 바깥이 +Z라 뒤집는다. 닫혔으면 아치에 검은 나무 문짝
+// 문루 위 통로(모델 6.4m)가 성벽 통로 높이에 오도록 세로 배율을 따로 둔다(성벽 위 망자가 문루 위에서 허공에 뜨지 않게)
+const fortGateKy=()=>(wallH()+0.3)/FWM.GDK;
+function fortGateGroup(len,open){const o=fortPiece("dc_gate");if(!o)return null;const s=fortGateS(),ky=fortGateKy(),G=new THREE.Group();o.scale.set(s,ky,Math.max(s,WALL_T()/FWM.GD));o.rotation.y=Math.PI;o.position.y=-0.3;G.add(o);
+  if(!open){const w=FWM.GA*s,hh=FWM.GAH*ky,d=new THREE.Mesh(new THREE.BoxGeometry(w,hh,0.45),FWM.doorM||(FWM.doorM=new THREE.MeshStandardMaterial({color:LIN("#2a1c14"),roughness:0.95})));d.position.set(0,hh/2-0.3,-WALL_T()/2+0.3);d.castShadow=true;G.add(d);}
+  return G;}
 /* 망자의 요새 */
 function fortressParts(big){
   const k=big?1.6:1,B="#2b2a2e",B2="#3a383f",G="#8cff6a";
@@ -2973,7 +3035,7 @@ function fireRender(B,dt,now){const t=B.t;BR.fxp=BR.fxp||[];let pi=0;
     if(!F.pt){const n=R>10?22:9;F.pt=[];for(let i=0;i<n;i++){const a=Math.random()*6.283,r=Math.pow(Math.random(),0.65)*R*0.9;F.pt.push({x:F.x+Math.cos(a)*r,z:F.z+Math.sin(a)*r,s:(0.7+Math.random()*0.9)*(R>10?1:0.8),end:0.15+Math.random()*0.8,ph:Math.random()*20,on:Math.random()*0.5});}
       B.scorch.push({x:F.x,z:F.z,r:R*1.15,t1:t+F.t0+30,t0:t});}
     const el=F.t0-F.t,fade=Math.max(0,Math.min(1,F.t/1.2)),lifeK=F.t/F.t0;
-    const g=dec("glow");g.position.set(F.x,bH(F.x,F.z)+0.2,F.z);g.scale.set(R*2.1,R*2.1,1);g.material.opacity=0.45*Math.min(1,el/0.6)*fade*(0.8+0.2*Math.sin(now*7));
+    const g=dec("glow");g.position.set(F.x,bH(F.x,F.z)+0.2,F.z);g.scale.set(R*1.3,R*1.3,1);g.material.opacity=0.26*Math.min(1,el/0.6)*fade*(0.8+0.2*Math.sin(now*7));
     for(const q of F.pt){if(el<q.on)continue;
       const grow=Math.min(1,(el-q.on)/0.5),die=Math.min(fade,(lifeK-(1-q.end))/0.15),k=grow*Math.max(0,Math.min(1,die));if(k<=0.02)continue;   /* 불꽃마다 꺼지는 때가 다르다 */
       const y=bH(q.x,q.z);
@@ -3483,7 +3545,10 @@ function siteVisual(site){
   const ruined=st.state==="ruined"||st.state==="razed";
   // 망자의 왕좌: 탑 모델(없거나 아직 안 왔으면 코드 요새, 온 뒤에 바꿔 끼운다)
   const thM=site.kind==="throne"&&!ruined?throneObj(["tower","hill","plate","lava"]):null;
-  if(thM){thM.scale.setScalar(0.42);thM.position.y=-0.6;g.add(thM);}else g.add(meshOf(mergeSmooth(sitePartsFor(site),0.06)));
+  // 망자의 요새: 요새마다 다른 모형(fortPlan)의 가벼운 조각, 0.5배. 없거나 늦으면 코드 요새, 온 뒤에 바꿔 끼운다
+  const ftM=site.kind==="fortress"&&!ruined?fortGroup(site,{lo:true}):null;
+  if(site.kind==="fortress"&&!ruined&&!PROP.gltf.fort)loadProp("fort").then(m=>{const o=m&&WR.siteObjs&&WR.siteObjs[site.id];if(!o||!o.g.parent)return;const par=o.g.parent,ng=siteVisual(site);par.remove(o.g);par.add(ng);o.g=ng;});
+  if(thM){thM.scale.setScalar(0.42);thM.position.y=-0.6;g.add(thM);}else if(ftM){ftM.scale.setScalar(0.5);g.add(ftM);}else g.add(meshOf(mergeSmooth(sitePartsFor(site),0.06)));
   // 도시(우리 도시, 이웃 왕국 도시와 수도): 모델 집, 큰 건물, 광장 장식. 배치는 도시 화면과 같고 지도는 0.38배(집은 골조를 뺀 가벼운 판)
   if(!ruined&&/^(village|rvillage|pvillage|rcapital|pcapital)$/.test(site.kind)){const pop=st.pop??site.pop??400;   /* 지금 인구(예전 코드 집 수와 같은 식) */
     if(cityReady()){const vael=site.id==="k_vael"&&PROP.gltf.pcastle,cap=site.kind==="rcapital"||site.kind==="pcapital";
@@ -3494,23 +3559,26 @@ function siteVisual(site){
     if(!cityReady())loadProp("cityparts").then(redo);else if(!PROP.gltf.hall)loadProp("hall").then(redo);
     if(site.id==="k_vael"&&!PROP.gltf.pcastle)loadProp("pcastle").then(redo);}
   if(site.kind==="throne"&&!ruined&&!PROP.gltf.throne)loadProp("throne").then(m=>{const o=m&&WR.siteObjs&&WR.siteObjs[site.id];if(!o||!o.g.parent)return;const par=o.g.parent,ng=siteVisual(site);par.remove(o.g);par.add(ng);o.g=ng;});
-  if((site.kind==="fortress"||site.kind==="throne")&&!ruined){const gl=glowSprite("#8cff6a",thM?7:site.kind==="throne"?12:8,thM?0.25:0.3);/* 큰 빛 덩어리 대신 작고 은은한 불빛 */gl.position.y=thM?THRONE_M.top*0.42+4:site.kind==="throne"?36:22;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:gl.scale.x});}
+  if((site.kind==="fortress"||site.kind==="throne")&&!ruined){const gl=glowSprite("#8cff6a",thM?3:site.kind==="throne"?4:ftM?0.01:3,thM?0.25:ftM?0:0.25);/* 큰 빛 덩어리 대신 작고 은은한 불빛 */gl.position.y=thM?THRONE_M.top*0.42+4:site.kind==="throne"?36:22;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:gl.scale.x});}
   if(site.kind==="village"&&st.state==="besieged"){
     const ring=[];for(let i=0;i<12;i++){const a=i/12*Math.PI*2;ring.push(...place(i%3?MODELS_PARTS.ghoul:MODELS_PARTS.goblin,Math.cos(a)*15,0,Math.sin(a)*15,-a-Math.PI/2,1.6));}
     g.add(meshOf(mergeSmooth(ring,0.1)));
-    const fire=glowSprite("#ff8a3d",14,0.7);fire.position.set(2,4,1);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:14});}
-  if(site.kind==="capital"||(site.kind==="village"&&!ruined)){const t=glowSprite("#ffb15c",site.kind==="capital"?8:5,0.3);t.position.set(0,site.kind==="capital"?12:3,site.kind==="capital"?8:0);g.add(t);WR.fx.push({o:t,k:"flicker",base:t.scale.x});}
+    const fire=glowSprite("#ff8a3d",3,0.7);fire.position.set(2,2.5,1);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:3});}   // 포위 불: 작은 불꽃(큰 빛 덩어리 대신)
+  if(site.kind==="capital"||(site.kind==="village"&&!ruined)){const t=glowSprite("#ffb15c",site.kind==="capital"?2.4:1.6,0.3);t.position.set(0,site.kind==="capital"?12:3,site.kind==="capital"?8:0);g.add(t);WR.fx.push({o:t,k:"flicker",base:t.scale.x});}
   // 밤에 켜지는 불빛: 탑과 창문의 횃불
   const lights=[];const addL=(x,y,z,col="#ffb15c",sz=3.2)=>{const t=glowSprite(col,sz,0);t.position.set(x,y,z);g.add(t);lights.push(t);};
-  if(site.kind==="capital"){for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*15,6.2,Math.sin(a)*15,"#ffb15c",3.6);}for(let i=0;i<6;i++){const a=i/6*Math.PI*2+0.3;addL(Math.cos(a)*5,3.2,Math.sin(a)*5+3,"#ffcf7a",2.4);}addL(0,13,-4,"#ffd28a",5);}
-  else if(site.kind==="village"&&!ruined){const wl=st.walls||0;if(wl)for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*14.5,5+wl*0.9,Math.sin(a)*14.5,"#ffb15c",2.8);}for(let i=0;i<5;i++){const a=i/5*Math.PI*2+0.2;addL(Math.cos(a)*6,2.6,Math.sin(a)*6,"#ffcf7a",2.2);}addL(0,7,-2,"#ffd28a",3);}
-  else if((site.kind==="rcapital"||site.kind==="pcapital")&&!ruined){for(let i=0;i<8;i++){const a=(i+0.5)/8*Math.PI*2;addL(Math.cos(a)*13,5.6,Math.sin(a)*13,"#ffb15c",3.2);}addL(0,11,-2,"#ffd28a",4.5);}
-  else if((site.kind==="rvillage"||site.kind==="pvillage")&&!ruined){for(let i=0;i<4;i++){const a=i/4*Math.PI*2;addL(Math.cos(a)*5.5,2.6,Math.sin(a)*5.5,"#ffcf7a",2.2);}}
-  else if(site.kind==="neutral"){for(let i=0;i<3;i++)addL(Math.cos(i*2.1)*4,2,Math.sin(i*2.1)*4,"#ff9a4a",2.6);}
+  // 밤 불빛은 횃불, 창문 크기의 작은 불씨로(지도 축척 1.6배라 1이면 약 1.6m). 큰 빛 덩어리를 쓰지 않는다
+  if(site.kind==="capital"){for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*15,6.2,Math.sin(a)*15,"#ffb15c",1.2);}for(let i=0;i<6;i++){const a=i/6*Math.PI*2+0.3;addL(Math.cos(a)*5,3.2,Math.sin(a)*5+3,"#ffcf7a",0.9);}addL(0,13,-4,"#ffd28a",1.5);}
+  else if(site.kind==="village"&&!ruined){const wl=st.walls||0;if(wl)for(let i=0;i<10;i++){const a=(i+0.5)/10*Math.PI*2;addL(Math.cos(a)*14.5,5+wl*0.9,Math.sin(a)*14.5,"#ffb15c",1.0);}for(let i=0;i<5;i++){const a=i/5*Math.PI*2+0.2;addL(Math.cos(a)*6,2.6,Math.sin(a)*6,"#ffcf7a",0.9);}addL(0,7,-2,"#ffd28a",1.1);}
+  else if((site.kind==="rcapital"||site.kind==="pcapital")&&!ruined){for(let i=0;i<8;i++){const a=(i+0.5)/8*Math.PI*2;addL(Math.cos(a)*13,5.6,Math.sin(a)*13,"#ffb15c",1.1);}addL(0,11,-2,"#ffd28a",1.4);}
+  else if((site.kind==="rvillage"||site.kind==="pvillage")&&!ruined){for(let i=0;i<4;i++){const a=i/4*Math.PI*2;addL(Math.cos(a)*5.5,2.6,Math.sin(a)*5.5,"#ffcf7a",0.9);}}
+  else if(site.kind==="neutral"){for(let i=0;i<3;i++)addL(Math.cos(i*2.1)*4,2,Math.sin(i*2.1)*4,"#ff9a4a",1.0);}
   else if(thM){// 탑 모델: 꼭대기 네 귀퉁이와 계단 아래 문에 불, 꼭대기에서 연기
-    const k=0.42;for(const [x,z] of [[-6,-6],[6,-6],[-6,6],[6,6]])addL(x*k,85*k,z*k,"#7cff5a",2.6);addL(0,4*k,THRONE_M.foot*k,"#ff8a3d",3);addL(0,60*k,3*k,"#ff8a3d",2.4);
+    const k=0.42;for(const [x,z] of [[-6,-6],[6,-6],[-6,6],[6,6]])addL(x*k,85*k,z*k,"#7cff5a",1.1);addL(0,4*k,THRONE_M.foot*k,"#ff8a3d",1.3);addL(0,60*k,3*k,"#ff8a3d",1.1);
     const sm=smokeColumn(3,40);sm.position.set(0,THRONE_M.top*k+2,0);g.add(sm);WR.fx.push({o:sm,k:"smoke",base:1});}
-  else if((site.kind==="fortress"||site.kind==="throne")&&!ruined){const n=site.kind==="throne"?8:5,r=site.kind==="throne"?13:9;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;addL(Math.cos(a)*r,site.kind==="throne"?12:8,Math.sin(a)*r,"#7cff5a",2.8);}
+  else if(ftM){// 요새 모형: 탑 꼭대기마다 작은 녹색 불씨(큰 빛 덩어리 대신)
+    for(const it of fortPlan(site))if(it.n==="dc_tower"&&it.ring)addL(it.x*0.5,(it.s||1)*9.2*0.5,it.z*0.5,"#7cff5a",0.9);}
+  else if((site.kind==="fortress"||site.kind==="throne")&&!ruined){const n=site.kind==="throne"?8:5,r=site.kind==="throne"?13:9;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;addL(Math.cos(a)*r,site.kind==="throne"?12:8,Math.sin(a)*r,"#7cff5a",1.1);}
     // 망자 요새의 연기 기둥
     const sm=smokeColumn(site.kind==="throne"?3:2,site.kind==="throne"?48:30);sm.position.set(0,site.kind==="throne"?30:18,0);g.add(sm);WR.fx.push({o:sm,k:"smoke",base:1});}
   if(ruined&&site.kind!=="neutral"){const sm=smokeColumn(1,14,"#5a4a40");sm.position.set(1,2,0);g.add(sm);WR.fx.push({o:sm,k:"smoke",base:1});}
@@ -3589,7 +3657,7 @@ function herdTick(t){const c=WR.deer;if(!c||!WR.herds)return;c.begin();
   c.end();}
 /* ── 보물 소문 표식 ── */
 function refreshRumor(){if(!WR.scene)return;if(WR.rumorObj){WR.scene.remove(WR.rumorObj.g);removeLabel(WR.rumorObj.L);WR.rumorObj=null;}
-  const r=S&&S.ev&&S.ev.rumor;if(!r)return;const g=new THREE.Group();const gl=glowSprite("#ffd76a",26,0.7);gl.position.y=10;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:26});
+  const r=S&&S.ev&&S.ev.rumor;if(!r)return;const g=new THREE.Group();const gl=glowSprite("#ffd76a",5,0.6);gl.position.y=6;g.add(gl);WR.fx.push({o:gl,k:"pulse",base:5});   // 소문 표식: 작은 금빛 점(큰 빛 덩어리 대신)
   g.add(meshOf(mergeSmooth([...ruinParts()],0.1)));g.position.set(r.x,worldH(r.x,r.z),r.z);g.scale.setScalar(1.3);WR.scene.add(g);
   const el=document.createElement("div");el.className="lbl site s-neutral";el.innerHTML=`<b>Treasure rumor</b><span>Send an army to camp</span>`;const L=addLabel(el,()=>({x:r.x,y:g.position.y+14,z:r.z}),{maxD:1400});WR.rumorObj={g,L};}
 /* ── 군대 모형 ── */
@@ -3612,13 +3680,13 @@ function armyVisual(a){
   const ring=new THREE.Mesh(new THREE.RingGeometry(6.5,7.6,40),new THREE.MeshBasicMaterial({color:LIN(a.side===0?"#f0c46a":"#a8e07a"),transparent:true,opacity:0.55,depthWrite:false,toneMapped:false}));ring.rotation.x=-Math.PI/2;ring.position.y=0.6;g.add(ring);
   g.scale.setScalar(2.4);
   g.add(meshOf(mergeSmooth([P(SG.cyl(0.1,0.12,11,6),B3.wood,"wood",[3.8,5.5,2]),P(SG.box(0.08,2.4,3.6),flagCol,"cloth",[3.8,9.6,3.8]),P(SG.box(0.1,0.7,0.7),C.kgold,"gold",[3.8,9.7,3.6])])));
-  if(a.side===1){const gl=glowSprite("#8cff6a",9,0.5);gl.position.set(3.8,11.5,2);g.add(gl);}
+  if(a.side===1){const gl=glowSprite("#8cff6a",3,0.4);gl.position.set(3.8,11.5,2);g.add(gl);}
   // 야영지: 천막·모닥불·말뚝 울타리
   if(isCamped(a)){const cp=[];const nT=Math.min(8,3+a.comps.length);
     for(let i=0;i<nT;i++){const an=i/nT*Math.PI*2+0.4,r=5.2;cp.push(P(SG.cone(1.5,2.2,8),i%3?"#c4b088":C.kblue,"cloth",[Math.cos(an)*r,1.1,Math.sin(an)*r]),P(SG.cyl(0.06,0.06,1.2,5),B3.wood,"wood",[Math.cos(an)*r,2.6,Math.sin(an)*r]));}
     for(let i=0;i<18;i++){const an=i/18*Math.PI*2,r=8.2;cp.push(P(SG.cyl(0.12,0.16,1.6,5),"#6b5440","wood",[Math.cos(an)*r,0.8,Math.sin(an)*r],[(Math.random()-0.5)*0.3,0,(Math.random()-0.5)*0.3]));}
     cp.push(P(SG.cyl(1.0,1.2,0.4,10),"#3a3029","rock",[0,0.2,0]),P(SG.cone(0.5,1.1,8),"#ff9a3c","glow",[0,0.8,0]));
-    g.add(meshOf(mergeSmooth(cp,0.05)));const fire=glowSprite("#ff8a3d",7,0.8);fire.position.set(0,1.8,0);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:7});
+    g.add(meshOf(mergeSmooth(cp,0.05)));const fire=glowSprite("#ff8a3d",2.2,0.8);fire.position.set(0,1.4,0);g.add(fire);WR.fx.push({o:fire,k:"flicker",base:2.2});
     const sm=smokeColumn(1,10,"#4a4038");sm.position.set(0,1.5,0);g.add(sm);WR.fx.push({o:sm,k:"smoke",base:1});}
   return g;
 }
@@ -4725,7 +4793,11 @@ function enterSiteView(id,o={}){
       const g2=glowSprite("#8cff6a",9,0.25);g2.position.set(0,THRONE_M.top*k+6,0);sc.add(g2);SV.fx.push({o:g2,k:"pulse",base:g2.scale.x});
       const sm=smokeColumn(5,70);sm.position.set(0,THRONE_M.top*k+2,0);sc.add(sm);
       addFire(sc,0,svH(0,THRONE_M.foot*k)+3,THRONE_M.foot*k,4,"#ff8a3d");}
+    else if(site.kind==="fortress"&&PROP.gltf.fort){// 요새 모형(fortPlan, 0.72배, 반지름 약 19m: 수비군은 23m 밖에 선다). 녹빛은 작게, 성채 위 연기
+      const m=fortGroup(site);m.scale.setScalar(0.72);m.position.y=svH(0,0);sc.add(m);
+      const sm=smokeColumn(3,50);sm.position.set(0,24,-3);sc.add(sm);}
     else{parts.push(...place(fortressParts(site.kind==="throne"),0,svH(0,0),0,0,1.3));
+      if(site.kind==="fortress")loadProp("fort").then(m=>{if(m&&SV.scene===sc&&UI.mode==="site")enterSiteView(id,o);});   // 모델이 늦게 오면 다시 짓는다
       const g2=glowSprite("#8cff6a",site.kind==="throne"?16:12,0.3);g2.position.set(0,site.kind==="throne"?50:32,0);sc.add(g2);SV.fx.push({o:g2,k:"pulse",base:g2.scale.x});}
   } else if(site.kind==="neutral"){parts.push(...place(campParts(site.id),0,svH(0,0),0,0,1.6));
     addCrowd(sc,site.id==="n_merc"?["merc","cav"]:site.id==="n_wood"?["archer"]:["inf","spear"],site.id==="n_merc"?16:14,0,0,24,1.0,false);}
@@ -4754,7 +4826,7 @@ function enterSiteView(id,o={}){
 // 도시 화면: 시민 무리가 집 바닥 상자(SV.blocks) 속으로 걷지 않게. 처음 자리가 집 속이면 빈 자리로 옮긴다
 function svBlocked(x,z){if(!SV.blocks||SV.blocksSite!==SV.site)return false;for(const b of SV.blocks)if(boxPush(b,x,z,0.3))return true;return false;}
 function svUnstick(){for(const c of SV.crowds){if(c.foe)continue;for(const g of c.ag){for(let t=0;t<40&&svBlocked(g.x,g.z);t++){const a=Math.random()*6.28,r=c.inner+Math.random()*(c.rad-c.inner);g.x=c.cx+Math.cos(a)*r;g.z=c.cz+Math.sin(a)*r;}}}}
-function addFire(sc,x,y,z,size,col="#ff8a3d"){const f=glowSprite(col,size,0.8);f.position.set(x,y,z);sc.add(f);SV.fx.push({o:f,k:"flicker",base:size});
+function addFire(sc,x,y,z,size,col="#ff8a3d"){const fs=size*0.3;const f=glowSprite(col,fs,0.75);f.position.set(x,y-size*0.3,z);sc.add(f);SV.fx.push({o:f,k:"flicker",base:fs});   // 불빛은 작은 불꽃 크기로(큰 빛 덩어리 대신), 연기는 그대로
   const sm=glowSprite("#555048",size*2.2,0.25);sm.material.blending=THREE.NormalBlending;sm.position.set(x,y+size*0.8,z);sc.add(sm);SV.fx.push({o:sm,k:"smoke",base:size*2.2,y0:y+size*0.8});}
 function addCrowd(sc,types,n,cx,cz,rad,spd,foe,inner=0){
   for(const t of types){const key=t==="merc"?"cav":t;const cnt=Math.ceil(n/types.length);
@@ -7587,8 +7659,11 @@ function buildBattleScene(){
   if(blight<0.6)sc.add(grassMesh(gN(12000),[236,166,0,0],(x,z)=>bHraw(B,x,z),(x,z)=>!inForest(x,z)));
   // 배경 건물
   if(B.ctx.kind==="assault"&&B.ctx.site==="f_throne")throneBattleBg(sc,B);   // 망자의 왕좌: 들판 뒤에 높은 검은 탑(성벽 없는 들판 싸움)
-  else if(B.ctx.kind==="assault"){const f=meshOf(mergeSmooth(place(fortressParts(B.ctx.site==="f_throne"),0,bHraw(B,0,-120),-120,0,2)));sc.add(f);
-    const gl=glowSprite("#8cff6a",14,0.3);gl.position.set(0,48,-120);sc.add(gl);}
+  else if(B.ctx.kind==="assault"){// 망자 요새: 그 요새 모형의 안쪽 건물(본성, 첨탑 등)을 지름 성벽 뒤에 세운다. 모델이 없거나 늦으면 코드 요새, 오면 바꿔 끼운다
+    const fs=B.wall&&B.wall.fort&&siteById(B.ctx.site),kz=fs?CW.z-24:-120,gl=glowSprite("#8cff6a",14,0.3);sc.add(gl);
+    const bg=()=>{const m=fs&&fortGroup(fs,{core:true});if(m){m.scale.setScalar(1.15);m.position.set(0,bHraw(B,0,kz),kz);gl.position.set(0,bHraw(B,0,kz)+40,kz);return m;}
+      gl.position.set(0,48,-120);return meshOf(mergeSmooth(place(fortressParts(false),0,bHraw(B,0,-120),-120,0,2)));};
+    let f=bg();sc.add(f);if(fs&&!PROP.gltf.fort)loadProp("fort").then(m=>{if(m&&BR.scene===sc){sc.remove(f);f.traverse(o=>{if(o.geometry&&!o.userData.cwShared)o.geometry.dispose();});f=bg();sc.add(f);}});}
   if(B.ctx.kind==="siege"){// 본성: 반원 성벽의 남쪽 끝(지름 위)에 서고, 양옆 성벽이 반원의 두 끝과 이어진다. 그 뒤는 산
     const kz=CW.z+18,parts=[...place(keepParts(),0,bHraw(B,0,kz),kz,Math.PI,0.85)];
     const lv=B.wall?B.wall.lvl:1,h=B.wall?wallH():8.5;
@@ -7602,8 +7677,8 @@ function buildBattleScene(){
     const mt=[];const rr=mulberry(11);for(let i=0;i<16;i++){const x=-150+i*20+rr()*8,z=CW.z+40+rr()*30,hh=40+rr()*45;mt.push(P(SG.cone(30+rr()*14,hh,7),i%3?"#4a4238":"#5a5046","stone",[x,bHraw(B,x,z)+hh/2-4,z],[0,rr()*6,0]));}
     sc.add(meshOf(mergeSmooth(mt,0.02)));}
   if(B.wall&&B.wall.fort&&!CW.full){// 망자 요새 뒤: 검고 날카로운 바위산
-    const mt=[];const rr=mulberry(23);for(let i=0;i<18;i++){const x=-170+i*20+rr()*8,z=CW.z-26-rr()*34,hh=45+rr()*50;mt.push(P(SG.cone(26+rr()*14,hh,6),i%3?"#2e2a2c":"#3a3536","rock",[x,bHraw(B,x,z)+hh/2-4,z],[0,rr()*6,0]));}
-    for(let i=0;i<10;i++){const x=-90+i*20+rr()*6,z=CW.z-14-rr()*8,hh=18+rr()*16;mt.push(P(SG.cone(8+rr()*5,hh,5),"#262224","rock",[x,bHraw(B,x,z)+hh/2-2,z],[0.1*(rr()-0.5),rr()*6,0.1*(rr()-0.5)]));}
+    const mt=[];const rr=mulberry(23);for(let i=0;i<18;i++){const x=-170+i*20+rr()*8,z=CW.z-26-rr()*34-(Math.abs(x)<45?32:0),hh=45+rr()*50;mt.push(P(SG.cone(26+rr()*14,hh,6),i%3?"#2e2a2c":"#3a3536","rock",[x,bHraw(B,x,z)+hh/2-4,z],[0,rr()*6,0]));}
+    for(let i=0;i<10;i++){const x=-90+i*20+rr()*6,z=CW.z-14-rr()*8,hh=18+rr()*16;if(Math.abs(x)<28){rr();rr();rr();continue;}mt.push(P(SG.cone(8+rr()*5,hh,5),"#262224","rock",[x,bHraw(B,x,z)+hh/2-2,z],[0.1*(rr()-0.5),rr()*6,0.1*(rr()-0.5)]));}
     sc.add(meshOf(mergeSmooth(mt,0.02)));}
   if(B.ctx.kind==="vsiege"){const parts=[],P0=vsiegePlan(B);
     {const mp=P0.mill;parts.push(...place(millParts(),mp.x,bHraw(B,mp.x,mp.z),mp.z));}sc.add(meshOf(mergeSmooth(parts)));
@@ -7615,7 +7690,7 @@ function buildBattleScene(){
     if(!cityReady())loadProp("cityparts").then(m=>{if(!m||BR.scene!==sc||!hg.parent)return;sc.remove(hg);if(hg.geometry)hg.geometry.dispose();cityDispose(hg);hg=houses();sc.add(hg);});}
   BR.wallG=null;BR.ladders=[];if(B.wall){BR.wallG=new THREE.Group();sc.add(BR.wallG);wallVisual();
     // 사다리: 성벽에 붙은 망자 무리가 걸쳐 놓는다
-    {const LA=0.3,h=(wallH()+0.9)/Math.cos(LA);BR.ladA=LA;BR.ladL=h;const lm=new THREE.MeshStandardMaterial({color:"#6a5236",roughness:1});for(let i=0;i<26;i++){const g=new THREE.Group();for(const sx of [-0.35,0.35]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.14,h,0.14),lm);r.position.set(sx,h/2,0);g.add(r);}for(let y=0.5;y<h;y+=0.55){const r=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.09,0.09),lm);r.position.set(0,y,0);g.add(r);}g.rotation.x=-0.28;g.visible=false;sc.add(g);BR.ladders.push(g);}}
+    {const LA=0.3,h=(wallH()+0.9)/Math.cos(LA);BR.ladA=LA;BR.ladL=h;const lm=new THREE.MeshStandardMaterial({color:LIN("#6a5236"),roughness:1});for(let i=0;i<26;i++){const g=new THREE.Group();for(const sx of [-0.35,0.35]){const r=new THREE.Mesh(new THREE.BoxGeometry(0.14,h,0.14),lm);r.position.set(sx,h/2,0);g.add(r);}for(let y=0.5;y<h;y+=0.55){const r=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.09,0.09),lm);r.position.set(0,y,0);g.add(r);}g.rotation.x=-0.28;g.visible=false;sc.add(g);BR.ladders.push(g);}}
     for(const sg of B.wall.segs){const el=document.createElement("div");el.className="lbl wallhp";sg.el=el;sg.L=addLabel(el,()=>{if(!(sg.hp<sg.max&&sg.hp>0))return null;const p=wPt(sg.ac,0);return {x:p.x,y:bH(p.x,p.z)+(wallH()+3),z:p.z};},{maxD:260});}}
   // 병사 인스턴스
   BR.inst={};BR.crowd={};BR.ccorpse={};BR.fxp=[];BR.fxd=[];BR.eng=[];BR.fortLights=null;ensureCapacity();
@@ -7651,6 +7726,7 @@ function wallVisual(){
   const TW=wallTowers(),TJ=TW.filter(t=>!t.gate&&!t.end),tR=TJ.length?TJ[0].r:0,crK=TJ.length?Math.max(0.3,(len-2*(tR+0.5))/len):1;   // 탑이 덮는 구간 끝에는 금을 긋지 않는다
   if(B.ctx&&B.ctx.kind==="siege"&&!B.wall.fort&&!wallWood())for(const n of ["castlewall","gate"])if(!PROP.gltf[n])loadProp(n).then(m=>{if(m&&BT===B&&BR.wallG===g&&g.parent)wallVisual();});
   const fort=!!B.wall.fort,sv=[B3.stone,B3.stoneD];if(fort){B3.stone="#3a3640";B3.stoneD="#24212a";}   // 망자 요새: 검게 그을린 돌
+  const FM=fort&&!!PROP.gltf.fort;if(fort&&!FM)loadProp("fort").then(m=>{if(m&&BT===B&&BR.wallG===g&&g.parent)wallVisual();});   // 망자 요새 모델(성벽, 탑, 성문). 늦게 오면 다시 그린다(탑 목록도 함께 바뀐다)
   for(const sg of B.wall.segs){const c=wPt(sg.ac,T/2),y=bH(c.x,c.z);let parts;
     if(sg.hp<=0)parts=[...Array(6)].map((_,i)=>SB(2.4+((i*5)%3),0.6+((i*7)%4)*0.4,2.6,fort?"#2e2b33":lvl?"#6a655c":"#4a3a2a",lvl?"stone":"wood",[-len/2+2+i*len/6,0.5,((i*3)%3-1)*1.2],[0.2*(i%2),i,0.15]));
     else if(wallWood()){parts=[];for(let k=0;k<Math.floor(len/0.7);k++)parts.push(P(SG.cyl(0.18,0.22,h,6),"#6b5440","wood",[-len/2+0.35+k*0.7,h/2,0],[0.08*((k%3)-1),0,0]),P(SG.cone(0.2,0.5,6),"#6b5440","wood",[-len/2+0.35+k*0.7,h+0.25,0]));
@@ -7660,6 +7736,7 @@ function wallVisual(){
         for(let k=0;k<n;k++)parts.push(SB(pw-0.06,dh-(k%2)*0.12,0.3,k%2?"#6a4e34":"#7a5c3e","wood",[-dw/2+pw*(k+0.5),dh/2-(k%2)*0.06,-0.1]));
         for(const yy of [0.22,0.72])for(const zz of [-0.3,0.1])parts.push(SB(dw,0.22,0.08,"#4a3626","wood",[0,dh*yy,zz]));}}}
     else{if(sg.gate&&MG){parts=[];put(cwGateGroup(len,!!BT.gateOpen),c.x,c.z,-sg.ac);}
+      else if(sg.gate&&FM){parts=[];put(fortGateGroup(len,!!BT.gateOpen),c.x,c.z,-sg.ac);}
       else if(sg.gate){// 성문: 문루(양쪽 탑 + 아치 위 통로) + 두 짝 문
         parts=[];const tw=Math.min(3.2,len*0.22);
         for(const sx of [-1,1]){parts.push(SB(tw,h+3,T+1.2,B3.stone,"stone",[sx*(len/2-tw/2),(h+3)/2,0]),SB(tw+0.4,0.5,T+1.6,B3.stoneD,"stone",[sx*(len/2-tw/2),h+3.25,0]));parts.push(...crenels(tw,h+3.5,T/2+0.3,0.7).map(q=>{q.p=[q.p[0]+sx*(len/2-tw/2),q.p[1],q.p[2]];return q;}));}
@@ -7667,9 +7744,10 @@ function wallVisual(){
         if(!BT.gateOpen)for(const sx of [-1,1])parts.push(SB(gw/2-0.1,h*0.64,0.45,"#3a2a1c","wood",[sx*gw/4,h*0.32,-T/2+0.3]),SB(gw/2-0.3,0.18,0.5,"#2a2420","metal",[sx*gw/4,h*0.2,-T/2+0.05]),SB(gw/2-0.3,0.18,0.5,"#2a2420","metal",[sx*gw/4,h*0.48,-T/2+0.05]));
         else for(const sx of [-1,1])parts.push(SB(0.45,h*0.64,gw/2-0.1,"#3a2a1c","wood",[sx*(gw/2-0.3),h*0.32,T/2+gw/4]));}
       else if(MW){parts=[];put(cwWallGroup(len,h,T),c.x,c.z,-sg.ac);}   // 모델 성벽(금, 부스러기는 아래 코드 조각을 겹친다)
+      else if(FM){parts=[];put(fortWallGroup(len,h,T),c.x,c.z,-sg.ac);}   // 망자 요새 모델 성벽
       else parts=wallSeg(len,h,T);
       // 금 간 성벽: 투석기·트롤에 맞아 체력이 줄면 바깥 면에 금이 가고 발치에 돌 부스러기가 쌓인다
-      if(!sg.gate&&sg.hp>0){const lv=sg.hp/sg.max<0.4?2:sg.hp/sg.max<0.72?1:0,cz=T/2+(MW?0.22:0.04);sg.vlev=lv;if(lv){const r=mulberry(sg.i*31+7),cr=fort?"#0c0a0e":"#241e19";
+      if(!sg.gate&&sg.hp>0){const lv=sg.hp/sg.max<0.4?2:sg.hp/sg.max<0.72?1:0,cz=T/2+(MW||FM?0.22:0.04);sg.vlev=lv;if(lv){const r=mulberry(sg.i*31+7),cr=fort?"#0c0a0e":"#241e19";
         for(let k=0;k<(lv===2?9:4);k++){const x=(r()-0.5)*len*0.8*crK,y=h*(0.15+r()*0.75),l=1.4+r()*(lv===2?3.6:2.2);parts.push(SB(0.16,l,0.14,cr,"stone",[x,y,-cz],[0,0,(r()-0.5)*1.8]));if(r()<0.5)parts.push(SB(0.12,l*0.5,0.14,cr,"stone",[x+0.3,y+l*0.3,-cz],[0,0,(r()-0.5)*2.4]));}
         for(let k=0;k<lv*4;k++){const x=(r()-0.5)*len*0.9;parts.push(SB(0.5+r()*0.9,0.35+r()*0.5,0.6+r()*0.7,B3.stoneD,"stone",[x,0.25,-T/2-0.8-r()*1.8],[r(),r(),r()]));}
         if(lv===2)for(let k=0;k<2;k++)parts.push(SB(1.1,0.9,T+0.2,cr,"stone",[(r()-0.5)*len*0.7,h-0.3,0]));}}}
@@ -7678,6 +7756,7 @@ function wallVisual(){
   // 이음 탑: wallTowers와 같은 자리(충돌도 이 목록을 쓴다). 모델 2단계는 네모 탑(통로 h+1.6), 3단계는 첨탑(성문 모델의 원뿔 지붕 탑). 코드면 둥근 탑(3단계는 원뿔 지붕)
   for(const t of TW){if(t.gate||t.end)continue;const tp=wPt(t.a,T/2);
     if(MW)put(t.spire&&PROP.gltf.gate?cwSpire(t.r):cwTowerMesh(h+1.6,t.r),tp.x,tp.z,-t.a);
+    else if(FM)put(fortTowerMesh(h,t.r),tp.x,tp.z,-t.a);
     else{const L=[P(SG.cyl(t.r,t.r*1.06,h+1.6,10),B3.stone,"stone",[0,(h+1.6)/2,0]),P(SG.cyl(t.r*1.12,t.r*1.12,0.5,10),B3.stoneD,"stone",[0,h+1.85,0])];if(t.spire)L.push(P(SG.cone(t.r*1.35,t.r*2.8,10),B3.roofS,"roof",[0,h+2.1+t.r*1.4,0]));
       const tm=meshOf(mergeSmooth(L,0.04));tm.position.set(tp.x,bH(tp.x,tp.z),tp.z);g.add(tm);}}
   // 계단: 성 안 땅에서 성벽 위 통로로 오르는 돌계단(나무 울타리면 나무 계단)
@@ -7690,19 +7769,22 @@ function wallVisual(){
 // 망자 요새 꾸밈: 성벽 위 쇠가시, 탑의 가시 왕관과 해골, 녹색 불꽃 화로, 성 밖 해골 말뚝, 성문 위 거대한 해골, 뒤편의 검은 성채
 function fortDecor(g,len,h,T){const B=BT,ps=[],gl=[];const IRON="#221e22",BONE="#cfc6ae",GREEN="#62ff8c",CLOTH="#3b0d12";
   const put=(arr,list,x,z,rot)=>{const m=meshOf(mergeSmooth(list,0.02));m.position.set(x,bH(x,z),z);m.rotation.y=rot||0;g.add(m);arr&&arr.push(m);};
+  // 모델 성벽이면 쇠가시는 흉벽 끝 위에, 성문 꾸밈은 모델 문루(아치 폭, 꼭대기)에 맞춘다. 탑의 가시 왕관과 화로는 모델 탑(붉은 창 왕관)이 대신한다
+  const FM=!!PROP.gltf.fort,spY=FM?FWM.WTOP*(h+0.4)/FWM.WH-0.4:h+0.35,gS=FM?fortGateS():1,gTop=FM?fortGateKy()*FWM.GH-0.3:h;
   for(const sg of B.wall.segs){if(sg.hp<=0)continue;const c=wPt(sg.ac,T/2);const L=[],G=[];
-    if(!sg.gate){for(let k=0;k<Math.floor(len/1.3);k++){const x=-len/2+0.65+k*1.3,tall=k%3===0?1.5:0.9;L.push(P(SG.cone(0.16,tall,5),IRON,"metal",[x,h+0.35+tall/2,-T/2-0.05],[-0.55,0,((k%2)-0.5)*0.2]));}
+    if(!sg.gate){for(let k=0;k<Math.floor(len/1.3);k++){const x=-len/2+0.65+k*1.3,tall=k%3===0?1.5:0.9;L.push(P(SG.cone(0.16,tall,5),IRON,"metal",[x,spY+tall/2,-T/2-0.05],[-0.55,0,((k%2)-0.5)*0.2]));}
       // 벽에 걸린 쇠사슬·해골
       if(sg.i%2===0)L.push(P(SG.sph(0.42,8,6),BONE,"skin",[len*0.18,h*0.62,-T/2-0.35],[0,0,0],[1,1.1,1]),P(SG.box(0.5,0.22,0.3),BONE,"skin",[len*0.18,h*0.62-0.42,-T/2-0.3]),P(SG.cyl(0.05,0.05,h*0.35,4),IRON,"metal",[len*0.18,h*0.82,-T/2-0.3]));
       L.push(P(SG.box(len*0.98,0.6,0.25),"#1c1a20","stone",[0,h*0.15,-T/2-0.12]));}
     else{// 성문: 문 위에 꽂은 작은 해골 말뚝들, 문짝의 쇠가시, 찢긴 검붉은 깃발
-      const gw=len-Math.min(3.2,len*0.22)*2;for(let k=0;k<5;k++){const x=-gw/2+gw*(k+0.5)/5;L.push(P(SG.cyl(0.04,0.05,1.3,4),IRON,"metal",[x,h+0.9,-T/2+0.1]),P(SG.sph(0.24,8,6),"#a89e86","skin",[x,h+1.6,-T/2+0.1],[0,0,0],[0.9,1.05,1]));}
-      if(!BT.gateOpen)for(let k=0;k<8;k++)for(const yy of [0.25,0.5])L.push(P(SG.cone(0.09,0.5,4),IRON,"metal",[-gw/2+gw*(k+0.5)/8,h*yy,-T/2-0.2],[-Math.PI/2,0,0]));
+      const gw=FM?FWM.GA*gS:len-Math.min(3.2,len*0.22)*2,dh=FM?FWM.GAH*fortGateKy():h;for(let k=0;k<5;k++){const x=-gw/2+gw*(k+0.5)/5;L.push(P(SG.cyl(0.04,0.05,1.3,4),IRON,"metal",[x,gTop+0.9,-T/2+0.1]),P(SG.sph(0.24,8,6),"#a89e86","skin",[x,gTop+1.6,-T/2+0.1],[0,0,0],[0.9,1.05,1]));}
+      if(!BT.gateOpen)for(let k=0;k<8;k++)for(const yy of [0.25,0.5])L.push(P(SG.cone(0.09,0.5,4),IRON,"metal",[-gw/2+gw*(k+0.5)/8,dh*yy*(FM?1.6:1),-T/2-0.2],[-Math.PI/2,0,0]));
       for(const sx of [-1,1]){
-        const tw=Math.min(3.2,len*0.22);L.push(P(SG.box(1.6,h*0.8,0.06),CLOTH,"cloth",[sx*(len/2-tw/2),h*0.55,-T/2-0.75]),P(SG.box(0.7,0.9,0.06),CLOTH,"cloth",[sx*(len/2-tw/2)+0.4,h*0.1,-T/2-0.75],[0,0,0.3]),P(SG.cyl(0.07,0.07,2,5),IRON,"metal",[sx*(len/2-tw/2),h*0.95,-T/2-0.8],[0,0,Math.PI/2]));}}
+        const tw=FM?(len-gw)/2-0.4:Math.min(3.2,len*0.22);L.push(P(SG.box(1.6,h*0.8,0.06),CLOTH,"cloth",[sx*(len/2-tw/2),h*0.55,-T/2-0.75]),P(SG.box(0.7,0.9,0.06),CLOTH,"cloth",[sx*(len/2-tw/2)+0.4,h*0.1,-T/2-0.75],[0,0,0.3]),P(SG.cyl(0.07,0.07,2,5),IRON,"metal",[sx*(len/2-tw/2),h*0.95,-T/2-0.8],[0,0,Math.PI/2]));}}
     const m=meshOf(mergeSmooth(L,0.02));m.position.set(c.x,bH(c.x,c.z),c.z);m.rotation.y=-sg.ac;g.add(m);
     if(G.length){const n=meshOf(mergeSmooth(G,0),false);n.position.copy(m.position);n.rotation.y=m.rotation.y;g.add(n);}
-    // 이음 탑: 가시 왕관, 짝수 탑엔 녹색 화로
+    // 이음 탑: 가시 왕관, 짝수 탑엔 녹색 화로 (모델 탑은 제 왕관이 있다)
+    if(FM)continue;
     const tp=wPt(sg.a0,T/2),TL=[],TG=[];for(let k=0;k<6;k++){const a=k/6*Math.PI*2;TL.push(P(SG.cone(0.3,1.8,5),IRON,"metal",[Math.sin(a)*T*0.85,h+2.6,Math.cos(a)*T*0.85],[Math.cos(a)*0.35,0,-Math.sin(a)*0.35]));}
     if(sg.i%2===0){TL.push(P(SG.cyl(0.7,0.45,0.6,8),IRON,"metal",[0,h+2.3,0]));TG.push(P(SG.cone(0.42,0.9,6),"#2e8a4c","glow",[0,h+3.0,0]),P(SG.cone(0.22,0.6,5),"#7ad89a","glow",[0,h+2.9,0]));}
     const tm=meshOf(mergeSmooth(TL,0.02));tm.position.set(tp.x,bH(tp.x,tp.z),tp.z);g.add(tm);
@@ -7716,12 +7798,14 @@ function fortDecor(g,len,h,T){const B=BT,ps=[],gl=[];const IRON="#221e22",BONE="
   {const L=[],G=[],cx=0,cz=CW.full?CW.z-CW.R-11:CW.z-6;const tower=(x,z,r,H)=>{L.push(P(SG.cyl(r*0.8,r,H,8),"#2c2832","stone",[x,H/2,z]),P(SG.cyl(r*1.05,r*0.85,1.2,8),"#1d1a22","stone",[x,H+0.6,z]),P(SG.cone(r*0.95,H*0.55,8),"#17141a","metal",[x,H+1.2+H*0.275,z]));
       for(let k=0;k<4;k++){const a=k*Math.PI/2+0.4;L.push(P(SG.cone(0.35,2.4,5),IRON,"metal",[x+Math.sin(a)*r,H+1.6,z+Math.cos(a)*r],[Math.cos(a)*0.5,0,-Math.sin(a)*0.5]));}
       for(let k=0;k<3;k++)G.push(P(SG.box(0.5,1.1,0.2),"#2e7a48","glow",[x+((k%2)-0.5)*r*0.6,H*(0.45+k*0.17),z+r*0.92]));};
-    tower(cx,cz,7,30);tower(cx-15,cz+3,4.5,21);tower(cx+15,cz+3,4.5,21);L.push(P(SG.box(30,14,8),"#25222a","stone",[cx,7,cz+1]));
-    if(!CW.full){// 반원 요새: 지름을 따라 성채 양옆으로 이어진 검은 성벽, 그 뒤는 바위산
+    if(!FM){tower(cx,cz,7,30);tower(cx-15,cz+3,4.5,21);tower(cx+15,cz+3,4.5,21);L.push(P(SG.box(30,14,8),"#25222a","stone",[cx,7,cz+1]));}   // 모델이면 성채는 buildBattleScene이 그 요새 모형(안쪽 건물)으로 세운다
+    if(!CW.full&&FM){// 반원 요새의 지름 성벽(모델): 성채 앞을 가로지른다. 두 끝 탑은 wallVisual이 세운다(wallTowers)
+      for(const sx of [-1,1])for(let k=0;k<3;k++){const w=(CW.R-3)/3,x=sx*(w*(k+0.5)),o=fortWallGroup(w+0.6,h+1,WALL_T());if(o){o.position.set(x,bH(x,CW.z+2),CW.z+2);o.rotation.y=Math.PI;g.add(o);}}}
+    if(!CW.full&&!FM){// 반원 요새: 지름을 따라 성채 양옆으로 이어진 검은 성벽, 그 뒤는 바위산
       for(const sx of [-1,1])for(let k=0;k<4;k++){const x=sx*(18+k*((CW.R-18)/4)+sx*(CW.R-18)/8);L.push(P(SG.box((CW.R-18)/4+0.6,h+1,WALL_T()),"#2c2832","stone",[x,(h+1)/2,CW.z+2]));for(let j=0;j<3;j++)L.push(P(SG.cone(0.2,1.2,5),IRON,"metal",[x+(j-1)*2.5,h+1.7,CW.z+2]));}
       for(const sx of [-1,1])L.push(P(SG.cyl(WALL_T()*0.9,WALL_T(),h+4,8),"#2c2832","stone",[sx*CW.R,(h+4)/2,CW.z]),P(SG.cone(WALL_T(),5,8),"#17141a","metal",[sx*CW.R,h+6.5,CW.z]));}
-    for(const sx of [-1,1])L.push(P(SG.box(2.4,10,0.08),CLOTH,"cloth",[cx+sx*4.5,22,cz+6.6]));
-    const m=meshOf(mergeSmooth(L,0.03));m.position.set(0,bH(cx,cz)-0.5,0);g.add(m);const n=meshOf(mergeSmooth(G,0),false);n.position.copy(m.position);g.add(n);}
+    if(!FM)for(const sx of [-1,1])L.push(P(SG.box(2.4,10,0.08),CLOTH,"cloth",[cx+sx*4.5,22,cz+6.6]));
+    if(L.length){const m=meshOf(mergeSmooth(L,0.03));m.position.set(0,bH(cx,cz)-0.5,0);g.add(m);if(G.length){const n=meshOf(mergeSmooth(G,0),false);n.position.copy(m.position);g.add(n);}}}
   // 녹색 불빛 몇 개
   if(!BR.fortLights){BR.fortLights=[];for(const a of [CW.gateA,CW.gateA+1.4,CW.gateA-1.4,CW.gateA+Math.PI]){const p=wPt(a,0);const L=new THREE.PointLight("#4fd07a",0.7,26,1.8);L.position.set(p.x,bH(p.x,p.z)+wallH()+4,p.z);BR.scene.add(L);BR.fortLights.push(L);}}
 }
@@ -8578,7 +8662,7 @@ function stoneHit(side,x,z,seg){const B=BT,R=7;
 function rockVisual(s,e){if(BT.headless||Math.random()>0.06)return;const a=wAng(s.x,s.z),p=wPt(a+rnd(-0.03,0.03),WALL_T()*0.4);BT.proj.push({x0:p.x,z0:p.z,x1:e.x+rnd(-3,3),z1:e.z+rnd(-3,3),t0:BT.t,dur:0.7,k:"rock",h0:wallH()+1});}
 
 /* ── 그리기: 투석기 모형 · 돌 맞은 자리 병사 튕기기 ── */
-function engineMesh(side){const g=new THREE.Group();const wood=new THREE.MeshStandardMaterial({color:side?"#3a2a1e":"#7a5a36",roughness:1}),iron=new THREE.MeshStandardMaterial({color:"#3a3634",roughness:0.6,metalness:0.6});
+function engineMesh(side){const g=new THREE.Group();const wood=new THREE.MeshStandardMaterial({color:LIN(side?"#3a2a1e":"#7a5a36"),roughness:1}),iron=new THREE.MeshStandardMaterial({color:LIN("#3a3634"),roughness:0.6,metalness:0.6});
   const box=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;g.add(o);return o;};
   box(3.2,0.4,5,wood,0,0.9,0);for(const sx of [-1.4,1.4])for(const sz of [-1.8,1.8]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(0.75,0.75,0.35,12),wood);wh.rotation.z=Math.PI/2;wh.position.set(sx*1.15,0.75,sz);g.add(wh);}
   for(const sx of [-1,1]){box(0.35,3.2,0.35,wood,sx*1.1,2.6,0.3);box(0.3,0.3,2.6,wood,sx*1.1,1.6,-0.5);}
@@ -8614,7 +8698,7 @@ function siegeRolesOurs(B){if(B.oursRoled)return;B.oursRoled=true;const os=B.sq.
   const lad=os.filter(q=>!q.role);lad.sort((a,b)=>a.x-b.x);
   lad.forEach((q,i)=>{let a=CW.gateA+(lad.length<=1?0.4:-1.0+2.0*i/(lad.length-1));if(angD(a,CW.gateA)<0.2)a+=Math.sin(a-CW.gateA)<0?-0.2:0.2;q.focusA=Math.atan2(Math.sin(a),Math.cos(a));q.role="ladder";});
   if(!B.headless)bSay("Siege — a group of spearmen pushes the ram, infantry climb ladders under their shields (fastest, fall least). Catapults hit the walls, archers hit the wall top. Cavalry go in once there's a breach.");}
-function ramMesh(){const g=new THREE.Group();const wood=new THREE.MeshStandardMaterial({color:"#6a4a2c",roughness:1}),hide=new THREE.MeshStandardMaterial({color:"#5a4632",roughness:1,side:THREE.DoubleSide}),iron=new THREE.MeshStandardMaterial({color:"#3a3634",roughness:0.6,metalness:0.6});
+function ramMesh(){const g=new THREE.Group();const wood=new THREE.MeshStandardMaterial({color:LIN("#6a4a2c"),roughness:1}),hide=new THREE.MeshStandardMaterial({color:LIN("#5a4632"),roughness:1,side:THREE.DoubleSide}),iron=new THREE.MeshStandardMaterial({color:LIN("#3a3634"),roughness:0.6,metalness:0.6});   // 색은 선형으로(LIN). 그냥 쓰면 화면에서 크림색으로 밝게 뜬다
   const box=(w,h,d,m,x,y,z,rz=0)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.rotation.z=rz;o.castShadow=true;g.add(o);return o;};
   box(2.8,0.35,6,wood,0,0.8,0);for(const sx of [-1,1])for(const sz of [-2.2,0,2.2]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.3,12),wood);wh.rotation.z=Math.PI/2;wh.position.set(sx*1.5,0.6,sz);g.add(wh);}
   for(const sx of [-1,1]){box(0.18,2.8,6.2,hide,sx*0.85,2.3,0,sx*-0.5);box(0.3,2.4,0.3,wood,sx*1.2,2,-2.8);box(0.3,2.4,0.3,wood,sx*1.2,2,2.8);}
@@ -9291,7 +9375,7 @@ function settingsModal(){
       <p class="note">Your game saves automatically. Export it to a file to move it to another device.</p>
       <div class="acts" style="margin-top:10px"><button class="b sm red" data-a="resetGame">Start over from the beginning</button>${desk?`<button class="b sm" data-a="quitApp">Save and quit</button>`:""}</div>
       <p class="note">Starting over erases your current game (day ${S.day}) and cannot be undone.</p>`)}
-    <p class="note setcred">Terrain and stone photo textures: Babylon.js Assets (CC BY 4.0)<br>King model: Aegis Sentinel by PixForge (CC BY 4.0)<br>Vargoth model: Corrupted King in Black Armor with Bone Crown by Pigcraft (CC BY 4.0)<br>Horse model: Akhal-Teke Stallion by Animal Animator (CC BY 4.0)<br>Old king model: Old king armor by Pedro B. Goulart (CC BY 4.0)<br>Palace gate: Medieval Fortress Kit by Aya Rady · Castle Style Door by Visthétique (CC BY 4.0)<br>Market stalls: Medieval Market Asset Pack by vmatthew (CC BY 4.0)<br>Palace walls and towers: Modular Medieval Wall Set by Andrei.D (CC BY 4.0)<br>Cities: Medieval Modular City Realistic by danielvicente97cesur · Medieval Pentagon Castle by Sereib · Modular Medieval Building by rakshaan (CC BY 4.0)<br>Throne of the Dead: The High Black Tower by LaetitiaIrata (CC BY 4.0)</p></div>`;
+    <p class="note setcred">Terrain and stone photo textures: Babylon.js Assets (CC BY 4.0)<br>King model: Aegis Sentinel by PixForge (CC BY 4.0)<br>Vargoth model: Corrupted King in Black Armor with Bone Crown by Pigcraft (CC BY 4.0)<br>Horse model: Akhal-Teke Stallion by Animal Animator (CC BY 4.0)<br>Old king model: Old king armor by Pedro B. Goulart (CC BY 4.0)<br>Palace gate: Medieval Fortress Kit by Aya Rady · Castle Style Door by Visthétique (CC BY 4.0)<br>Market stalls: Medieval Market Asset Pack by vmatthew (CC BY 4.0)<br>Palace walls and towers: Modular Medieval Wall Set by Andrei.D (CC BY 4.0)<br>Cities: Medieval Modular City Realistic by danielvicente97cesur · Medieval Pentagon Castle by Sereib · Modular Medieval Building by rakshaan (CC BY 4.0)<br>Throne of the Dead: The High Black Tower by LaetitiaIrata (CC BY 4.0)<br>Fortresses of the Dead: Low Poly Dark Castle by I'm blendin' it · Gothic Building For Aria Pack 1.0 by ChamberSu1996 · Villain's Lair by JSaffari (CC BY 4.0)</p></div>`;
 }
 function toggleBattleView(force){if(!BT||!BT.cmd)return;const toTp=(force!==undefined?force:E.camMode!=="tp")&&!!BT.king&&!BT.kingDown&&!KC.ko;if(!toTp)hideKingHud();if(!toTp&&E.camMode!=="tp"&&force===undefined){bSay(BT.king?"The king is down and the royal guard carried him to the rear — command from the overview.":"Battles led by a general are commanded from the overview.");return;}   // 장군이 이끌면 전체 시점만
   if(!toTp){setCamMode("rts");const os=bOurs().filter(s=>act(s)&&s.state!=="rout");const cx=os.length?os.reduce((a,s)=>a+s.x,0)/os.length:cmdPos().x,cz=os.length?os.reduce((a,s)=>a+s.z,0)/os.length:cmdPos().z;E.ctrl.set(cx,cz-22,105,0,0.56,true);}   // 전체 시점: 우리 진영 뒤 높은 곳에서 비스듬히 전장을 내려다본다
