@@ -486,6 +486,11 @@ push 전 화면 확인 목록 (실제 플레이로, 화면을 보이게 하고, 
 - Deep Dark 팀원 8 (처음 하는 사람처럼 점검) local_2336f860-2879-4c85-9e24-f185dc184717: 끝남, 결과 v0.9.155에 들어감, 컨텍스트 약 70%. 보관함(2026-11-27 저녁, 주인님 승인).
 - 팀원 기록(메모 폴더 C:\Users\jooha\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_ba111033-d812-434e-aa60-65f9c98dfc74\): king-walk.md, palace-fix.md, playtest.md, fortress.md(일부는 local_29e62420... 폴더에도 city.md, throne.md, fortress.md), models-common.md, places-common.md, wall*.md 등.
 
+### 망자의 요새 v0.9.156 (2026-11-27 밤, 새 팀장, 로컬 commit 48ddae4, push 전)
+- 요새 모델 chr/fort.glb, chrb/fort.wasm(3.36MB). 요새마다 다른 배치(fortPlan), 공략 성벽, 탑, 문루(fortWallGroup, fortTowerMesh, fortGateGroup, 문루 세로 배율 fortGateKy). 자세한 것과 다음 사람이 이어받을 것: 팀원 4 기록 fortress.md(메모 폴더 local_29e62420...).
+- 지도, 요새, 전장의 큰 빛 공을 작은 불씨로 줄였다(지도에 남은 glowSprite는 해뿐). 공성 장비 재질 색을 LIN()으로.
+- 자동 검사 runs/fort_5 20항목 통과. 확인 못 한 것: 실제 초당 프레임, 실기기, 사람이 직접 하는 요새 공략.
+
 ### 남은 일 (우선순위 순)
 1. (끝남) 제목 색은 바랜 놋쇠로 반영하고 PC, 휴대폰 가로에서 확인했다. 휴대폰 가로에서 즉위 알림 띠(#notes)가 메뉴와 겹치던 것은, 처음 화면이 떠 있을 때만 알림 띠를 화면 위쪽으로 올려 고쳤다(body:has(#title:not([hidden])) #notes). PC와 휴대폰 가로에서 확인.
 2. 바르고스: 팔을 크게 들 때 허리 옆 틈. 실제 전투 거리에서 눈에 띄는지 보고 필요하면 rig 다듬기.
