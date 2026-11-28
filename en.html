@@ -2659,7 +2659,14 @@ function kingGait(h){const H=h.userData.hero;if(!H)return;const m0=h.children[0]
   H.carryL=part("sw_blockidle",/Left(Shoulder|Arm|ForeArm|Hand)/);H.carryR=part("sw_idle2",/Right(Shoulder|Arm|ForeArm|Hand)\./);h.userData.gait=g;}
 // 서기, 걷기, 달리기 때 방패 든 왼팔(막기 자세 몫: 서기, 걷기 3 = 75%, 달리기 8 = 89%)과 걷기 때 칼 든 오른팔(1 = 50%)을 섞는다. 공격, 구르기, 말 타기 때는 0으로 천천히 뺀다
 function kingCarry(h,dt,off){const H=h.userData.hero;if(!H||!H.carryL)return;if(h.userData.sheathed&&!h.userData.helmet)off=true;   /* 칼, 방패를 등에 멘 왕(왕궁의 다른 갑주)은 빈손이라 섞지 않는다. 투구 쓴 왕은 칼, 방패가 몸에 붙어 늘 든다 */const c=H.cur,mv=!off&&(c==="walk"||c==="run"||c==="idle");const f=Math.min(1,dt*8);
-  for(const [a,w] of [[H.carryL,mv?(c==="run"?8:3):0],[H.carryR,!off&&c==="walk"?1:0]]){if(!a)continue;a._w+=(w-a._w)*f;a.setEffectiveWeight(a._w<0.01?0:a._w);}}
+  for(const [a,w] of [[H.carryL,mv?(c==="run"?1:3):0],   /* 달리기 왼팔: 막기 자세와 반반(1). 8이면 방패를 몸 앞에 붙든 채 손이 0.18m만 움직여 팔이 굳어 보였다. 1이면 0.32m 흔들고(섞지 않으면 0.40m) 방패는 엉덩이보다 0.04m 앞에 머문다(0이면 0.18m 뒤로 넘어가 망토를 뚫음). 2026-11-28 */[H.carryR,!off&&c==="walk"?1:0]]){if(!a)continue;a._w+=(w-a._w)*f;a.setEffectiveWeight(a._w<0.01?0:a._w);}}
+/* 달릴 때 머리 고정 (2026-11-28): 달리기 동작(b_run)은 걸음마다 어깨를 좌우 25~29도, 머리를 22도 비튼다. 사람은 달릴 때 어깨가 돌아도 머리는 앞을 본다. 몸 앞 방향과 머리 방향의 차이를 75% 되돌린다(걷기, 달리기 때만, 0.2초에 걸쳐 들어가고 빠진다) */
+const _hsQ=new THREE.Quaternion(),_hsP=new THREE.Quaternion(),_hsC=new THREE.Quaternion(),_hsV=new THREE.Vector3(),_hsY=new THREE.Vector3(0,1,0);
+function kingHeadSteady(m,dt){const H=m.userData.hero;if(!H)return;if(H.headB===undefined){H.headB=null;m.children[0]&&m.children[0].traverse(o=>{if(!H.headB&&o.isBone&&/Head$/.test(o.name))H.headB=o;});}const hb=H.headB;if(!hb||!hb.parent)return;
+  const on=H.cur==="run"||H.cur==="walk";H._hs=(H._hs||0)+((on?1:0)-(H._hs||0))*Math.min(1,dt*5);if(H._hs<0.01)return;
+  m.updateMatrixWorld(true);m.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const fy=Math.atan2(_hsV.x,_hsV.z);
+  hb.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const hy=Math.atan2(_hsV.x,_hsV.z);const d=angDiff(hy,fy)*0.75*H._hs;
+  hb.parent.getWorldQuaternion(_hsP);_hsC.setFromAxisAngle(_hsY,d);hb.quaternion.premultiply(_hsP.clone().invert().multiply(_hsC).multiply(_hsP));hb.updateMatrixWorld(true);}
 // 말 탄 자리 (2026-11-27): 엉덩이 뼈를 "말 등 겉면 + 그 모델의 엉덩이에서 가랑이 아랫면까지 거리"에 맞춘다. 예전에는 몸 원점(발)을 말 등뼈 + 0.06에 두어 허벅지가 말 등보다 33cm 떠 있었다
 // 가랑이 아랫면 점: 모델마다 한 번, 복제본에 말 타기 동작(x_ride)을 입혀 엉덩이 가운데에서 가로 30cm, 엉덩이 50cm 안, 엉덩이 뼈 높이 아래 점 번호를 골라 둔다(엉덩이, 허벅지 몫 0.6 넘는 점).
 // 매 프레임 그 점들만 동작을 입혀, 말 기준 가운데 띠(가로 16cm, 말 등 윗면 폭. 그 바깥 허벅지는 옆구리를 감싸 위아래로 잴 수 없다)에 든 엉덩이 아래 점과 바로 아래 말 등의 가장 작은 틈을 쓴다(말 위 베기처럼 허리가 비틀려 허벅지 안쪽이 내려오는 동작에서도 따른다. 가장 낮은 가랑이 점 하나만 따르면 베기 때 허벅지 안쪽이 말 등에 6cm 파묻혔다)
@@ -5000,7 +5007,7 @@ function kingStep(dt,env){
     if(k.rollT>0&&!hasClip(KCLIP.roll)){m.rotation.x=(1-k.rollT/0.55)*Math.PI*2;m.position.y=gy+Math.sin((1-k.rollT/0.55)*Math.PI)*0.25;}
     else{m.rotation.x=0;
       if(k.block&&H.acts.sneak){if(H.cur!=="sneak")heroPlay(m,"sneak",0.1);H.attackT=0.05;}
-      kingCarry(m,dt);animateHero(m,dt,k.atkT>0?0:(k.air?Math.max(k.spd,0.6):k.spd));thrustTick(k,m,dt);}
+      kingCarry(m,dt);animateHero(m,dt,k.atkT>0?0:(k.air?Math.max(k.spd,0.6):k.spd));kingHeadSteady(m,dt);thrustTick(k,m,dt);}
     // 투구 쓴 왕은 말총과 방패, 망토가 커서 구를 때 땅에 박힌다 → 머리와 엉덩이 뼈가 땅에서 일정 높이 아래로 내려가지 않게 몸을 들어 올린다
     if(k.rollT>0&&m.userData.helmet){const RB=m.userData.rollB||(m.userData.rollB=(()=>{const b={};m.traverse(o=>{if(o.isBone&&/(Head|Hips)$/.test(o.name))b[o.name.replace(/^.*(Head|Hips)$/,"$1")]=o;});return b;})());
       if(RB.Head&&RB.Hips){m.updateMatrixWorld(true);const lo=Math.min(RB.Head.getWorldPosition(_th.v[0]).y,RB.Hips.getWorldPosition(_th.v[1]).y)-m.position.y;if(lo<0.42)m.position.y+=0.42-lo;}}
@@ -7168,7 +7175,9 @@ const wallCrew=s=>isRng(s.t)||!!s.wallThrow;   // 성벽 위에 서는 무리: �
 function onWallTop(s){if(!BT.wall)return false;if(s.escTop&&s.side===BT.wallAtk){const w=wIn(s.x,s.z);return w>-0.4&&w<WALL_T()+0.8&&wallUp(s.x,s.z);}if(s.side!==BT.wallDef||!wallCrew(s))return false;const w=wIn(s.x,s.z);return w>-0.2&&w<WALL_T()+0.6&&wallUp(s.x,s.z);}
 /* 성벽 위 부대라도 병사 하나하나는 제 발밑이 성벽일 때만 성벽 높이에 선다 (성벽 밖으로 밀려난 병사가 허공에 뜨지 않게) */
 const figY=(s,x,z)=>{const g=bH(x,z);if(!onWallTop(s))return g;const w=wIn(x,z);if(w<-0.8||w>WALL_T()+1||!wallUp(x,z)){BT.fpN=(BT.fpN||0)+1;return g;}return g+wallWalkY()+0.25;};
-const wallWalkY=()=>wallWood()?wallH()-1.25:wallH();   // 성벽 위 통로 높이: 나무 울타리는 말뚝 끝 아래 발판
+const wallWalkY=()=>wallWood()?wallH()-1.25:wallH();
+/* 사다리로 성벽을 넘은 인형: 성벽 위 통로(안쪽 절반)에 나타나 위로 살짝 뛰었다가 안쪽으로 뛰어내려 착지한다. 날아가는 동안(f.jmp)은 성벽 밀어내기를 받지 않는다 (예전엔 벽 두께 한가운데 땅에서 0.5m 솟아 벽 안쪽 면으로 밀려 나와 벽을 뚫고 나오는 것처럼 보였다) */
+function wallJump(f,a){const T=WALL_T(),q=wPt(a,T*(wallWood()?0.78:0.72));f.x=q.x;f.z=q.z;f.hy=wallWalkY()+0.25;f.vy=5.8+Math.random()*0.6;const v=4.4+Math.random()*1.0;f.jvx=-Math.sin(a)*v;f.jvz=Math.cos(a)*v;f.jmp=true;f.kbx=0;f.kbz=0;f.spin=0;f.cst=null;}   // 성벽 위 통로 높이: 나무 울타리는 말뚝 끝 아래 발판
 /* 성벽 위 발 디딜 곳 표: 그려진 성벽(BR.wallG)을 위에서 광선으로 훑어, 통로 높이에 바닥이 있는 (각도, 깊이)만 고른다.
    계단이 올라오는 통로 구멍, 탑 사이 틈 위에 궁병이 떠 서지 않게. 성벽 모양(모델이 늦게 오거나 칸이 무너짐)이 바뀌면 다시 만든다 */
 function wallWalkTab(){const B=BT;const g=typeof BR!=="undefined"&&BR.wallG;if(!B||!B.wall||B.wall.none||!g||!g.children.length)return null;const key=g.children.map(o=>o.id).join(",")+"|"+B.wall.segs.map(s=>s.hp>0?1:0).join("");
@@ -7738,8 +7747,8 @@ function buildBattleScene(){
   // 왕
   // 장군들: 근위대 앞에서 싸운다
   BR.capt=null;{const cq=B.sq.find(s=>s.isCapt);const vg=cq&&(cq.isBoss||cq.isVargoth)&&CHR.ready&&CHR.gltf.vargoth;
-    if(vg){const m=makeHero("vargoth",[],null,"sword");if(m){m.scale.multiplyScalar(1.6);m.userData.vargoth=true;sc.add(m);BR.capt={m,sq:cq};}}   /* 바르고스: 칼은 모델에 붙어 있다 */
-    else if(cq&&CHR.ready&&CHR.gltf.warrok){const m=makeHero("warrok",["club"],cq.isBoss?"#2a2030":"#6a4a4a","brute");if(m){m.scale.multiplyScalar(cq.isBoss?1.9:1.35);sc.add(m);BR.capt={m,sq:cq};}}}
+    if(vg){const m=makeHero("vargoth",[],null,"sword");if(m){m.scale.multiplyScalar(1.6);m.userData.vargoth=true;sc.add(m);BR.capt={m,sq:cq,rv:0.7*1.6};}}   /* 바르고스: 칼은 모델에 붙어 있다 */
+    else if(cq&&CHR.ready&&CHR.gltf.warrok){const m=makeHero("warrok",["club"],cq.isBoss?"#2a2030":"#6a4a4a","brute");if(m){m.scale.multiplyScalar(cq.isBoss?1.9:1.35);sc.add(m);BR.capt={m,sq:cq,rv:0.7*(cq.isBoss?1.9:1.35)};}}}
   BR.gens=[];for(const q of B.sq){if(q.t!=="guard"||!q.genId||!CHR.ready||q.isKing)continue;const m=makeKing(GEN_LOOK[q.genId]||{custom:genById(q.genId)});if(m&&m.userData.hero){sc.add(m);BR.gens.push({m,sq:q});}}
   BR.king=null;if(B.king){BR.king=B.heroGen?makeKing(GEN_LOOK[B.heroGen]||{custom:genById(B.heroGen)}):makeKing(S.skin||"ashen");if(!BR.king)BR.king=makeKing(S.skin||"ashen");sc.add(BR.king);KC.horse=null;if(CHR.ready&&CHR.gltf.horse){const h=makeHero("horse",[],null,"horse");if(h){sc.add(h);KC.horse=h;KC.mounted=true;}}}
 }
@@ -7933,12 +7942,13 @@ function renderBattle(dt){
         // 탑(이음 탑, 성문 탑, 모서리 탑) 속 자리면 탑 밖에 선다 (성벽이 무너져도 탑은 남는다)
         if(B.wall&&!kNear&&!(s.climbing&&(f.cst==="up"||f.cst==="fall"))&&!(((s.onWall&&wallCrew(s))||s.escTop)&&onWallTop(s))){const q=towerPush(p.x,p.z,(f._r||0.4)+0.2);if(q)p=q;}
         // 걸음은 제 속도를 넘지 않는다 (인형이 미끄러지듯 날아가지 않게)
-        {const gx=(p.x-f.x)*k,gz=(p.z-f.z)*k,gl=Math.hypot(gx,gz),mx=vmax*dt;if(gl>mx&&!kNear){f.x+=gx/gl*mx;f.z+=gz/gl*mx;}else{f.x+=gx;f.z+=gz;}}
+        if(f.jmp){f.x+=f.jvx*dt;f.z+=f.jvz*dt;p={x:f.x,z:f.z};}   // 성벽에서 뛰어내리는 중: 제 궤적대로 날아간다
+        else{const gx=(p.x-f.x)*k,gz=(p.z-f.z)*k,gl=Math.hypot(gx,gz),mx=vmax*dt;if(gl>mx&&!kNear){f.x+=gx/gl*mx;f.z+=gz/gl*mx;}else{f.x+=gx;f.z+=gz;}}
         // 부딪힘: 돌격·트롤에 맞은 앞줄이 뒤로 밀려나고, 세게 맞으면 공중으로 튕겨 나간다
         if(f.kbx||f.kbz){f.x+=f.kbx*dt;f.z+=f.kbz*dt;const dk=Math.pow(0.02,dt);f.kbx*=dk;f.kbz*=dk;if(Math.abs(f.kbx)+Math.abs(f.kbz)<0.05){f.kbx=0;f.kbz=0;}}
-        if(f.hy>0||f.vy>0){f.vy-=22*dt;f.hy=Math.max(0,(f.hy||0)+f.vy*dt);if(f.hy<=0){f.vy=0;f.hy=0;f.downT=VAT_T.value+0.7;}}
+        if(f.hy>0||f.vy>0){f.vy-=22*dt;f.hy=Math.max(0,(f.hy||0)+f.vy*dt);if(f.hy<=0){f.vy=0;f.hy=0;f.downT=VAT_T.value+(f.jmp?0.45:0.7);f.jmp=false;}}else if(f.jmp)f.jmp=false;
         // 성벽: 인형도 성벽을 뚫지 못한다. 바깥 망자는 성벽 앞에서 멈추고(앞줄은 성벽을 두드린다), 성벽 위 궁병은 통로 안에 머문다
-        let wallHit=false;f.wh=false;if(B.wall&&!(s.climbing&&(f.cst==="up"||f.cst==="fall"))){const w=wIn(f.x,f.z),T=WALL_T(),rr=f._r||0.4;if(wallUp(f.x,f.z)){
+        let wallHit=false;f.wh=false;if(B.wall&&!f.jmp&&!(s.climbing&&(f.cst==="up"||f.cst==="fall"))){const w=wIn(f.x,f.z),T=WALL_T(),rr=f._r||0.4;if(wallUp(f.x,f.z)){
           if(((s.onWall&&s.side===B.wallDef&&wallCrew(s))||s.escTop)&&onWallTop(s)){const a2=wAng(f.x,f.z),na=towerFreeA(a2,rr*0.5),c=wInC(f.x,f.z);if(c<0.45||c>T-0.95||na!==a2){const q=wPtC(na,clamp(c,0.45,T-0.95));f.x=q.x;f.z=q.z;}{const fx=wallWalkFix(wAng(f.x,f.z),wInC(f.x,f.z));if(fx){const q=wPtC(fx.a,fx.c);f.x=q.x;f.z=q.z;}}}   // 성벽 위 통로에 머물고, 탑 자리에는 들어가지 않는다
           else{const bd=wallBand(f.x,f.z);if(wIn(s.x,s.z)<0){if(w>bd.lo-rr-0.3){const q=wPt(wAng(f.x,f.z),bd.lo-rr-0.3);f.x=q.x;f.z=q.z;}if(s.side===B.wallAtk&&!s.engaged&&w>bd.lo-rr-1.2&&s.state!=="rout"&&s.state!=="move"&&canBash(s,segAt(f.x,f.z)))wallHit=f.wh=true;}
           else if(w<bd.hi+rr+0.3){const q=wPt(wAng(f.x,f.z),bd.hi+rr+0.3);f.x=q.x;f.z=q.z;}}}
@@ -8029,7 +8039,19 @@ function renderBattle(dt){
   BR.deployZone.visible=BR.deployEdge.visible=B.phase==="deploy";
   if(B.wall)for(const sg of B.wall.segs)if(sg.el){const p=Math.round(sg.hp/sg.max*100);if(sg._p!==p){sg._p=p;sg.el.innerHTML=`<em style="width:${p}%;background:${p<35?"#d0503f":"#cfc6b0"}"></em>`;}}
   // 망자 두목: 무리 앞에서 포효한다
-  if(BR.capt){const q=BR.capt.sq,m=BR.capt.m;if(!act(q)){m.visible=false;}else{m.visible=true;const kx=q.x+Math.sin(q.face)*2.4,kz=q.z+Math.cos(q.face)*2.4;const prev=BR.capt.prev||{x:kx,z:kz};const sp=Math.hypot(kx-prev.x,kz-prev.z)/Math.max(dt,0.001);BR.capt.prev={x:kx,z:kz};m.position.set(kx,bH(kx,kz),kz);m.rotation.y=q.face;const R=m.userData.rig;if(q.engaged&&R.attack<=0&&Math.random()<dt*1.0)R.attack=1;if(!q.engaged&&Math.random()<dt*0.08)R.cheer=true;animateHero(m,dt,B.paused?0:Math.min(sp,6));}}
+  if(BR.capt){const c=BR.capt,q=c.sq,m=c.m;if(!act(q)){m.visible=false;}else{m.visible=true;const kx=q.x+Math.sin(q.face)*2.4,kz=q.z+Math.cos(q.face)*2.4;const prev=c.prev||{x:kx,z:kz};const sp=Math.hypot(kx-prev.x,kz-prev.z)/Math.max(dt,0.001);c.prev={x:kx,z:kz};m.position.set(kx,bH(kx,kz),kz);const R=m.userData.rig,H=m.userData.hero;
+    /* 두목(바르고스)은 제 칼로 싸운다: 몸 앞 칼끝 거리 안의 왕이나 적 병사를 골라 돌아서서 베고, 휘두른 뒤 0.35초에 맞은 자가 다친다 (예전엔 부대가 붙었을 때 허공에 아무렇게나 휘두르고 피해는 없었다) */
+    const rv=c.rv||0.7,reach=rv+1.9;let tg=null,td=reach;if(!B.paused){c.cd=(c.cd||0)-dt;
+      const kp=B.kingPos;if(kp&&B.king&&!KC.ko&&!B.kingDown&&BR.king&&BR.king.visible&&!(B.wall&&acrossWall({x:kx,z:kz},kp))){const d=Math.hypot(kp.x-kx,kp.z-kz);if(d<td){td=d;tg={king:true,x:kp.x,z:kp.z};}}
+      if(!tg)for(const s of B.sq){if(s.side===q.side||!act(s)||(B.wall&&acrossWall({x:kx,z:kz},s))||Math.hypot(s.x-kx,s.z-kz)>sqR(s)+reach+9)continue;for(const f of s.figs){if(!f.alive||f.hy>0)continue;const d=Math.hypot(f.x-kx,f.z-kz)-(f._r||0.4)*0.5;if(d<td){td=d;tg={f,s,x:f.x,z:f.z};}}}
+      if(tg&&c.cd<=0&&!(H&&H.attackT>0)){R.attack=1;c.cd=1.5+Math.random()*0.4;c.hitAt=B.t+0.35;c.hit=tg;c.swings=(c.swings||0)+1;}
+      if(c.hitAt&&B.t>=c.hitAt){const h=c.hit;c.hitAt=0;c.hit=null;
+        if(h&&h.king){const kp2=B.kingPos;if(kp2&&Math.hypot(kp2.x-kx,kp2.z-kz)<reach+0.8){KC.sqAcc=(KC.sqAcc||0)+(q.isBoss?9:7);KC.dmgFrom={x:kx-kp2.x,z:kz-kp2.z};c.hits=(c.hits||0)+1;}}
+        else if(h&&h.f){if(!(h.f.alive&&act(h.s)&&Math.hypot(h.f.x-kx,h.f.z-kz)<reach+0.8)){h.f=null;let bd=reach+0.5;for(const s of B.sq){if(s.side===q.side||!act(s)||(B.wall&&acrossWall({x:kx,z:kz},s))||Math.hypot(s.x-kx,s.z-kz)>sqR(s)+reach+9)continue;for(const f of s.figs){if(!f.alive||f.hy>0)continue;const d=Math.hypot(f.x-kx,f.z-kz);if(d<bd){bd=d;h.f=f;h.s=s;}}}}   // 휘두르는 사이 비켜났으면 칼이 지나가는 자리의 다른 적이 맞는다
+          if(h.f){const n=Math.min(h.s.perFig||1,6);bDamage(q,h.s,sqHp(h.s)*n*OUR_K);const ux=h.f.x-kx,uz=h.f.z-kz,l=Math.hypot(ux,uz)||1;h.f.kbx=ux/l*5;h.f.kbz=uz/l*5;c.hits=(c.hits||0)+1;}}}
+      if(!tg&&c.cd<=0&&!(H&&H.attackT>0)&&B.wall&&q.figs.some(f=>f.alive&&f.wh)&&wIn(kx,kz)>-(rv+3)){R.attack=1;c.cd=1.8+Math.random()*0.5;}}   // 성벽(성문)을 치는 부대와 함께 성벽을 내리친다
+    {const fa=tg?Math.atan2(tg.x-kx,tg.z-kz):q.face;c.face=c.face===undefined?fa:c.face+angDiff(c.face,fa)*Math.min(1,dt*10);m.rotation.y=c.face;}
+    if(!q.engaged&&!tg&&Math.random()<dt*0.08)R.cheer=true;animateHero(m,dt,B.paused?0:Math.min(sp,6));}}
   // 장군: 근위대 앞에 서서 함께 싸운다
   if(BR.gens)for(const g of BR.gens){const q=g.sq;if(!act(q)){g.m.visible=false;continue;}g.m.visible=true;const kx=q.x+Math.sin(q.face)*2.0,kz=q.z+Math.cos(q.face)*2.0;const prev=g.prev||{x:kx,z:kz};const sp=Math.hypot(kx-prev.x,kz-prev.z)/Math.max(dt,0.001);g.prev={x:kx,z:kz};
     g.m.position.set(kx,bH(kx,kz),kz);g.m.rotation.y=q.face;const R=g.m.userData.rig;if(q.engaged&&R.attack<=0&&Math.random()<dt*1.2)R.attack=1;animateKing(g.m,dt,B.paused?0:Math.min(sp,7),t);}
@@ -8296,6 +8318,8 @@ function separateFigs(B){_sepG.clear();const cs=1.6,key=(i,j)=>i*4096+j;const al
     for(const f of s.figs){if(!f.alive||f.hy>0)continue;f._r=rad;f._s=s;const i=Math.floor(f.x/cs)+2048,j=Math.floor(f.z/cs)+2048,k=key(i,j);let c=_sepG.get(k);if(!c){c=[];_sepG.set(k,c);}c.push(f);all.push(f);}}
   for(const f of all){const i=Math.floor(f.x/cs)+2048,j=Math.floor(f.z/cs)+2048;const R=Math.ceil((f._r+2.0)/1.6);
     for(let a=-R;a<=R;a++)for(let b=-R;b<=R;b++){const c=_sepG.get(key(i+a,j+b));if(!c)continue;for(const g of c){if(g===f)continue;const dx=f.x-g.x,dz=f.z-g.z,d2=dx*dx+dz*dz,m=f._r+g._r;if(d2<m*m&&d2>1e-6){const d=Math.sqrt(d2),pu=(m-d)*(g._r>f._r*1.5?0.6:0.4);f.x+=dx/d*pu;f.z+=dz/d*pu;}}}}
+  // 두목 모델(바르고스 1.6배, 와록)은 몸이 크다: 같은 편, 다른 편 인형 모두 몸 반지름 밖으로 밀어낸다 (모델이 무리 앞줄 자리에 서서 병사와 겹쳐 보이던 것)
+  if(!B.headless&&BR.capt&&BR.capt.m.visible&&BR.capt.sq&&act(BR.capt.sq)){const cp=BR.capt.m.position,rv=BR.capt.rv||0.7;for(const f of all){const dx=f.x-cp.x,dz=f.z-cp.z,d=Math.hypot(dx,dz),m=rv+f._r*0.8;if(d<m){const ux=d>1e-4?dx/d:Math.sin(f.vi||1),uz=d>1e-4?dz/d:Math.cos(f.vi||1);f.x=cp.x+ux*m;f.z=cp.z+uz*m;}}}
   // 투석기·충차는 지나갈 수 없다
   if(B.engines)for(const e of B.engines){if(e.hp<=0&&!e.ram)continue;const er=e.ram?3.4:2.8;for(const f of all){const dx=f.x-e.x,dz=f.z-e.z,d=Math.hypot(dx,dz),m=er+f._r;if(d<m&&d>1e-4){f.x=e.x+dx/d*m;f.z=e.z+dz/d*m;}}}
   // 탑, 문루 양옆 벽도 지나갈 수 없다: 서로 밀어낸 뒤 탑 속에 남은 인형을 밖으로 (성벽 위 궁병, 사다리 오르는 인형은 따로 다룬다)
@@ -8631,9 +8655,9 @@ function siegeClimb(s,dt){const B=BT;if(!B.wall||s.side!==B.wallAtk||s.role!=="l
   {const cr=B.sq.filter(q=>act(q)&&q.side===B.wallDef&&onWallTop(q)&&angD(wAng(q.x,q.z),a)<0.14).sort((p1,p2)=>angD(wAng(p1.x,p1.z),a)-angD(wAng(p2.x,p2.z),a))[0];
     if(cr){bDamage(s,cr,up*U[s.t].atk*(isInf?0.5:0.3));cr.morale-=4;if(!B.headless){bPop(cr,"Enemies climbing the ladder pounce!",cr.side===0?"bad":"good");B.fx.push({k:"dust",x:cr.x,z:cr.z,t0:B.t,dur:0.6});}}}
   let e=B.sq.find(q=>q.esc&&q.escTop&&q.side===s.side&&q.t===s.t&&act(q)&&Math.hypot(q.x-p.x,q.z-p.z)<14&&Math.ceil((q.alive+up)/q.perFig-1e-6)<=q.figs.length);
-  if(e){const b0=aliveFigs(e);e.alive+=up;e.pool+=up*sqHp(e);e.men0=Math.max(e.men0,e.alive);let add=aliveFigs(e)-b0;for(const f of e.figs){if(add<=0)break;if(!f.alive){f.alive=true;f.x=p.x+rnd(-2,2);f.z=p.z+rnd(-2,2);f.hy=0.5;f.vy=1;add--;}}}
+  if(e){const b0=aliveFigs(e);e.alive+=up;e.pool+=up*sqHp(e);e.men0=Math.max(e.men0,e.alive);let add=aliveFigs(e)-b0;for(const f of e.figs){if(add<=0)break;if(!f.alive){f.alive=true;f.x=p.x+rnd(-2,2);f.z=p.z+rnd(-2,2);if(!B.headless)wallJump(f,a+rnd(-2.4,2.4)/CW.R);add--;}}}
   else{e=mkSquad(s.t,s.side,up,p.x,p.z,null);e.esc=true;e.escTop=false;e.escTopT=0;e.src=s.id;if(isInf)e.buff.push=12;   /* 교두보: 넘어간 보병은 방패로 밀어붙인다 */if(s.side===0){e.vet=s.vet;e.elite=s.elite;e.gen=null;}e.state="attack";e.morale=100;e.wIn0=wIn(e.x,e.z);if(s.tier)e.hpk=s.hpk;
-    if(!B.headless){const wh=wallH();for(const f of e.figs){const q=wPt(a+((f.vi%7)-3)*0.8/CW.R,T*0.5);f.x=q.x;f.z=q.z;f.hy=0.5;f.vy=1+Math.random()*0.8;f.kbx=0;f.kbz=0;}}
+    if(!B.headless)for(const f of e.figs)wallJump(f,a+((f.vi%7)-3)*0.8/CW.R);
     B.sq.push(e);if(typeof ensureCapacity==="function")ensureCapacity();if(!B.headless&&typeof addSqLabel==="function")addSqLabel(e);}
   if(!B.climbSaid||B.t-B.climbSaid>10){B.climbSaid=B.t;bSay(s.side===1?(def?`${U[s.t].n} climb the ladder — archers on the wall push them off!`:`${U[s.t].n} came over an empty wall! Guard the wall top!`):(def?`${U[s.t].n} climb the ladder — the Dead shove them off at the top!`:`${U[s.t].n} made it over the wall! Fighting inside!`));}
   BT.log.push(`${U[s.t].n} over the wall`);}
@@ -9461,6 +9485,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.159","Enemies who climb a ladder now appear on top of the wall and jump down inside instead of rising out of it (all walled battles) · Soldiers no longer overlap Vargoth's body · Vargoth now strikes the king and soldiers near him · The running king swings his left arm naturally and looks ahead"],
  ["0.9.158","Credits in Settings now link to every original model and texture, link the CC BY 4.0 license and state that the assets were modified for the game · Added the source of the palace stone textures (Poly Haven)"],
  ["0.9.157","A loading screen (progress bar and current step) now appears when entering the game or a battle, and everything that caused stutter (models, soldier animations, graphics) is prepared before play starts, also after choosing whether to connect Claude · Building labels no longer show through the health bars, resource bar or minimap · Larger palace minimap labels on phones · Guards stand again on both sides of the palace gate and the great hall door · The king walks at his original speed again · The fonts (Gowun Batang, Cinzel) are now built into the game, so text looks the same without an internet connection"],
  ["0.9.156","The fortresses of the Dead have a new look: each has its own walls, towers, gate and keep (Morgash, Kalgor, Guldrak, Iskar Spire, Oshelm, Bargol Keep and the fallen neighbouring capital) · In fortress assaults the Dead stand properly on walls, towers and the gatehouse · Rams, catapults and ladders no longer glow at night · Big glowing orbs on the map and at fortresses are now small embers · Battlefield fire light toned down"],
@@ -10126,7 +10151,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${dayKing(LOADED)}</small></button>`:`<button class="tb main" data-a="start">START<small>From the old king's last night</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">Start without prologue<small>Straight to day 1 at the Palace</small></button>`}
       <button class="tb" data-a="practice">Battle practice</button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot tver">v0.9.158</p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot tver">v0.9.159</p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
