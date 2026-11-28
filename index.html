@@ -2663,15 +2663,19 @@ function kingCarry(h,dt,off){const H=h.userData.hero;if(!H||!H.carryL)return;if(
 /* 달릴 때 머리 고정 (2026-11-28): 달리기 동작(b_run)은 걸음마다 어깨를 좌우 25~29도, 머리를 22도 비튼다. 사람은 달릴 때 어깨가 돌아도 머리는 앞을 본다. 몸 앞 방향과 머리 방향의 차이를 75% 되돌린다(걷기, 달리기 때만, 0.2초에 걸쳐 들어가고 빠진다) */
 const _hsQ=new THREE.Quaternion(),_hsP=new THREE.Quaternion(),_hsC=new THREE.Quaternion(),_hsV=new THREE.Vector3(),_hsY=new THREE.Vector3(0,1,0);
 function kingHeadSteady(m,dt){const H=m.userData.hero;if(!H)return;if(H.headB===undefined){H.headB=null;m.children[0]&&m.children[0].traverse(o=>{if(!H.headB&&o.isBone&&/Head$/.test(o.name))H.headB=o;});}const hb=H.headB;if(!hb||!hb.parent)return;
-  const on=H.cur==="run"||H.cur==="walk";H._hs=(H._hs||0)+((on?1:0)-(H._hs||0))*Math.min(1,dt*5);if(H._hs<0.01)return;
+  const on=H.cur==="run"||H.cur==="walk"||(H.cur==="idle"&&m.userData.helmet);H._hs=   /* 서기(sw_idle2)도 머리를 오른쪽으로 25도 돌린다: 볏을 바로잡은 뒤 서 있을 때 볏이 오른쪽으로 비스듬해 보여 함께 앞으로 돌린다 */(H._hs||0)+((on?1:0)-(H._hs||0))*Math.min(1,dt*5);if(H._hs<0.01)return;
   m.updateMatrixWorld(true);m.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const fy=Math.atan2(_hsV.x,_hsV.z);
-  hb.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const hy=Math.atan2(_hsV.x,_hsV.z);const d=angDiff(hy,fy)*0.75*H._hs;
+  /* 몸 전체 치우침 (2026-11-28): 달리기 동작은 엉덩이(양 허벅지 뿌리 선)가 걸음 평균 3.4도, 어깨선이 3.2도 왼쪽으로 치우쳐 똑바로 달려도 살짝 왼쪽을 보는 듯했다. 엉덩이 선의 걸음 평균(약 1초 이동 평균)만큼 엉덩이 뼈를 되돌린다(걸음마다 흔들림은 그대로) */
+  if(H.hipB===undefined){H.hipB=null;H.ulB=null;H.urB=null;m.children[0].traverse(o=>{if(!o.isBone)return;if(!H.hipB&&/Hips$/.test(o.name))H.hipB=o;if(!H.ulB&&/LeftUpLeg$/.test(o.name))H.ulB=o;if(!H.urB&&/RightUpLeg$/.test(o.name))H.urB=o;});}
+  if(H.hipB&&H.ulB&&H.urB&&H.hipB.parent&&H.cur!=="idle"){   /* 서 있을 때는 머리만(몸은 그대로) */const a=H.ulB.getWorldPosition(new THREE.Vector3()),b=H.urB.getWorldPosition(new THREE.Vector3());const py=angDiff(fy,Math.atan2(b.z-a.z,-(b.x-a.x)));if(!isFinite(py))return;if(!isFinite(H._hm))H._hm=undefined;H._hm=(H._hm===undefined?py:H._hm+(py-H._hm)*Math.min(1,dt*1.2));   // 처음 만들어질 때 등 한 프레임이라도 NaN이면 평균이 영영 NaN이 되어 뼈가 사라졌다
+    const hp=H.hipB;hp.parent.getWorldQuaternion(_hsP);_hsC.setFromAxisAngle(_hsY,-H._hm*H._hs);hp.quaternion.premultiply(_hsP.clone().invert().multiply(_hsC).multiply(_hsP));hp.updateMatrixWorld(true);}
+  hb.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const hy=Math.atan2(_hsV.x,_hsV.z);const d=angDiff(hy,fy)*(H.cur==="idle"?1:0.75)*H._hs;if(!isFinite(d))return;   /* 서 있을 때는 다 되돌린다(75%면 머리가 12도 오른쪽에 남아 볏이 비스듬했다) */
   hb.parent.getWorldQuaternion(_hsP);_hsC.setFromAxisAngle(_hsY,d);hb.quaternion.premultiply(_hsP.clone().invert().multiply(_hsC).multiply(_hsP));hb.updateMatrixWorld(true);}
 /* 말 탄 왕 앞 보기 (2026-11-28): 말 타기 동작(ride)은 몸통(어깨선)을 진행 방향보다 8도, 머리를 9도 왼쪽으로 돌린 채 고정돼 있어 "왼쪽을 보며 달리는" 것처럼 보였다(프롤로그 전투에서 잼). 베거나 맞지 않을 때 허리(Spine)로 어깨를, 그다음 머리를 앞으로 돌린다 */
 function kingRideFwd(m,dt,on){const H=m.userData.hero;if(!H)return;if(H.rfB===undefined){H.rfB=null;const b={};m.children[0]&&m.children[0].traverse(o=>{if(!o.isBone)return;for(const [k,re] of [["sp",/Spine$/],["ls",/LeftShoulder$/],["rs",/RightShoulder$/],["hd",/Head$/]])if(!b[k]&&re.test(o.name))b[k]=o;});if(b.sp&&b.ls&&b.rs&&b.hd)H.rfB=b;}const B=H.rfB;if(!B)return;
   H._rf=(H._rf||0)+((on?1:0)-(H._rf||0))*Math.min(1,dt*5);if(H._rf<0.01)return;
   const rot=(bone,d)=>{bone.parent.getWorldQuaternion(_hsP);_hsC.setFromAxisAngle(_hsY,d);bone.quaternion.premultiply(_hsP.clone().invert().multiply(_hsC).multiply(_hsP));bone.updateMatrixWorld(true);};
-  m.updateMatrixWorld(true);m.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const fy=Math.atan2(_hsV.x,_hsV.z);
+  m.updateMatrixWorld(true);m.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const fy=Math.atan2(_hsV.x,_hsV.z);if(!isFinite(fy))return;
   const a=B.ls.getWorldPosition(new THREE.Vector3()),b=B.rs.getWorldPosition(new THREE.Vector3());rot(B.sp,angDiff(Math.atan2(b.z-a.z,-(b.x-a.x)),fy)*H._rf);
   B.hd.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);rot(B.hd,angDiff(Math.atan2(_hsV.x,_hsV.z),fy)*H._rf);
   /* 왼팔(방패, 고삐): 말 타기 동작에서 왼손이 0.02~0.04m밖에 안 움직여 굳어 보였다. 말 걸음에 맞춰 어깨를 앞뒤로 최대 10도 흔든다(보폭 약 3.5m마다 한 번) */
@@ -2736,12 +2740,23 @@ function horseBackPts(horse,bone){horse.updateMatrixWorld(true);const b=bone.get
 const _hbV=new THREE.Vector3(),_hbG=new Map();
 // 말 등 높이 칸(가로 6cm): 칸마다 가장 높은 말 점
 function horseBackGrid(pts){_hbG.clear();for(const {o,idx} of pts){o.skeleton.update();const p=o.geometry.attributes.position;for(const i of idx){_hbV.fromBufferAttribute(p,i);o.boneTransform(i,_hbV);_hbV.applyMatrix4(o.matrixWorld);const key=Math.round(_hbV.x/0.06)*4096+Math.round(_hbV.z/0.06);const t=_hbG.get(key);if(t===undefined||_hbV.y>t)_hbG.set(key,_hbV.y);}}return _hbG;}
+/* 투구 볏 바로잡기 (2026-11-28): hoplite.glb의 투구 위쪽(볏)이 기본 자세에서부터 얼굴 정면보다 왕의 왼쪽으로 약 32도 틀어져 만들어져 있어(머리 뼈에 묶인 정점을 높이별로 잰 긴 축 29~37도), 똑바로 달려도 왼쪽을 보는 것처럼 보였다.
+   눈 높이 3cm 위부터 10cm에 걸쳐 서서히(머리 세로축에서 60cm 안), 그 위(투구 꼭대기와 볏)는 32도 전부, 머리 세로축으로 되돌린다. 얼굴과 투구 아래쪽은 그대로. 모델 정점은 복제본끼리 함께 쓰므로 한 번만 고친다 */
+function kingCrestFix(h){let me=null;h.traverse(o=>{if(!me&&o.isSkinnedMesh)me=o;});if(!me)return;const g=me.geometry;if(g.userData.crestFix)return;g.userData.crestFix=true;
+  const sk=me.skeleton,bs=sk.bones,rest=re=>{const i=bs.findIndex(b=>re.test(b.name));return i<0?null:new THREE.Vector3().setFromMatrixPosition(sk.boneInverses[i].clone().invert());};
+  const hi=bs.findIndex(b=>/Head$/.test(b.name)),hd=rest(/Head$/),tp=rest(/HeadTop_End$/),ey=rest(/RightEye$/);if(hi<0||!hd||!tp||!ey)return;
+  const up=tp.clone().sub(hd).normalize(),h0=ey.clone().sub(hd).dot(up)+0.03,A=-32*Math.PI/180;
+  const P=g.attributes.position,N=g.attributes.normal,SI=g.attributes.skinIndex,SW=g.attributes.skinWeight,B=me.bindMatrix,Bi=new THREE.Matrix4().copy(B).invert(),v=new THREE.Vector3(),n=new THREE.Vector3(),q=new THREE.Quaternion(),nm=new THREE.Matrix3().getNormalMatrix(B),nmi=new THREE.Matrix3().getNormalMatrix(Bi);   /* bindMatrixInverse는 attached 모드에서 매 프레임 메시 월드 역행렬로 바뀌므로 쓰지 않는다 */
+  const gc=(a,i,j)=>j===0?a.getX(i):j===1?a.getY(i):j===2?a.getZ(i):a.getW(i);
+  for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).applyMatrix4(B);const dv=v.clone().sub(hd),hh=dv.dot(up);if(hh<=h0)continue;if(dv.addScaledVector(up,-hh).length()>0.6)continue;const k=Math.min(1,(hh-h0)/0.1);q.setFromAxisAngle(up,A*k);   // 머리 뼈 무게가 아니라 자리로 고른다(무게로 고르면 볏 일부가 남아 면이 찢어졌다). 10cm에 걸쳐 서서히: 면 늘어남 2.16배, 3.7cm 이하
+    v.sub(hd).applyQuaternion(q).add(hd).applyMatrix4(Bi);P.setXYZ(i,v.x,v.y,v.z);if(N){n.fromBufferAttribute(N,i).applyMatrix3(nm).applyQuaternion(q).applyMatrix3(nmi).normalize();N.setXYZ(i,n.x,n.y,n.z);}}
+  P.needsUpdate=true;if(N)N.needsUpdate=true;g.computeBoundingSphere();}
 function makeKing(skinId){
   // 실사 모델이 있으면 그것을 쓴다
   if(typeof CHR!=="undefined"&&CHR.ready){
     if(typeof skinId==="string"&&typeof S!=="undefined"&&S&&S.prologue&&CHR.gltf.oldking){const h=makeHero("oldking",["sword","shield"]);if(h){h.userData.skin=skinId;h.userData.oldking=true;h.scale.setScalar(1.12);kingCalmIdle(h);kingGait(h);return h;}}   /* 프롤로그의 선왕: Old king armor. 모델에 무기가 없어 게임의 칼, 방패를 쥔다(갑주 장식은 더하지 않는다) */
     if(typeof skinId==="object"){const gid=Object.keys(GEN_LOOK).find(k=>GEN_LOOK[k]===skinId),ho=gid?HERO_OF[gid]:(skinId.custom?({inf:["knight",["sword","shield"]],spear:["battalion",["spear"]],archer:["erika",["bow"]],cav:["guard",["sword"]],priest:["erika",[]]})[skinId.custom.unit]||["guard",["sword"]]:null);if(ho){const h=makeHero(ho[0],ho[1]);if(h){if(gid&&GEN_DECO[gid]){try{const b={};h.traverse(o=>{if(o.isBone)b[o.name]=o;});heroKit(h,skinId,b,GEN_DECO[gid]);}catch(e){console.warn(e);}}return h;}}}
-    else{const sk0=SKINS.find(s=>s.id===skinId);const mdl=sk0&&sk0.model&&CHR.gltf[sk0.model]?sk0.model:(CHR.gltf.hoplite?"hoplite":CHR.gltf.knight?"knight":"ganfaul");const h=makeHero(mdl,["sword","shield"],SKIN_TINT[skinId]);if(h){h.userData.helmet=mdl==="hoplite";if(h.userData.helmet){kingLift(h);kingCalmIdle(h);}kingGait(h);if(h.userData.helmet)h.traverse(o=>{if(o.userData&&(o.userData.prop==="sword"||o.userData.prop==="shield"))o.visible=false;});}   /* 기본 왕: 투구 쓴 그리스 전사. 칼과 방패는 모델에 붙어 있어 따로 쥐여 주는 것은 감춘다 */if(h){h.userData.skin=skinId;h.scale.setScalar(1.12);try{heroDeco(h,sk0||SKINS[0]);}catch(e){console.warn(e);}return h;}}}
+    else{const sk0=SKINS.find(s=>s.id===skinId);const mdl=sk0&&sk0.model&&CHR.gltf[sk0.model]?sk0.model:(CHR.gltf.hoplite?"hoplite":CHR.gltf.knight?"knight":"ganfaul");const h=makeHero(mdl,["sword","shield"],SKIN_TINT[skinId]);if(h){h.userData.helmet=mdl==="hoplite";if(h.userData.helmet){kingCrestFix(h);kingLift(h);kingCalmIdle(h);}kingGait(h);if(h.userData.helmet)h.traverse(o=>{if(o.userData&&(o.userData.prop==="sword"||o.userData.prop==="shield"))o.visible=false;});}   /* 기본 왕: 투구 쓴 그리스 전사. 칼과 방패는 모델에 붙어 있어 따로 쥐여 주는 것은 감춘다 */if(h){h.userData.skin=skinId;h.scale.setScalar(1.12);try{heroDeco(h,sk0||SKINS[0]);}catch(e){console.warn(e);}return h;}}}
   const sk=typeof skinId==="object"?(skinId.custom?GEN_LOOK.hadrik:skinId):(SKINS.find(s=>s.id===skinId)||SKINS[0]);
   const root=new THREE.Group();root.userData.skin=sk.id;
   const mk=parts=>{const m=meshOf(mergeSmooth(parts,0.03));return m;};
@@ -9499,6 +9514,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.161","앞으로 뛸 때 왕이 왼쪽을 보는 것처럼 보이던 것 고침: 투구 볏이 모델에서 약 30도 틀어져 있던 것을 바로잡고, 달릴 때 몸이 한쪽으로 치우치던 것도 맞춤"],
  ["0.9.160","전투에서 왕(말 탄 왕 포함)이 병사 사이를 지나가면 병사가 비켜선다(예전엔 몸을 통과) · 말 탄 왕의 몸과 고개가 앞을 보고 방패 든 왼팔이 말 걸음에 맞춰 움직인다 · 자원 줄을 화면 위에 붙이고 대습격 막대를 왼쪽으로"],
  ["0.9.159","사다리로 성벽을 넘은 적이 벽 속에서 솟지 않고 성벽 위로 올라와 안쪽으로 뛰어내린다(모든 성벽 전투) · 바르고스 둘레 병사가 몸에 겹치지 않는다 · 바르고스가 가까운 왕과 병사를 직접 벤다 · 달리는 왕의 왼팔이 자연스럽게 흔들리고 고개가 앞을 본다"],
  ["0.9.158","설정의 크레딧: 모델과 텍스처마다 원본 링크, CC BY 4.0 라이선스 링크, 게임에 맞게 고쳐 썼다는 표시를 넣음 · 왕궁 돌 텍스처(Poly Haven) 출처 추가"],
@@ -10302,7 +10318,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${dayKing(LOADED)}</small></button>`:`<button class="tb main" data-a="start">START<small>선왕의 마지막 밤부터</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">프롤로그 없이 시작<small>바로 1일째 왕궁에서</small></button>`}
       <button class="tb" data-a="practice">전투 연습</button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot tver">v0.9.160</p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot tver">v0.9.161</p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){

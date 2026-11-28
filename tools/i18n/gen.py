@@ -51,6 +51,7 @@ for m in miss[:20]: print('MISS',repr(m[:80]))
 out=open(OUT,encoding='utf-8').read()
 i=out.find('const CHANGES=[');j=out.find('];',i)
 EN_CH='''const CHANGES=[
+ ["0.9.161","Fixed the king looking slightly left while running straight: the helmet crest, modelled about 30 degrees crooked, is straightened, and a small sideways lean while running is corrected"],
  ["0.9.160","In battle, soldiers now step aside when the king (on foot or mounted) passes through them instead of overlapping · The mounted king faces forward and his shield arm moves with the horse's stride · The resource bar sits at the top of the screen and the raid bar moved to the left"],
  ["0.9.159","Enemies who climb a ladder now appear on top of the wall and jump down inside instead of rising out of it (all walled battles) · Soldiers no longer overlap Vargoth's body · Vargoth now strikes the king and soldiers near him · The running king swings his left arm naturally and looks ahead"],
  ["0.9.158","Credits in Settings now link to every original model and texture, link the CC BY 4.0 license and state that the assets were modified for the game · Added the source of the palace stone textures (Poly Haven)"],
