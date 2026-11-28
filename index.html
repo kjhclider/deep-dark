@@ -85,7 +85,7 @@ hr.orn{border:0;height:9px;margin:4px 0;background:radial-gradient(circle,var(--
 .lbl.sq.rout{border-color:var(--blood)} .lbl.sq.rout em{background:var(--blood)}
 
 /* ── 세계 HUD ── */
-.topbar{position:absolute;top:10px;left:10px;right:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;pointer-events:none}
+.topbar{position:absolute;top:10px;left:10px;right:10px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;pointer-events:none}
 #timeCtl{position:absolute;top:10px;right:10px;margin:0;pointer-events:auto;z-index:6}
 .topbar > *{pointer-events:auto}
 .crest{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 8px;background:linear-gradient(180deg,rgba(24,18,14,.9),rgba(8,6,7,.94));border:1px solid rgba(226,192,122,.5);border-radius:2px;box-shadow:0 0 14px rgba(255,180,90,.1),0 4px 14px rgba(0,0,0,.5)}
@@ -2667,6 +2667,15 @@ function kingHeadSteady(m,dt){const H=m.userData.hero;if(!H)return;if(H.headB===
   m.updateMatrixWorld(true);m.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const fy=Math.atan2(_hsV.x,_hsV.z);
   hb.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const hy=Math.atan2(_hsV.x,_hsV.z);const d=angDiff(hy,fy)*0.75*H._hs;
   hb.parent.getWorldQuaternion(_hsP);_hsC.setFromAxisAngle(_hsY,d);hb.quaternion.premultiply(_hsP.clone().invert().multiply(_hsC).multiply(_hsP));hb.updateMatrixWorld(true);}
+/* 말 탄 왕 앞 보기 (2026-11-28): 말 타기 동작(ride)은 몸통(어깨선)을 진행 방향보다 8도, 머리를 9도 왼쪽으로 돌린 채 고정돼 있어 "왼쪽을 보며 달리는" 것처럼 보였다(프롤로그 전투에서 잼). 베거나 맞지 않을 때 허리(Spine)로 어깨를, 그다음 머리를 앞으로 돌린다 */
+function kingRideFwd(m,dt,on){const H=m.userData.hero;if(!H)return;if(H.rfB===undefined){H.rfB=null;const b={};m.children[0]&&m.children[0].traverse(o=>{if(!o.isBone)return;for(const [k,re] of [["sp",/Spine$/],["ls",/LeftShoulder$/],["rs",/RightShoulder$/],["hd",/Head$/]])if(!b[k]&&re.test(o.name))b[k]=o;});if(b.sp&&b.ls&&b.rs&&b.hd)H.rfB=b;}const B=H.rfB;if(!B)return;
+  H._rf=(H._rf||0)+((on?1:0)-(H._rf||0))*Math.min(1,dt*5);if(H._rf<0.01)return;
+  const rot=(bone,d)=>{bone.parent.getWorldQuaternion(_hsP);_hsC.setFromAxisAngle(_hsY,d);bone.quaternion.premultiply(_hsP.clone().invert().multiply(_hsC).multiply(_hsP));bone.updateMatrixWorld(true);};
+  m.updateMatrixWorld(true);m.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);const fy=Math.atan2(_hsV.x,_hsV.z);
+  const a=B.ls.getWorldPosition(new THREE.Vector3()),b=B.rs.getWorldPosition(new THREE.Vector3());rot(B.sp,angDiff(Math.atan2(b.z-a.z,-(b.x-a.x)),fy)*H._rf);
+  B.hd.getWorldQuaternion(_hsQ);_hsV.set(0,0,1).applyQuaternion(_hsQ);rot(B.hd,angDiff(Math.atan2(_hsV.x,_hsV.z),fy)*H._rf);
+  /* 왼팔(방패, 고삐): 말 타기 동작에서 왼손이 0.02~0.04m밖에 안 움직여 굳어 보였다. 말 걸음에 맞춰 어깨를 앞뒤로 최대 10도 흔든다(보폭 약 3.5m마다 한 번) */
+  if(!B.la){m.children[0].traverse(o=>{if(!B.la&&o.isBone&&/LeftArm$/.test(o.name))B.la=o;});}const sp=Math.min(1,(KC.spd||0)/8);if(B.la&&sp>0.05){H._gp=((H._gp||0)+dt*(KC.spd||0)/3.5)%1;const ax=new THREE.Vector3(Math.cos(fy),0,-Math.sin(fy));B.la.parent.getWorldQuaternion(_hsP);_hsC.setFromAxisAngle(ax,Math.sin(H._gp*Math.PI*2)*0.17*sp*H._rf);B.la.quaternion.premultiply(_hsP.clone().invert().multiply(_hsC).multiply(_hsP));}}
 // 말 탄 자리 (2026-11-27): 엉덩이 뼈를 "말 등 겉면 + 그 모델의 엉덩이에서 가랑이 아랫면까지 거리"에 맞춘다. 예전에는 몸 원점(발)을 말 등뼈 + 0.06에 두어 허벅지가 말 등보다 33cm 떠 있었다
 // 가랑이 아랫면 점: 모델마다 한 번, 복제본에 말 타기 동작(x_ride)을 입혀 엉덩이 가운데에서 가로 30cm, 엉덩이 50cm 안, 엉덩이 뼈 높이 아래 점 번호를 골라 둔다(엉덩이, 허벅지 몫 0.6 넘는 점).
 // 매 프레임 그 점들만 동작을 입혀, 말 기준 가운데 띠(가로 16cm, 말 등 윗면 폭. 그 바깥 허벅지는 옆구리를 감싸 위아래로 잴 수 없다)에 든 엉덩이 아래 점과 바로 아래 말 등의 가장 작은 틈을 쓴다(말 위 베기처럼 허리가 비틀려 허벅지 안쪽이 내려오는 동작에서도 따른다. 가장 낮은 가랑이 점 하나만 따르면 베기 때 허벅지 안쪽이 말 등에 6cm 파묻혔다)
@@ -4993,7 +5002,7 @@ function kingStep(dt,env){
     // 자리는 등뼈보다 8cm 앞(등 윤곽이 가장 낮은 곳), 높이는 동작을 입힌 뒤 엉덩이 뼈를 "가랑이 바로 아래 등 겉면 + 가랑이 깊이 - 1cm"에 맞춘다(말 위 베기처럼 엉덩이가 움직이는 동작에서도 말 등에 붙는다)
     const hu=k.horse.userData;if(hu.seat===undefined){hu.seat=null;k.horse.traverse(o=>{if(!hu.seat&&o.isBone&&/spine_02/.test(o.name))hu.seat=o;});}
     if(hu.seat){k.horse.updateMatrixWorld(true);const sp=hu.seat.getWorldPosition(_seatV);if(!hu.backPts)hu.backPts=horseBackPts(k.horse,hu.seat);hu.seatY=sp.y+0.17;m.position.set(sp.x+fx*0.08,sp.y,sp.z+fz*0.08);}else m.position.y+=bob+pitch*0.25;
-    if(H){kingCarry(m,dt,true);if(k.atkT<=0&&k.hurtT<=0){heroPlay(m,"ride",0.25);H.attackT=0;}H.mixer.update(dt);thrustTick(k,m,dt);
+    if(H){kingCarry(m,dt,true);if(k.atkT<=0&&k.hurtT<=0){heroPlay(m,"ride",0.25);H.attackT=0;}H.mixer.update(dt);kingRideFwd(m,dt,k.atkT<=0&&k.hurtT<=0);thrustTick(k,m,dt);
       if(hu.seat){m.updateMatrixWorld(true);const hb=m.userData.hipB||(m.userData.hipB=(()=>{let b=null;m.traverse(o=>{if(!b&&o.isBone&&/Hips$/.test(o.name))b=o;});return b;})());const hy=hb?hb.getWorldPosition(_seatV2).y:m.position.y+1;
         const c=riderClear(riderPts(m),horseBackGrid(hu.backPts),k.horse,hy);if(c<1e8)m.position.y+=-0.01-c;else if(hb)m.position.y+=hu.seatY+0.25*m.scale.x-hy;}kingBladeClear(m,k.horse);}   /* 가랑이 둘레가 바로 아래 말 등 겉면보다 1cm 낮게(살짝 눌러 앉게). 모델에 점을 못 고르면 엉덩이 뼈를 등 + 25cm에 */
     // 짓밟기: 달리는 말은 앞의 적을 쓸어버린다
@@ -6947,6 +6956,9 @@ function defOutlookR(foe,us,vetAvg){const W=[0.36,0.42,0.45,0.53],l=clamp((S.bld
 function goalBarTick(){let el=$("#goalBar");if(!el){el=document.createElement("div");el.id="goalBar";document.body.appendChild(el);}
   const show=S&&!S.title&&!S.practice&&!BT&&(UI.mode==="capital"||UI.mode==="palace"||UI.mode==="map")&&typeof nextSurgeDay==="function";
   if(!show){el.hidden=true;return;}
+  /* 대습격 막대는 화면 가운데가 아니라 자원 줄 바로 아래, 왼쪽에 붙인다(주인님: 너무 가운데). 자원 줄이 없거나 좁은 화면(자원 줄이 둘째 줄)이면 예전 자리 */
+  {const rb=$("#resbar"),rr=rb&&rb.offsetParent?rb.getBoundingClientRect():null,z=parseFloat(getComputedStyle(el).zoom)||1;
+    if(rr&&rr.width>2&&innerWidth>760){el.style.left=(rr.left/z)+"px";el.style.top=((rr.bottom+6)/z)+"px";el.style.transform="none";}else{el.style.left="";el.style.top="";el.style.transform="";}}
   /* 사람 수를 나란히 놓지 않는다 — '만 명이 오면 만 명을 모아야 하나?' 오해. 대신 성벽·병사 질까지 따진 '방어 전망' 한마디
      (기준은 자동 결전을 성벽 단계마다 여러 번 돌려 맞췄다(2026-11-26): 이길 확률 반반인 판이 R 약 5.2(팽팽하다 가운데)가 되게.
       1차 대습격 크기에서 반반이 되는 망자 수는 우리 수의 0단계 약 2.0배, 1단계 2.4배, 2단계 2.5배, 3단계 2.9배(숙련 ★1) — defOutlookR) */
@@ -8320,6 +8332,8 @@ function separateFigs(B){_sepG.clear();const cs=1.6,key=(i,j)=>i*4096+j;const al
     for(let a=-R;a<=R;a++)for(let b=-R;b<=R;b++){const c=_sepG.get(key(i+a,j+b));if(!c)continue;for(const g of c){if(g===f)continue;const dx=f.x-g.x,dz=f.z-g.z,d2=dx*dx+dz*dz,m=f._r+g._r;if(d2<m*m&&d2>1e-6){const d=Math.sqrt(d2),pu=(m-d)*(g._r>f._r*1.5?0.6:0.4);f.x+=dx/d*pu;f.z+=dz/d*pu;}}}}
   // 두목 모델(바르고스 1.6배, 와록)은 몸이 크다: 같은 편, 다른 편 인형 모두 몸 반지름 밖으로 밀어낸다 (모델이 무리 앞줄 자리에 서서 병사와 겹쳐 보이던 것)
   if(!B.headless&&BR.capt&&BR.capt.m.visible&&BR.capt.sq&&act(BR.capt.sq)){const cp=BR.capt.m.position,rv=BR.capt.rv||0.7;for(const f of all){const dx=f.x-cp.x,dz=f.z-cp.z,d=Math.hypot(dx,dz),m=rv+f._r*0.8;if(d<m){const ux=d>1e-4?dx/d:Math.sin(f.vi||1),uz=d>1e-4?dz/d:Math.cos(f.vi||1);f.x=cp.x+ux*m;f.z=cp.z+uz*m;}}}
+  // 직접 조종하는 왕(장군)의 몸: 같은 편, 다른 편 인형을 몸 반지름(걸을 때 0.5m, 말 탄 몸 1.3m) 밖으로 민다 (예전엔 왕이 병사 인형을 그대로 통과했다)
+  if(!B.headless&&B.king&&B.kingPos&&BR.king&&BR.king.visible&&!KC.ko&&!B.kingDown&&E.camMode==="tp"){const kp=B.kingPos,kr=KC.mounted?1.3:0.5;for(const f of all){const dx=f.x-kp.x,dz=f.z-kp.z,d=Math.hypot(dx,dz),m=kr+f._r*0.8;if(d<m){const ux=d>1e-4?dx/d:Math.sin(f.vi||1),uz=d>1e-4?dz/d:Math.cos(f.vi||1);f.x=kp.x+ux*m;f.z=kp.z+uz*m;}}}
   // 투석기·충차는 지나갈 수 없다
   if(B.engines)for(const e of B.engines){if(e.hp<=0&&!e.ram)continue;const er=e.ram?3.4:2.8;for(const f of all){const dx=f.x-e.x,dz=f.z-e.z,d=Math.hypot(dx,dz),m=er+f._r;if(d<m&&d>1e-4){f.x=e.x+dx/d*m;f.z=e.z+dz/d*m;}}}
   // 탑, 문루 양옆 벽도 지나갈 수 없다: 서로 밀어낸 뒤 탑 속에 남은 인형을 밖으로 (성벽 위 궁병, 사다리 오르는 인형은 따로 다룬다)
@@ -9485,6 +9499,7 @@ function renderGuide(){try{tutNowTick();}catch(e){}{const jb=$("#jobMarks");if(j
   if(el._h!==html){el._h=html;el.innerHTML=fixJosa(html);}el.hidden=false;}
 
 const CHANGES=[
+ ["0.9.160","전투에서 왕(말 탄 왕 포함)이 병사 사이를 지나가면 병사가 비켜선다(예전엔 몸을 통과) · 말 탄 왕의 몸과 고개가 앞을 보고 방패 든 왼팔이 말 걸음에 맞춰 움직인다 · 자원 줄을 화면 위에 붙이고 대습격 막대를 왼쪽으로"],
  ["0.9.159","사다리로 성벽을 넘은 적이 벽 속에서 솟지 않고 성벽 위로 올라와 안쪽으로 뛰어내린다(모든 성벽 전투) · 바르고스 둘레 병사가 몸에 겹치지 않는다 · 바르고스가 가까운 왕과 병사를 직접 벤다 · 달리는 왕의 왼팔이 자연스럽게 흔들리고 고개가 앞을 본다"],
  ["0.9.158","설정의 크레딧: 모델과 텍스처마다 원본 링크, CC BY 4.0 라이선스 링크, 게임에 맞게 고쳐 썼다는 표시를 넣음 · 왕궁 돌 텍스처(Poly Haven) 출처 추가"],
  ["0.9.157","게임과 전투에 들어갈 때 로딩 화면(막대와 지금 하는 일)을 띄우고, 끊김을 만드는 준비(모델, 병사 동작, 그림)를 다 끝낸 뒤 넘어간다. Claude 연결을 고른 뒤도 같다 · 건물 이름표가 체력 막대, 자원 줄, 미니맵 뒤로 겹쳐 보이지 않는다 · 휴대폰에서 왕궁 미니맵 글씨를 키움 · 왕궁 성문 양옆과 대전 문 앞에 경비병이 다시 선다 · 왕의 걷는 속도를 원래대로(초속 3.1m) · 글꼴(고운바탕, Cinzel)을 게임 안에 넣어 인터넷이 없어도 같은 글씨로 보인다"],
@@ -10287,7 +10302,7 @@ function showTitle(fresh){if($("#tutArrow"))$("#tutArrow").hidden=true;
       ${has?`<button class="tb main" data-a="continue">CONTINUE<small>${dayKing(LOADED)}</small></button>`:`<button class="tb main" data-a="start">START<small>선왕의 마지막 밤부터</small></button><button class="tb" data-a="startSkip" style="font-size:13px;opacity:.85">프롤로그 없이 시작<small>바로 1일째 왕궁에서</small></button>`}
       <button class="tb" data-a="practice">전투 연습</button>
     </div>
-    <p class="tfoot" id="aiL"></p><p class="tfoot tver">v0.9.159</p>`+langTitleHtml();
+    <p class="tfoot" id="aiL"></p><p class="tfoot tver">v0.9.160</p>`+langTitleHtml();
   $("#title").hidden=false;UI.aiStatus();
 }
 function startNewGame(fromPro){
